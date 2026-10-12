@@ -12,7 +12,7 @@
    It defines the same  callSheets(payload)  function every page already uses, so
    the rest of each page keeps working unchanged.
    ============================================================================ */
-const SUPABASE_URL      = 'https://wvqaznclijycptpuxjni.supabase.co/';
+const SUPABASE_URL      = 'https://wvqaznclijycptpuxjni.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_ZVEYRaWmtQKFTiBQJhbpig_LUCt6vNH';
 
 (function () {
