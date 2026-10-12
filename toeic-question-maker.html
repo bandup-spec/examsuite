@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOEIC Question Maker — BandUp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#1a1a2e;--ink2:#4a4a6a;--ink3:#8888aa;
+    --paper:#faf9f7;--paper2:#f2f0ec;--paper3:#e8e5df;
+    --blue:#002f5f;--blue2:#1a5fa8;--gold:#c8a84b;
+    --green:#2e7d4f;--red:#c0392b;--border:rgba(0,0,0,0.1);
+  }
+  body{font-family:'DM Sans',sans-serif;background:var(--paper2);color:var(--ink);min-height:100vh}
+  .hdr{background:var(--blue);color:#fff;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:3px solid var(--gold)}
+  .hdr-logo{font-family:'Source Serif 4',serif;font-size:1.1rem;font-weight:600}
+  .hdr-logo span{color:var(--gold)}
+  .toeic-badge{background:rgba(200,168,75,0.2);border:1px solid var(--gold);color:var(--gold);border-radius:4px;padding:3px 10px;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;margin-left:10px}
+  .hdr-right a{color:#fff;text-decoration:none;font-size:0.83rem;opacity:0.85}
+  .wrap{max-width:980px;margin:0 auto;padding:28px 20px 80px}
+  .tabs{display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap}
+  .tab-btn{padding:8px 16px;border-radius:7px;border:1px solid var(--border);background:var(--paper);color:var(--ink2);font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer}
+  .tab-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .panel{display:none}
+  .panel.active{display:block}
+  .card{background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:18px}
+  .card-title{font-family:'Source Serif 4',serif;font-size:1.05rem;font-weight:600;color:var(--blue);margin-bottom:6px}
+  .card-desc{font-size:0.83rem;color:var(--ink3);margin-bottom:14px;line-height:1.5}
+  .part-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:10px}
+  .part-stat{background:var(--paper2);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+  .part-stat b{display:block;color:var(--blue);font-size:0.85rem;margin-bottom:2px}
+  .part-stat span{font-size:0.78rem;color:var(--ink3)}
+  .part-stat.ok{border-color:var(--green)}
+  .part-stat.warn{border-color:#d9a441}
+  textarea{width:100%;min-height:120px;padding:10px;border:1px solid var(--paper3);border-radius:7px;font-family:monospace;font-size:0.82rem;resize:vertical}
+  input[type=text],input[type=number],select{padding:8px 11px;border:1px solid var(--paper3);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.87rem}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:0.8rem;font-weight:600;color:var(--ink2);margin-bottom:5px}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{padding:9px 18px;border-radius:7px;border:none;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer}
+  .btn-blue{background:var(--blue);color:#fff}
+  .btn-blue:hover{background:var(--blue2)}
+  .btn-green{background:var(--green);color:#fff}
+  .btn-outline{background:transparent;border:1px solid var(--border);color:var(--ink2)}
+  .btn-outline:hover{background:var(--paper2)}
+  table{width:100%;border-collapse:collapse;font-size:0.8rem;margin-top:10px}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--paper3)}
+  th{color:var(--ink3);font-weight:600;text-transform:uppercase;font-size:0.68rem;letter-spacing:0.05em}
+  .msg{padding:10px 14px;border-radius:8px;font-size:0.83rem;margin-top:10px}
+  .msg.ok{background:rgba(46,125,79,0.1);color:var(--green);border:1px solid rgba(46,125,79,0.3)}
+  .msg.err{background:rgba(192,57,43,0.1);color:var(--red);border:1px solid rgba(192,57,43,0.3)}
+  code{background:var(--paper2);padding:1px 6px;border-radius:4px;font-size:0.8rem}
+  .pill{display:inline-block;background:#e8f0ff;color:var(--blue);border:1px solid #c0d0f0;border-radius:5px;padding:2px 8px;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-right:5px}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-logo">Band<span>Up</span> <span class="toeic-badge">TOEIC Question Maker</span></div>
+  <div class="hdr-right"><a href="admin.html">← Back to Admin</a></div>
+</div>
+
+<div class="wrap">
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('info',this)">1. Test Info</button>
+    <button class="tab-btn" onclick="showTab('import',this)">2. Import Questions (CSV)</button>
+    <button class="tab-btn" onclick="showTab('review',this)">3. Review</button>
+    <button class="tab-btn" onclick="showTab('publish',this)">4. Publish</button>
+  </div>
+
+  <!-- ============ TAB 1: INFO ============ -->
+  <div class="panel active" id="tab-info">
+    <div class="card">
+      <div class="card-title">TOEIC Listening &amp; Reading — Test Info</div>
+      <div class="card-desc">This is the standard TOEIC L&amp;R format: 100 Listening questions (Parts 1–4) + 100 Reading questions (Parts 5–7), all multiple choice. No Writing or Speaking sections. Questions are numbered 1–100 (Listening) and 101–200 (Reading), matching the real test.</div>
+      <div class="field"><label>Test Title</label><input type="text" id="cfg-title" value="TOEIC Practice Test 1" style="width:100%"></div>
+      <div class="field"><label>Full Listening Audio URL <span style="color:var(--ink3);font-weight:400">(optional — one continuous track covering all 4 parts, ~45 min. If left blank, you can instead set an audio URL per group in the CSV.)</span></label>
+        <input type="text" id="cfg-audio" placeholder="https://... .mp3 or YouTube embed URL" style="width:100%">
+      </div>
+      <div class="part-grid" id="part-summary"></div>
+    </div>
+  </div>
+
+  <!-- ============ TAB 2: IMPORT ============ -->
+  <div class="panel" id="tab-import">
+    <div class="card">
+      <div class="card-title">Bulk import via CSV</div>
+      <div class="card-desc">
+        With 200 questions per test, an in-browser editor is much faster than adding items one by one via forms. Start blank and add rows, or upload a CSV first (Google Sheets/Excel export) and keep editing it here — either way, work autosaves as you type.
+      </div>
+      <div class="row" style="margin-bottom:14px">
+        <button class="btn btn-outline" onclick="downloadTemplate()">⬇ Download CSV Template</button>
+        <input type="file" id="csv-file" accept=".csv" onchange="handleCSV(this)">
+        <button class="btn btn-outline" onclick="exportEditorCSV()">⬇ Export current table as CSV</button>
+      </div>
+      <div id="import-msg"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Question editor <span style="color:var(--ink3);font-weight:400;font-size:0.8rem" id="editor-count"></span></div>
+      <div class="card-desc">Edit any cell directly. <code>group</code> only matters for Parts 3, 4, 6, 7 (same group = shares one audio clip / passage / image — fill <code>audioURL</code>/<code>imgURL</code>/<code>passageText</code> on that group's first row only). Rows are sorted by <code>num</code> automatically when you click Apply.</div>
+      <div class="row" style="margin:10px 0 14px">
+        <button class="btn btn-blue" onclick="addEditorRow()">+ Add Row</button>
+        <button class="btn btn-green" onclick="applyEditorToTest()">✅ Apply to Test</button>
+      </div>
+      <div style="overflow-x:auto;max-height:520px;overflow-y:auto;border:1px solid var(--paper3);border-radius:8px">
+        <table id="editor-table" style="min-width:1400px;font-size:0.78rem">
+          <thead style="position:sticky;top:0;background:var(--paper2);z-index:1">
+            <tr>
+              <th style="width:50px">Part</th><th style="width:60px">Group</th><th style="width:60px">Num</th>
+              <th style="min-width:200px">qText</th>
+              <th style="width:110px">A</th><th style="width:110px">B</th><th style="width:110px">C</th><th style="width:110px">D</th>
+              <th style="width:60px">Ans</th>
+              <th style="min-width:160px">audioURL</th><th style="min-width:160px">imgURL</th>
+              <th style="min-width:220px">passageText</th><th style="width:36px"></th>
+            </tr>
+          </thead>
+          <tbody id="editor-body"></tbody>
+        </table>
+      </div>
+      <div id="editor-msg"></div>
+      <div class="card-title" style="font-size:0.9rem;margin-top:18px">Column reference</div>
+      <table>
+        <tr><th>Column</th><th>Used by</th><th>Notes</th></tr>
+        <tr><td><code>part</code></td><td>all</td><td>1–7</td></tr>
+        <tr><td><code>group</code></td><td>3,4,6,7</td><td>Groups questions sharing one audio clip or passage, e.g. <code>C1</code>, <code>T1</code>, <code>P1</code>, <code>R1</code></td></tr>
+        <tr><td><code>num</code></td><td>all</td><td>Question number (1–100 Listening, 101–200 Reading)</td></tr>
+        <tr><td><code>qText</code></td><td>3,4,5,6,7</td><td>Question text (blank for Parts 1–2, which are audio-only)</td></tr>
+        <tr><td><code>optionA..D</code></td><td>all except 1,2*</td><td>*Part 1 uses only the answer letter; Part 2 has 3 spoken options (A–C), leave optionD blank</td></tr>
+        <tr><td><code>answer</code></td><td>all</td><td>Correct letter, A–D</td></tr>
+        <tr><td><code>audioURL</code></td><td>1,2,3,4</td><td>Per-item (Parts 1–2) or once per group, first row only (Parts 3–4)</td></tr>
+        <tr><td><code>imgURL</code></td><td>1,4,6,7</td><td>Part 1: photo per item. Parts 4, 6, 7: one image per group (e.g. a chart, form, receipt, or ad) — fill it once per group, first row only, same as <code>audioURL</code>/<code>passageText</code>.</td></tr>
+        <tr><td><code>passageText</code></td><td>6,7</td><td>Full passage HTML/text. For Part 6, mark blanks as <code>[[num]]</code> inline. For Part 7 double/triple passages, separate texts with <code>===PASSAGE===</code>. Only needs to be filled once per group (first row). Optional if the group is graphic-only (image + questions, no body text) — leave blank and use <code>imgURL</code> instead.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ TAB 3: REVIEW ============ -->
+  <div class="panel" id="tab-review">
+    <div class="card">
+      <div class="card-title">Review imported questions</div>
+      <div class="card-desc">Quick sanity check before publishing — confirms every number 1–200 is present exactly once and every item has an answer.</div>
+      <div id="review-out"></div>
+    </div>
+  </div>
+
+  <!-- ============ TAB 4: PUBLISH ============ -->
+  <div class="panel" id="tab-publish">
+    <div class="card">
+      <div class="card-title">Download Config JSON</div>
+      <div class="card-desc">
+        This produces a single JSON file for the whole test — same publish flow as the IELTS Question Maker:
+        <ol style="margin:8px 0 0 18px;line-height:1.7">
+          <li>Click <b>Download Config JSON</b> below.</li>
+          <li>In your GitHub repo, go to <code>configs/TOEIC/</code> (create the folder if it doesn't exist) and upload the file.</li>
+          <li>Click the uploaded file → <b>Raw</b> → copy that URL.</li>
+          <li>In <code>admin.html</code> → Publish panel, paste the Raw URL, set <b>Exam Type: TOEIC</b>, and make sure the Test Set Name contains the word <b>"TOEIC"</b> (e.g. "TOEIC Mock Test 1") — <code>tests.html</code> uses that to route candidates to the TOEIC test screen instead of the IELTS one.</li>
+        </ol>
+      </div>
+      <button class="btn btn-green" onclick="downloadConfig()">⬇ Download Config JSON</button>
+      <div id="publish-msg"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Send Answer Key to the Server</div>
+      <div class="card-desc">
+        The config JSON you upload to GitHub is public, so — same as the IELTS side of this app — it should <b>not</b> contain the correct answers. Grading happens server-side instead: this sends the answer key to the protected answer-key table, keyed to a Test Set ID. (You can also paste or review it in <code>admin.html</code> → Answer Keys.)
+        <br><br>
+        Create the test set first in <code>admin.html</code> → Publish panel (so you have a Test Set ID to paste below), then come back here and click Send.
+      </div>
+      <button class="btn btn-blue" onclick="sendAnswerKeyToSheet()">🔑 Send Answer Key</button>
+      <div id="ak-msg"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="bandup-api.js"></script>
+<script>
+// Only signed-in admins may open this page. Sub-admins also need the "questionmaker" permission
+// (the server enforces the same rule — this just sends people to the right place).
+(function adminGuard() {
+  const isAdmin = sessionStorage.getItem('userRole') === 'Admin' && !!sessionStorage.getItem('adminToken');
+  if (!isAdmin) { window.location.replace('index.html'); return; }
+  if (sessionStorage.getItem('adminRole') === 'SubAdmin') {
+    let perms = [];
+    try { perms = JSON.parse(sessionStorage.getItem('adminPerms') || '[]') || []; } catch (e) {}
+    if (!perms.includes('questionmaker')) window.location.replace('admin.html');
+  }
+})();
+
+// ============================================================
+// TOEIC numbering scheme (matches the real test)
+// Part 1  Photographs           1–6      (6 items)
+// Part 2  Question-Response     7–31     (25 items)
+// Part 3  Conversations         32–70    (39 items, ~13 groups of 3)
+// Part 4  Talks                 71–100   (30 items, ~10 groups of 3)
+// Part 5  Incomplete Sentences  101–130  (30 items)
+// Part 6  Text Completion       131–146  (16 items, 4 groups of 4)
+// Part 7  Reading Comprehension 147–200  (54 items, grouped by passage)
+// ============================================================
+const PART_RANGES = {
+  1: [1,6],   2: [7,31],  3: [32,70],  4: [71,100],
+  5: [101,130], 6: [131,146], 7: [147,200]
+};
+const PART_NAMES = {
+  1:'Photographs', 2:'Question-Response', 3:'Conversations', 4:'Talks',
+  5:'Incomplete Sentences', 6:'Text Completion', 7:'Reading Comprehension'
+};
+
+let data = { // part -> array of item objects (or group objects for 3/4/6/7)
+  1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[]
+};
+
+function showTab(id, btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='review') renderReview();
+  if(id==='info') renderSummary();
+}
+
+function renderSummary(){
+  const grid = document.getElementById('part-summary');
+  let html='';
+  for(let p=1;p<=7;p++){
+    const [lo,hi] = PART_RANGES[p];
+    const expected = hi-lo+1;
+    const count = countItemsInPart(p);
+    const cls = count===expected ? 'ok' : (count>0?'warn':'');
+    html += `<div class="part-stat ${cls}"><b>Part ${p} — ${PART_NAMES[p]}</b><span>Q${lo}–${hi} · ${count}/${expected} loaded</span></div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function countItemsInPart(p){
+  if([3,4,6,7].includes(p)){
+    let c=0;
+    (data[p]||[]).forEach(g=>c+=(g.items||[]).length);
+    return c;
+  }
+  return (data[p]||[]).length;
+}
+
+function downloadTemplate(){
+  const rows = [
+    ['part','group','num','qText','optionA','optionB','optionC','optionD','answer','audioURL','imgURL','passageText'],
+    ['1','','1','','','','','','A','https://example.com/audio/p1_q1.mp3','https://example.com/img/p1_q1.jpg',''],
+    ['2','','7','','','','','','B','https://example.com/audio/p2_q7.mp3','',''],
+    ['3','C1','32','What does the woman want to do?','Book a flight','Cancel a meeting','Order supplies','Return a product','A','https://example.com/audio/c1.mp3','',''],
+    ['3','C1','33','What does the man suggest?','Calling later','Checking online','Visiting the office','Sending an email','B','','',''],
+    ['3','C1','34','What will happen next?','A refund','A callback','A delivery','A discount','C','','',''],
+    ['4','T1','71','What is the chart mainly about?','Sales by region','Store hours','Staff schedule','Delivery routes','A','https://example.com/audio/t1.mp3','https://example.com/img/t1_chart.jpg',''],
+    ['4','T1','72','According to the chart, which region had the highest sales?','North','South','East','West','C','','',''],
+    ['4','T1','73','What will most likely happen next quarter?','Prices will rise','A new store will open','Staff will be hired','Sales will be reviewed','D','','',''],
+    ['5','','101','The manager ------- the report before the meeting.','reviewed','review','reviewing','to review','A','','',''],
+    ['6','P1','131','','delivered','delivers','delivering','to deliver','A','','','Dear team, the shipment was [[131]] yesterday. We will [[132]] it to the warehouse. Please [[133]] the invoice. Thank you [[134]] your patience.'],
+    ['6','P1','132','','send','sends','sent','to send','A','','',''],
+    ['6','P1','133','','confirm','confirms','confirmed','to confirm','A','','',''],
+    ['6','P1','134','','for','of','with','on','A','','',''],
+    ['7','R1','147','What is the purpose of the notice?','To announce a sale','To request feedback','To confirm a booking','To advertise a job','A','','','Notice: Our store will be closed for renovation from June 1 to June 10.'],
+    ['7','R2','148','According to the schedule, what time does the workshop start?','9:00 AM','10:00 AM','1:00 PM','3:00 PM','B','','https://example.com/img/r2_schedule.jpg','']
+  ];
+  const csv = rows.map(r=>r.map(csvEscape).join(',')).join('\n');
+  downloadBlob(csv, 'toeic_template.csv', 'text/csv');
+}
+function csvEscape(v){
+  v = String(v==null?'':v);
+  if(/[",\n]/.test(v)) return '"'+v.replace(/"/g,'""')+'"';
+  return v;
+}
+function downloadBlob(content, filename, type){
+  const blob = new Blob([content], {type});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
+
+function parseCSV(text){
+  // simple RFC4180-ish parser (handles quoted fields with commas/newlines)
+  const rows=[]; let row=[]; let field=''; let inQuotes=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(inQuotes){
+      if(c==='"'){
+        if(text[i+1]==='"'){ field+='"'; i++; } else inQuotes=false;
+      } else field+=c;
+    } else {
+      if(c==='"') inQuotes=true;
+      else if(c===','){ row.push(field); field=''; }
+      else if(c==='\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+      else if(c==='\r'){ /* skip */ }
+      else field+=c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r=>r.some(c=>String(c).trim()!==''));
+}
+
+function handleCSV(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const rows = parseCSV(e.target.result);
+      const headers = rows[0].map(h=>h.trim());
+      const recs = rows.slice(1).map(r=>{
+        const o={};
+        headers.forEach((h,i)=>o[h]=(r[i]||'').trim());
+        return {part:o.part||'', group:o.group||'', num:o.num||'', qText:o.qText||'',
+                optionA:o.optionA||'', optionB:o.optionB||'', optionC:o.optionC||'', optionD:o.optionD||'',
+                answer:o.answer||'', audioURL:o.audioURL||'', imgURL:o.imgURL||'', passageText:o.passageText||''};
+      });
+      editorRows = recs;
+      renderEditor();
+      saveEditorState();
+      document.getElementById('import-msg').innerHTML = `<div class="msg ok">Loaded ${recs.length} rows into the editor below — edit freely, then click Apply to Test.</div>`;
+    } catch(err){
+      document.getElementById('import-msg').innerHTML = `<div class="msg err">Could not parse this file: ${err.message}</div>`;
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// ═══════════════════════════════════════
+// IN-BROWSER CSV EDITOR (add/edit/delete rows directly, no external app needed)
+// ═══════════════════════════════════════
+const EDITOR_COLS = ['part','group','num','qText','optionA','optionB','optionC','optionD','answer','audioURL','imgURL','passageText'];
+let editorRows = [];
+const EDITOR_STORAGE_KEY = 'toeic_editor_rows_v1';
+
+function blankRow(){
+  const o={}; EDITOR_COLS.forEach(c=>o[c]=''); return o;
+}
+
+function saveEditorState(){
+  try { localStorage.setItem(EDITOR_STORAGE_KEY, JSON.stringify(editorRows)); } catch(e){}
+}
+function loadEditorState(){
+  try {
+    const raw = localStorage.getItem(EDITOR_STORAGE_KEY);
+    if(raw){ editorRows = JSON.parse(raw); }
+  } catch(e){}
+}
+
+function addEditorRow(){
+  editorRows.push(blankRow());
+  renderEditor();
+  saveEditorState();
+  // scroll to and focus the new row's first cell
+  requestAnimationFrame(()=>{
+    const body = document.getElementById('editor-body');
+    const lastRow = body.lastElementChild;
+    if(lastRow){ lastRow.scrollIntoView({behavior:'smooth', block:'end'}); const inp = lastRow.querySelector('input,textarea'); if(inp) inp.focus(); }
+  });
+}
+function deleteEditorRow(i){
+  editorRows.splice(i,1);
+  renderEditor();
+  saveEditorState();
+}
+function updateEditorCell(i, col, val){
+  editorRows[i][col] = val;
+  saveEditorState();
+}
+
+function renderEditor(){
+  const body = document.getElementById('editor-body');
+  document.getElementById('editor-count').textContent = editorRows.length ? `(${editorRows.length} rows)` : '(empty — add a row or upload a CSV above)';
+  if(editorRows.length===0){
+    body.innerHTML = `<tr><td colspan="13" style="text-align:center;color:var(--ink3);padding:20px">No rows yet. Click "+ Add Row" or upload a CSV.</td></tr>`;
+    return;
+  }
+  body.innerHTML = editorRows.map((r,i) => `
+    <tr>
+      <td>${cellInput(i,'part',r.part,'text',40)}</td>
+      <td>${cellInput(i,'group',r.group,'text',50)}</td>
+      <td>${cellInput(i,'num',r.num,'text',50)}</td>
+      <td>${cellInput(i,'qText',r.qText,'text',180)}</td>
+      <td>${cellInput(i,'optionA',r.optionA,'text',100)}</td>
+      <td>${cellInput(i,'optionB',r.optionB,'text',100)}</td>
+      <td>${cellInput(i,'optionC',r.optionC,'text',100)}</td>
+      <td>${cellInput(i,'optionD',r.optionD,'text',100)}</td>
+      <td>${cellInput(i,'answer',r.answer,'text',40)}</td>
+      <td>${cellInput(i,'audioURL',r.audioURL,'text',150)}</td>
+      <td>${cellInput(i,'imgURL',r.imgURL,'text',150)}</td>
+      <td>${cellInput(i,'passageText',r.passageText,'text',200)}</td>
+      <td><button onclick="deleteEditorRow(${i})" title="Delete row" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:0.9rem">✕</button></td>
+    </tr>`).join('');
+}
+
+function cellInput(i, col, val, type, width){
+  return `<input type="${type}" value="${attrEsc(val)}" style="width:${width}px;border:1px solid transparent;background:transparent;font-size:0.78rem;padding:4px 5px;border-radius:4px" onfocus="this.style.borderColor='var(--paper3)';this.style.background='#fff'" onblur="this.style.borderColor='transparent';this.style.background='transparent'" oninput="updateEditorCell(${i},'${col}',this.value)">`;
+}
+function attrEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+function exportEditorCSV(){
+  if(editorRows.length===0){ alert('The editor table is empty — nothing to export.'); return; }
+  const rows = [EDITOR_COLS, ...editorRows.map(r=>EDITOR_COLS.map(c=>r[c]||''))];
+  const csv = rows.map(r=>r.map(csvEscape).join(',')).join('\n');
+  downloadBlob(csv, 'toeic_questions.csv', 'text/csv');
+}
+
+function applyEditorToTest(){
+  if(editorRows.length===0){
+    document.getElementById('editor-msg').innerHTML = `<div class="msg err">The editor table is empty — add rows first.</div>`;
+    return;
+  }
+  loadRecords(editorRows);
+  renderSummary();
+  const total = countItemsInPart(1)+countItemsInPart(2)+countItemsInPart(3)+countItemsInPart(4)+countItemsInPart(5)+countItemsInPart(6)+countItemsInPart(7);
+  document.getElementById('editor-msg').innerHTML = `<div class="msg ok">Applied — ${total} questions loaded into the test. Check the Review tab, then Publish when ready.</div>`;
+}
+
+loadEditorState();
+renderEditor();
+renderSummary();
+
+function loadRecords(recs){
+  data = {1:[],2:[],3:[],4:[],5:[],6:[],7:[]};
+  const groupsByPart = {3:{},4:{},6:{},7:{}};
+
+  recs.forEach(r=>{
+    const part = parseInt(r.part,10);
+    if(!part || part<1 || part>7) return;
+    const num = parseInt(r.num,10);
+    const options = [r.optionA,r.optionB,r.optionC,r.optionD].filter(o=>o!=='');
+
+    if(part===1){
+      data[1].push({num, imgURL:r.imgURL||'', audioURL:r.audioURL||'', answer:(r.answer||'').toUpperCase()});
+    } else if(part===2){
+      data[2].push({num, audioURL:r.audioURL||'', answer:(r.answer||'').toUpperCase()});
+    } else if(part===3 || part===4){
+      const gid = r.group || ('G'+num);
+      if(!groupsByPart[part][gid]) groupsByPart[part][gid] = {groupID:gid, audioURL:'', imgURL:'', items:[]};
+      if(r.audioURL) groupsByPart[part][gid].audioURL = r.audioURL;
+      if(r.imgURL) groupsByPart[part][gid].imgURL = r.imgURL;
+      groupsByPart[part][gid].items.push({num, qText:r.qText||'', options, answer:(r.answer||'').toUpperCase()});
+    } else if(part===5){
+      data[5].push({num, qText:r.qText||'', options, answer:(r.answer||'').toUpperCase()});
+    } else if(part===6){
+      const gid = r.group || ('P'+num);
+      if(!groupsByPart[6][gid]) groupsByPart[6][gid] = {groupID:gid, passageText:'', imgURL:'', items:[]};
+      if(r.passageText) groupsByPart[6][gid].passageText = r.passageText;
+      if(r.imgURL) groupsByPart[6][gid].imgURL = r.imgURL;
+      groupsByPart[6][gid].items.push({num, options, answer:(r.answer||'').toUpperCase()});
+    } else if(part===7){
+      const gid = r.group || ('R'+num);
+      if(!groupsByPart[7][gid]) groupsByPart[7][gid] = {groupID:gid, passageText:'', imgURL:'', items:[]};
+      if(r.passageText) groupsByPart[7][gid].passageText = r.passageText;
+      if(r.imgURL) groupsByPart[7][gid].imgURL = r.imgURL;
+      groupsByPart[7][gid].items.push({num, qText:r.qText||'', options, answer:(r.answer||'').toUpperCase()});
+    }
+  });
+
+  [3,4,6,7].forEach(p=>{
+    data[p] = Object.values(groupsByPart[p]).map(g=>{
+      g.items.sort((a,b)=>a.num-b.num);
+      return g;
+    }).sort((a,b)=>a.items[0].num-b.items[0].num);
+  });
+  data[1].sort((a,b)=>a.num-b.num);
+  data[2].sort((a,b)=>a.num-b.num);
+  data[5].sort((a,b)=>a.num-b.num);
+}
+
+function renderReview(){
+  const out = document.getElementById('review-out');
+  const seen = {};
+  let issues = [];
+  for(let p=1;p<=7;p++){
+    if([3,4,6,7].includes(p)){
+      (data[p]||[]).forEach(g=>(g.items||[]).forEach(it=>{
+        if(seen[it.num]) issues.push(`Question ${it.num} appears more than once.`);
+        seen[it.num]=true;
+        if(!it.answer) issues.push(`Question ${it.num} (Part ${p}) has no answer set.`);
+      }));
+    } else {
+      (data[p]||[]).forEach(it=>{
+        if(seen[it.num]) issues.push(`Question ${it.num} appears more than once.`);
+        seen[it.num]=true;
+        if(!it.answer) issues.push(`Question ${it.num} (Part ${p}) has no answer set.`);
+      });
+    }
+  }
+  for(let n=1;n<=200;n++){
+    if(!seen[n]) issues.push(`Question ${n} is missing.`);
+  }
+  let html = `<div class="row" style="margin-bottom:12px">`;
+  for(let p=1;p<=7;p++){
+    const [lo,hi]=PART_RANGES[p];
+    html += `<span class="pill">Part ${p}: ${countItemsInPart(p)}/${hi-lo+1}</span>`;
+  }
+  html += `</div>`;
+  if(issues.length===0){
+    html += `<div class="msg ok">All 200 questions present, numbered correctly, each with an answer. Ready to publish.</div>`;
+  } else {
+    html += `<div class="msg err">${issues.length} issue(s) found:</div><table><tr><th>#</th><th>Issue</th></tr>` +
+      issues.slice(0,60).map((m,i)=>`<tr><td>${i+1}</td><td>${escH(m)}</td></tr>`).join('') + `</table>`;
+    if(issues.length>60) html += `<div style="font-size:0.8rem;color:var(--ink3);margin-top:6px">…and ${issues.length-60} more.</div>`;
+  }
+  out.innerHTML = html;
+}
+
+function escH(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function stripAnswers(obj){
+  // Deep clone while blanking every 'answer' field — the downloadable config
+  // is public (goes to GitHub), so it must never carry the correct answers.
+  // Real grading happens server-side against the AnswerKeys sheet instead.
+  const clone = JSON.parse(JSON.stringify(obj));
+  (function walk(o){
+    if(Array.isArray(o)){ o.forEach(walk); return; }
+    if(o && typeof o==='object'){
+      if('answer' in o) o.answer = '';
+      Object.values(o).forEach(walk);
+    }
+  })(clone);
+  return clone;
+}
+
+function buildConfig(){
+  const title = document.getElementById('cfg-title').value || 'TOEIC Practice Test';
+  const fullAudio = document.getElementById('cfg-audio').value || '';
+
+  const listeningParts = {};
+  [1,2,3,4].forEach(p=>{
+    if(p===1) listeningParts[p] = {name:PART_NAMES[p], items:data[1]};
+    else if(p===2) listeningParts[p] = {name:PART_NAMES[p], items:data[2]};
+    else listeningParts[p] = {name:PART_NAMES[p], groups:data[p]};
+  });
+
+  const readingParts = {};
+  readingParts[5] = {name:PART_NAMES[5], items:data[5]};
+  readingParts[6] = {name:PART_NAMES[6], groups:data[6]};
+  readingParts[7] = {name:PART_NAMES[7], groups:data[7]};
+
+  return {
+    examType: 'TOEIC',
+    meta: { title, generatedAt: new Date().toISOString() },
+    listening: { audioURL: fullAudio, parts: listeningParts },
+    reading: { parts: readingParts }
+  };
+}
+
+function downloadConfig(){
+  const total = countItemsInPart(1)+countItemsInPart(2)+countItemsInPart(3)+countItemsInPart(4)+countItemsInPart(5)+countItemsInPart(6)+countItemsInPart(7);
+  const msg = document.getElementById('publish-msg');
+  if(total===0){
+    msg.innerHTML = `<div class="msg err">No questions loaded yet — import a CSV first (Tab 2).</div>`;
+    return;
+  }
+  const cfg = stripAnswers(buildConfig());
+  const title = (document.getElementById('cfg-title').value||'toeic-config').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+  downloadBlob(JSON.stringify(cfg,null,2), `${title||'toeic-config'}.json`, 'application/json');
+  msg.innerHTML = `<div class="msg ok">Downloaded (answers stripped — public-safe). ${total}/200 questions included. Upload this file to <code>configs/TOEIC/</code> in your GitHub repo next.</div>`;
+}
+
+// ═══════════════════════════════════════
+// SEND ANSWER KEY TO GOOGLE SHEETS
+// Same JSONP pattern as question-maker.html / admin.html / simulation.html
+// (plain fetch() to the Apps Script Web App is blocked by CORS).
+// ═══════════════════════════════════════
+// callSheets() now comes from bandup-api.js (Supabase) — it adds the admin token automatically.
+
+function extractAnswerKeys(){
+  // Listening key is keyed 1–100 (matches config numbering).
+  // Reading key is keyed 1–100 RELATIVE (num - 100), because the generic
+  // server-side scorer (computeSectionScoreN_ in Code.gs) checks keys 1..maxN
+  // for both sections — it doesn't know about TOEIC's 101–200 numbering.
+  // The candidate-facing screen still displays the real number (e.g. "147").
+  const listeningKey = {};
+  data[1].forEach(it=>{ if(it.answer) listeningKey[it.num]=it.answer; });
+  data[2].forEach(it=>{ if(it.answer) listeningKey[it.num]=it.answer; });
+  [3,4].forEach(p=>(data[p]||[]).forEach(g=>(g.items||[]).forEach(it=>{ if(it.answer) listeningKey[it.num]=it.answer; })));
+
+  const readingKey = {};
+  data[5].forEach(it=>{ if(it.answer) readingKey[it.num-100]=it.answer; });
+  [6,7].forEach(p=>(data[p]||[]).forEach(g=>(g.items||[]).forEach(it=>{ if(it.answer) readingKey[it.num-100]=it.answer; })));
+
+  return {listeningKey, readingKey};
+}
+
+async function sendAnswerKeyToSheet(){
+  const {listeningKey, readingKey} = extractAnswerKeys();
+  const msg = document.getElementById('ak-msg');
+
+  if(Object.keys(listeningKey).length===0 && Object.keys(readingKey).length===0){
+    if(!confirm('The answer key looks empty right now (import a CSV first). Send anyway?')) return;
+  }
+
+  let testSetID = localStorage.getItem('toeic_active_setid') || '';
+  testSetID = prompt('Enter the TestSetID this answer key belongs to (see admin.html → Answer Keys / Test Sets):', testSetID);
+  if(!testSetID){ msg.innerHTML = `<div class="msg err">Cancelled — a Test Set ID is needed to send the answer key.</div>`; return; }
+  localStorage.setItem('toeic_active_setid', testSetID.trim());
+
+  try {
+    msg.innerHTML = `<div class="msg">⏳ Sending answer key...</div>`;
+    const res = await callSheets({
+      action: 'saveAnswerKey',
+      testSetID: testSetID.trim(),
+      listeningKey: JSON.stringify(listeningKey),
+      readingKey: JSON.stringify(readingKey),
+      updatedBy: 'toeic-question-maker'
+    });
+    if(res.success){
+      msg.innerHTML = `<div class="msg ok">✅ Answer key saved for ${escH(testSetID.trim())} (L:${Object.keys(listeningKey).length} R:${Object.keys(readingKey).length}).</div>`;
+    } else {
+      msg.innerHTML = `<div class="msg err">Failed: ${escH(res.message||'Unknown error')}</div>`;
+    }
+  } catch(err){
+    msg.innerHTML = `<div class="msg err">Could not reach the backend: ${escH(err.message)}</div>`;
+  }
+}
+
+renderSummary();
+</script>
+</body>
+</html>

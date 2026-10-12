@@ -1,0 +1,2625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — BandUp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#1a1a2e;--ink2:#4a4a6a;--ink3:#8888aa;
+    --paper:#faf9f7;--paper2:#f2f0ec;--paper3:#e8e5df;
+    --blue:#002f5f;--blue2:#1a5fa8;--gold:#c8a84b;
+    --green:#2e7d4f;--red:#c0392b;--border:rgba(0,0,0,0.1);
+  }
+  body{font-family:'DM Sans',sans-serif;background:var(--paper2);color:var(--ink);height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+  /* HEADER */
+  .hdr{background:var(--blue);color:#fff;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;border-bottom:3px solid var(--gold);position:relative}
+  .hdr-burger{display:none;background:transparent;border:none;color:#fff;font-size:1.4rem;cursor:pointer;padding:4px 8px;line-height:1}
+  @media(max-width:640px){
+    .hdr-burger{display:block}
+    .hdr-right{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;align-items:stretch;gap:10px;background:var(--blue);padding:14px 20px;box-shadow:0 8px 20px rgba(0,0,0,0.25);z-index:80}
+    .hdr-right.open{display:flex}
+    .hdr-right .btn-hdr{width:100%}
+  }
+  .hdr-logo{font-family:'Source Serif 4',serif;font-size:1.1rem;font-weight:600}
+  .hdr-logo span{color:var(--gold)}
+  .admin-badge{background:rgba(200,168,75,0.2);border:1px solid var(--gold);color:var(--gold);border-radius:4px;padding:3px 10px;font-size:0.75rem;font-weight:700;letter-spacing:0.08em}
+  .hdr-right{display:flex;gap:10px;align-items:center}
+  .btn-hdr{padding:6px 16px;border-radius:6px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:all 0.15s}
+  .btn-save-all{background:var(--green);color:#fff}
+  .btn-save-all:hover{opacity:0.9}
+  .btn-load{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3)}
+  .btn-load:hover{background:rgba(255,255,255,0.25)}
+  .btn-logout{background:var(--red);color:#fff}
+  .btn-logout:hover{opacity:0.9}
+
+  /* LAYOUT */
+  .main{display:flex;flex:1;overflow:hidden}
+  .sidebar{width:220px;background:var(--blue);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+  .sb-section{padding:16px 12px 8px;font-size:0.65rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.35)}
+  .sb-btn{display:flex;align-items:center;gap:10px;padding:10px 16px;border:none;background:transparent;color:rgba(255,255,255,0.65);font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:500;cursor:pointer;width:100%;text-align:left;transition:all 0.15s;border-left:3px solid transparent}
+  .sb-btn:hover{background:rgba(255,255,255,0.08);color:#fff}
+  .sb-btn.active{background:rgba(255,255,255,0.12);color:#fff;border-left-color:var(--gold)}
+  .sb-icon{font-size:1rem;width:20px;text-align:center}
+
+  /* CONTENT */
+  .content{flex:1;overflow-y:auto;padding:28px}
+  .content::-webkit-scrollbar{width:4px}
+  .content::-webkit-scrollbar-thumb{background:var(--paper3);border-radius:2px}
+  .panel{display:none}
+  .panel.active{display:block}
+
+  .panel-title{font-family:'Source Serif 4',serif;font-size:1.3rem;font-weight:600;color:var(--blue);margin-bottom:4px}
+  .panel-desc{font-size:0.83rem;color:var(--ink3);margin-bottom:24px}
+
+  /* CARDS */
+  .card{background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:20px}
+  .card-title{font-size:0.8rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--paper3)}
+
+  /* FORM FIELDS */
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:0.78rem;font-weight:600;color:var(--ink2);margin-bottom:5px}
+  .field input[type=text],.field textarea,.field select{width:100%;padding:8px 12px;border:1px solid var(--paper3);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--ink);background:#fff;transition:all 0.15s;resize:vertical}
+  .field input[type=text]:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--blue2);background:#f5f9ff}
+  .field textarea{min-height:100px;line-height:1.6}
+  .field input[type=file]{font-size:0.83rem;color:var(--ink2)}
+
+  /* Q CARDS (new modal-based system) */
+  .q-num-badge{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .q-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;position:relative}
+  .q-card-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+  .q-type-badge{background:#e8f0ff;color:var(--blue);border:1px solid #c0d0f0;border-radius:5px;padding:2px 9px;font-size:0.7rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase}
+  .q-card-text{font-size:0.86rem;color:var(--ink);margin-bottom:6px;line-height:1.5}
+  .q-card-ans{display:inline-block;background:#f5fbf7;border:1px solid #a8dbb8;color:var(--green);border-radius:5px;padding:2px 10px;font-size:0.78rem;font-weight:600;margin-top:4px}
+  .q-card-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:8px}
+  .q-card-opt{font-size:0.82rem;color:var(--ink2);margin:2px 0;display:flex;align-items:center;gap:6px}
+  .q-card-opt::before{content:'';width:10px;height:10px;border:1.5px solid #888;border-radius:50%;display:inline-block;flex-shrink:0}
+  .q-card-empty{text-align:center;padding:36px 16px;color:var(--ink3);font-size:0.85rem;border:2px dashed var(--paper3);border-radius:10px;margin-bottom:10px}
+  .q-card-empty span{display:block;font-size:1.6rem;margin-bottom:8px}
+  .btn-add-q-modal{display:flex;align-items:center;gap:7px;padding:8px 18px;border:1px dashed var(--blue2);border-radius:8px;font-size:0.83rem;font-weight:600;color:var(--blue2);background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:14px;transition:all 0.15s}
+  .btn-add-q-modal:hover{background:#f0f5ff}
+  .match-preview-box{border:1px solid #ccc;border-radius:7px;padding:8px 12px;background:#fafafa;margin-bottom:6px;font-size:0.82rem}
+  .match-preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px 14px;font-size:0.8rem}
+  .match-item-line{display:flex;align-items:center;gap:8px;font-size:0.82rem;margin:2px 0}
+  .match-item-blank{border-bottom:1px solid #555;min-width:30px;text-align:center;font-weight:700;font-size:0.8rem;color:var(--green);display:inline-block}
+
+  /* MODAL */
+  .qm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;justify-content:center;align-items:center;z-index:200}
+  .qm-overlay.open{display:flex}
+  .qm-box{background:#fff;width:580px;max-width:96vw;max-height:92vh;overflow-y:auto;border-radius:16px;border:2px solid #333;padding:26px;position:relative}
+  .qm-box::-webkit-scrollbar{width:4px}
+  .qm-box::-webkit-scrollbar-thumb{background:var(--paper3);border-radius:2px}
+  .qm-close{position:absolute;top:14px;right:18px;font-size:22px;cursor:pointer;font-weight:bold;background:none;border:none;color:var(--ink2);line-height:1}
+  .qm-title{font-family:'Source Serif 4',serif;font-size:1.05rem;font-weight:600;color:var(--blue);margin-bottom:18px}
+  .qm-field{margin-bottom:12px}
+  .qm-field label{display:block;font-size:0.77rem;font-weight:600;color:var(--ink2);margin-bottom:4px}
+  .qm-field input[type=text],.qm-field input[type=number],.qm-field select,.qm-field textarea{width:100%;padding:8px 11px;border:1px solid var(--paper3);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.87rem;color:var(--ink);background:#fff;box-sizing:border-box}
+  .qm-field input:focus,.qm-field select:focus,.qm-field textarea:focus{outline:none;border-color:var(--blue2)}
+  .qm-field textarea{min-height:52px;resize:vertical;line-height:1.5}
+  .qm-divider{border:none;border-top:1px solid var(--paper3);margin:14px 0}
+  .qm-section-label{font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);margin:10px 0 6px}
+  .qm-opt-row{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+  .qm-opt-ltr{font-weight:700;color:var(--blue);font-size:0.78rem;width:16px;flex-shrink:0}
+  .qm-opt-row input[type=text]{flex:1;padding:6px 9px;border:1px solid var(--paper3);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.84rem}
+  .qm-opt-row input[type=text]:focus{outline:none;border-color:var(--blue2)}
+  .qm-opt-row input[type=checkbox],.qm-opt-row input[type=radio]{width:15px;height:15px;accent-color:var(--green);cursor:pointer;flex-shrink:0}
+  .qm-del-opt{background:none;border:none;color:var(--ink3);cursor:pointer;font-size:0.9rem;padding:0;line-height:1;flex-shrink:0}
+  .qm-del-opt:hover{color:var(--red)}
+  .qm-add-opt{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border:1px dashed var(--blue2);border-radius:6px;font-size:0.78rem;font-weight:600;color:var(--blue2);background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px}
+  .qm-add-opt:hover{background:#f0f5ff}
+  .qm-opt-row-wrap{margin-bottom:9px}
+  .qm-opt-row-wrap .qm-opt-row{margin-bottom:0}
+  .qm-opt-imgrow{display:flex;align-items:center;gap:6px;margin:4px 0 0 23px}
+  .qm-opt-img-icon{font-size:0.78rem;opacity:0.55;flex-shrink:0}
+  .qm-opt-img-url{flex:1;padding:5px 8px;border:1px solid var(--paper3);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.76rem;color:var(--ink2)}
+  .qm-opt-thumb{height:26px;max-width:52px;border-radius:4px;border:1px solid var(--paper3);object-fit:cover;flex-shrink:0}
+  .qm-range-row{display:flex;align-items:center;gap:7px;font-size:0.82rem;color:var(--ink2);flex-wrap:wrap}
+  .qm-range-row input{width:55px!important;text-align:center;padding:5px 7px!important}
+  .qm-ans-field{background:#f5fbf7;border-color:#a8dbb8!important;color:var(--green)!important;font-weight:600}
+  .qm-match-choice-row{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+  .qm-match-ltr{font-weight:700;color:var(--blue);width:16px;font-size:0.78rem;flex-shrink:0}
+  .qm-match-item-row{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+  .qm-match-num{font-size:0.78rem;font-weight:700;color:var(--blue);width:20px;flex-shrink:0}
+  .qm-match-item-row .item-lbl{flex:1;padding:6px 9px;border:1px solid var(--paper3);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.84rem}
+  .qm-match-item-row .item-ans{width:55px;padding:6px 7px;border:1px solid var(--paper3);border-radius:6px;font-size:0.84rem;text-align:center;font-weight:700;color:var(--green)}
+  .qm-save-btn{width:100%;background:var(--green);color:#fff;border:none;padding:12px;border-radius:8px;font-weight:700;cursor:pointer;margin-top:16px;font-size:0.9rem;font-family:'DM Sans',sans-serif}
+  .qm-save-btn:hover{opacity:0.9}
+  .ct2-pick-row{display:flex;align-items:center;gap:7px;margin-bottom:8px;font-size:0.82rem;color:var(--ink2)}
+  .ct2-pick-row input{width:50px!important;text-align:center;padding:4px 7px!important}
+  .fc-blank-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .fc-blank-qnum{font-weight:700;color:var(--blue);font-size:0.8rem;width:32px;flex-shrink:0}
+  .fc-blank-row input{flex:1;padding:6px 9px;border:1px solid var(--paper3);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.84rem}
+  .fc-blank-row .fc-ans{width:140px!important;flex:none;color:var(--green);font-weight:600;background:#f5fbf7;border-color:#a8dbb8!important}
+
+  /* FC VISUAL LINE BUILDER */
+  .fc-line-wrap{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+  .fc-line-wrap:hover{border-color:var(--blue2)}
+  .fc-line-type-badge{font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+  .fc-line-editor{display:flex;align-items:center;gap:5px;flex-wrap:wrap;min-height:32px}
+  .fc-seg{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:5px;font-size:0.84rem}
+  .fc-seg-text{background:var(--paper2);border:1px solid var(--paper3);color:var(--ink);cursor:pointer}
+  .fc-seg-text:hover{border-color:var(--blue2)}
+  .fc-seg-blank{background:#e8f0ff;border:1px solid #b0c4f0;color:var(--blue);font-weight:700;font-size:0.82rem}
+  .fc-seg-del{background:none;border:none;color:var(--ink3);cursor:pointer;font-size:0.85rem;padding:0;line-height:1}
+  .fc-seg-del:hover{color:var(--red)}
+  .fc-add-text-btn{padding:3px 8px;border:1px dashed var(--blue2);border-radius:5px;font-size:0.78rem;color:var(--blue2);background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif}
+  .fc-add-blank-btn{padding:3px 8px;border:1px dashed var(--green);border-radius:5px;font-size:0.78rem;color:var(--green);background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600}
+  .fc-line-footer{display:flex;gap:4px;margin-top:6px}
+  .fc-line-move{padding:2px 6px;border:1px solid var(--border);border-radius:4px;background:var(--paper);cursor:pointer;font-size:0.75rem}
+  .fc-line-del{padding:2px 6px;border:1px solid #f5b8b8;border-radius:4px;background:#fff5f5;cursor:pointer;font-size:0.75rem;color:var(--red)}
+  .section-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+  .sec-tab{padding:6px 14px;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;font-weight:600;cursor:pointer;background:var(--paper);color:var(--ink2);transition:all 0.15s}
+  .sec-tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+  /* BUTTONS */
+  .btn{padding:8px 18px;border-radius:7px;font-size:0.83rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:all 0.15s}
+  .btn-blue{background:var(--blue);color:#fff} .btn-blue:hover{background:var(--blue2)}
+  .btn-green{background:var(--green);color:#fff} .btn-green:hover{opacity:0.9}
+  .btn-red{background:var(--red);color:#fff} .btn-red:hover{opacity:0.9}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--ink2)} .btn-ghost:hover{background:var(--paper2)}
+  .btn-gold{background:var(--gold);color:#fff} .btn-gold:hover{opacity:0.9}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
+  /* PASSAGE EDITOR */
+  .passage-textarea{width:100%;min-height:300px;padding:14px;border:1px solid var(--paper3);border-radius:8px;font-family:'Source Serif 4',serif;font-size:0.93rem;line-height:1.8;color:var(--ink);background:#fff;resize:vertical}
+  .passage-textarea:focus{outline:none;border-color:var(--blue2)}
+
+  /* AUDIO */
+  .audio-slot{background:var(--paper2);border:2px dashed var(--paper3);border-radius:8px;padding:20px;text-align:center;margin-bottom:10px}
+  .audio-slot.loaded{border-color:var(--green);background:#f5fbf7}
+  .audio-slot p{font-size:0.83rem;color:var(--ink3);margin-bottom:8px}
+  .audio-slot audio{width:100%;margin-top:8px}
+
+  /* CHECKER */
+  .checker-result{padding:12px 16px;border-radius:8px;margin-bottom:10px;font-size:0.85rem}
+  .checker-correct{background:#f0faf4;border:1px solid #a8dbb8;color:var(--green)}
+  .checker-wrong{background:#fff5f5;border:1px solid #f5b8b8;color:var(--red)}
+  .checker-score{font-family:'Source Serif 4',serif;font-size:2rem;font-weight:600;color:var(--blue);text-align:center;padding:20px 0}
+  .checker-band{font-size:0.9rem;color:var(--ink2);text-align:center;margin-top:-10px;margin-bottom:20px}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:12px 20px;border-radius:8px;font-size:0.85rem;font-weight:600;z-index:9999;opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none}
+  .toast.show{opacity:1;transform:translateY(0)}
+
+  /* SHEETS TABLE */
+  .sheets-table{width:100%;border-collapse:collapse;font-size:0.83rem}
+  .sheets-table th{background:var(--blue);color:#fff;padding:9px 12px;text-align:left;font-weight:600;font-size:0.75rem;letter-spacing:0.05em;white-space:nowrap}
+  .sheets-table td{padding:9px 12px;border-bottom:1px solid var(--paper3);color:var(--ink2);vertical-align:middle}
+  .sheets-table tr:hover td{background:var(--paper2)}
+  .sheets-table tr:last-child td{border-bottom:none}
+  .band-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-weight:700;font-size:0.78rem;background:var(--paper2);color:var(--blue)}
+  .band-high{background:#e8f5e9;color:#2e7d4f}
+  .band-mid{background:#fff9e6;color:#7a5f1a}
+  .band-low{background:#fff0f0;color:#c0392b}
+  .tbl-empty{text-align:center;padding:40px;color:var(--ink3);font-size:0.88rem}
+  .refresh-btn{padding:6px 14px;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;font-weight:600;color:var(--ink2);background:var(--paper);cursor:pointer;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:6px}
+  .refresh-btn:hover{background:var(--paper2)}
+  .sheets-status{font-size:0.8rem;color:var(--ink3);margin-left:10px}
+  .sheets-status.ok{color:var(--green)}
+  .sheets-status.err{color:var(--red)}
+  .delete-btn{padding:3px 8px;border:1px solid #f5b8b8;border-radius:4px;font-size:0.75rem;font-weight:600;color:var(--red);background:#fff5f5;cursor:pointer;font-family:'DM Sans',sans-serif}
+  .delete-btn:hover{background:#ffe0e0}
+
+  .hidden{display:none!important}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+  /* LIVE MONITOR */
+  .online-dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0}
+  .dot-online{background:#2e7d4f}
+  .dot-recent{background:#c8a84b}
+  .dot-offline{background:#8888aa}
+  .monitor-row{cursor:pointer}
+  .monitor-row:hover td{background:rgba(0,47,95,0.04)!important}
+  .prog-bar-wrap{background:var(--paper3);border-radius:4px;height:16px;overflow:hidden;flex:1}
+  .prog-bar-fill{height:100%;border-radius:4px;transition:width 0.5s ease;display:flex;align-items:center;padding-left:6px;font-size:0.65rem;font-weight:700;color:#fff;min-width:0}
+  .prog-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:0.78rem}
+  .prog-label{width:70px;flex-shrink:0;font-weight:600;color:var(--ink2)}
+
+  /* FORM COMPLETION (answer-row, used by HTML-template FC question type) */
+  .fc-answer-row{display:flex;align-items:center;gap:8px}
+  .fc-answer-row label{font-size:0.78rem;font-weight:700;color:var(--blue);width:28px;flex-shrink:0}
+  .fc-answer-row input{flex:1;padding:5px 10px;border:1px solid var(--paper3);border-radius:5px;font-family:'DM Sans',sans-serif;font-size:0.83rem;color:var(--green);font-weight:600}
+  .fc-answer-row input:focus{outline:none;border-color:var(--green)}
+
+  /* CHOOSE LETTERS */
+  .cl-settings{margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .cl-settings label{font-size:0.78rem;font-weight:600;color:var(--ink2)}
+  .cl-settings input[type=number]{width:60px;padding:4px 8px;border:1px solid var(--paper3);border-radius:5px;font-family:'DM Sans',sans-serif;font-size:0.83rem}
+  .cl-options-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;padding:10px;background:var(--paper2);border-radius:7px}
+  .cl-opt-row{display:flex;align-items:center;gap:6px}
+  .cl-opt-letter{font-size:0.75rem;font-weight:700;color:var(--blue);width:18px;flex-shrink:0}
+  .cl-opt-input{width:140px;padding:4px 8px;border:1px solid var(--paper3);border-radius:5px;font-family:'DM Sans',sans-serif;font-size:0.82rem}
+  .cl-opt-input:focus{outline:none;border-color:var(--blue2)}
+  .cl-correct-chk{accent-color:var(--green);cursor:pointer}
+  .cl-answer-row{display:flex;align-items:center;gap:6px;margin-top:8px}
+  .cl-answer-row label{font-size:0.78rem;font-weight:600;color:var(--ink2)}
+  .cl-answer-row input{padding:5px 10px;border:1px solid var(--paper3);border-radius:5px;font-family:'DM Sans',sans-serif;font-size:0.83rem;color:var(--green);font-weight:600;width:120px}
+
+  /* AUDIO SLOT */
+  .audio-slot{background:var(--paper2);border:2px dashed var(--paper3);border-radius:8px;padding:16px;text-align:center;margin-bottom:10px}
+  .audio-slot.loaded{border-color:var(--green);background:#f5fbf7}
+  .audio-slot p{font-size:0.83rem;color:var(--ink3);margin-bottom:8px}
+  .audio-slot audio{width:100%;margin-top:8px}
+
+  .extra-qs-section{margin-top:14px;border-top:1px dashed var(--paper3);padding-top:14px}
+  .extra-qs-title{font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px}
+  .btn-add-q{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border:1px dashed var(--blue2);border-radius:7px;font-size:0.82rem;font-weight:600;color:var(--blue2);background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:8px;transition:all 0.15s}
+  .btn-add-q:hover{background:#f0f5ff}
+  .extra-q-item{background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;position:relative}
+  .extra-q-remove{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--ink3);cursor:pointer;font-size:1rem;padding:0;line-height:1}
+  .extra-q-remove:hover{color:var(--red)}
+
+  /* CHOOSE TWO / MULTI-SELECT TYPE */
+  .ct-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+  .ct-count-wrap{display:flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--ink2)}
+  .ct-count-wrap input{width:50px;padding:4px 8px;border:1px solid var(--paper3);border-radius:5px;font-size:0.82rem;text-align:center;font-family:'DM Sans',sans-serif}
+  .ct-opts-wrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px;margin-top:6px}
+  .ct-opt-row{display:flex;align-items:center;gap:6px}
+  .ct-opt-row .mc-opt-label{width:20px;flex-shrink:0;font-weight:700;color:var(--blue);font-size:0.78rem}
+  .ct-opt-row input[type=text]{flex:1;padding:5px 9px;border:1px solid var(--paper3);border-radius:5px;font-size:0.82rem;font-family:'DM Sans',sans-serif}
+  .ct-opt-row input[type=text]:focus{outline:none;border-color:var(--blue2)}
+  .ct-opt-row input[type=checkbox]{accent-color:var(--green);width:15px;height:15px;cursor:pointer}
+  .ct-correct-hint{font-size:0.72rem;color:var(--ink3);margin-top:4px}
+  .add-opt-btn{padding:4px 10px;border:1px dashed var(--blue2);border-radius:5px;font-size:0.75rem;font-weight:600;color:var(--blue2);background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:6px}
+  .add-opt-btn:hover{background:#f0f5ff}
+  .del-opt-btn{width:20px;height:20px;border:none;background:none;color:var(--ink3);cursor:pointer;font-size:0.9rem;padding:0;line-height:1;flex-shrink:0}
+  .del-opt-btn:hover{color:var(--red)}
+
+  /* ADD EXTRA QUESTION (below FC) */
+  .extra-qs-wrap{margin-top:16px;border-top:1px dashed var(--paper3);padding-top:14px}
+  .extra-qs-title{font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px}
+  .add-extra-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border:1px dashed var(--blue2);border-radius:7px;font-size:0.82rem;font-weight:600;color:var(--blue2);background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:8px;width:100%;justify-content:center}
+  .add-extra-btn:hover{background:#f0f5ff}
+
+  /* AI GENERATOR */
+  .ai-q-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;position:relative}
+  .ai-q-card.selected{border-color:var(--green);background:#f5fbf7}
+  .ai-q-card-hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .ai-q-type-badge{background:#e8f0ff;color:var(--blue);border:1px solid #c0d0f0;border-radius:5px;padding:2px 9px;font-size:0.7rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase}
+  .ai-q-text{font-size:0.86rem;color:var(--ink);margin-bottom:8px;line-height:1.5}
+  .ai-q-opts{margin-bottom:8px}
+  .ai-q-opt{font-size:0.82rem;color:var(--ink2);margin:2px 0;padding-left:16px}
+  .ai-q-ans{display:inline-block;background:#f5fbf7;border:1px solid #a8dbb8;color:var(--green);border-radius:5px;padding:2px 10px;font-size:0.78rem;font-weight:600}
+  .ai-q-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+  .ai-q-chk{position:absolute;top:12px;right:12px;width:18px;height:18px;accent-color:var(--green);cursor:pointer}
+
+  /* Q BANK */
+  .qbank-card{background:#fff;border:1px solid var(--border);border-radius:9px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px}
+  .qbank-body{flex:1;min-width:0}
+  .qbank-text{font-size:0.85rem;color:var(--ink);margin-bottom:4px;line-height:1.5}
+  .qbank-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .qbank-tag{font-size:0.68rem;background:var(--paper2);border-radius:4px;padding:1px 7px;color:var(--ink3);font-weight:600}
+  .qbank-actions{display:flex;gap:5px;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:14px">
+    <div class="hdr-logo"><svg width="30" height="30" viewBox="0 0 290 270" role="img" aria-label="BandUp"><rect x="10" y="140" width="70" height="120" rx="10" fill="#c8a84b"/><rect x="110" y="90" width="70" height="170" rx="10" fill="#d8b85f"/><rect x="210" y="40" width="70" height="220" rx="10" fill="#c8a84b"/><path d="M27 110 L127 60 L227 10" fill="none" stroke="#f2e2b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M189 10 L227 10 L227 48" fill="none" stroke="#f2e2b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="admin-badge">Question Maker</div>
+  </div>
+  <button class="hdr-burger" onclick="toggleHdrMenu()" aria-label="Menu">☰</button>
+  <div class="hdr-right" id="hdr-actions">
+    <button class="btn-hdr" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3)" onclick="window.location.href='admin.html'">⚙️ Admin Panel</button>
+    <input type="file" id="f-load-config" class="hidden" accept=".json" onchange="loadConfig(this)">
+    <button class="btn-hdr btn-load" onclick="document.getElementById('f-load-config').click()">📂 Load Config</button>
+    <button class="btn-hdr btn-save-all" onclick="saveAllConfig()">💾 Save Config</button>
+    <button class="btn-hdr" style="background:#8a1c1c;color:#fff" onclick="sendAnswerKeyToSheet()">🔑 Send Answer Key</button>
+    <button class="btn-hdr btn-logout" onclick="if(confirm('Logout?')){window.location.href='index.html'}">Logout</button>
+  </div>
+</div>
+
+<div class="main">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-section">Test Content</div>
+    <button class="sb-btn active" onclick="showPanel('p-listening')" id="sb-p-listening"><span class="sb-icon">🎧</span> Listening</button>
+    <button class="sb-btn" onclick="showPanel('p-reading')"   id="sb-p-reading"><span class="sb-icon">📖</span> Reading</button>
+    <button class="sb-btn" onclick="showPanel('p-writing')"   id="sb-p-writing"><span class="sb-icon">✍️</span> Writing</button>
+    <div class="sb-section">Answers</div>
+    <button class="sb-btn" onclick="showPanel('p-answerkey')" id="sb-p-answerkey"><span class="sb-icon">🗝️</span> Answer Key</button>
+    <button class="sb-btn" onclick="showPanel('p-checker')"   id="sb-p-checker"><span class="sb-icon">✅</span> Checker</button>
+    <div class="sb-section">Questionnaire</div>
+    <button class="sb-btn" onclick="showPanel('p-qmaker')"    id="sb-p-qmaker"><span class="sb-icon">🧠</span> Q Maker</button>
+    <button class="sb-btn" onclick="showPanel('p-qbank')"     id="sb-p-qbank"><span class="sb-icon">🗄️</span> Question Bank</button>
+    <div class="sb-section">Export</div>
+    <button class="sb-btn" onclick="showPanel('p-export')"    id="sb-p-export"><span class="sb-icon">📄</span> PDF Export</button>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <!-- LISTENING PANEL -->
+    <div id="p-listening" class="panel active">
+      <div class="panel-title">Listening Section</div>
+      <div class="panel-desc" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <span>Upload audio files and manage questions for each section.</span>
+        <button class="btn-add-q-modal" onclick="openAIGen('L',null)" style="margin:0;border-color:var(--gold);color:var(--gold);padding:7px 16px">✨ AI Generate Questions</button>
+      </div>
+
+      <div class="section-tabs">
+        <button class="sec-tab active" onclick="showLSec(1,this)">Section 1 (Q1–10)</button>
+        <button class="sec-tab" onclick="showLSec(2,this)">Section 2 (Q11–20)</button>
+        <button class="sec-tab" onclick="showLSec(3,this)">Section 3 (Q21–30)</button>
+        <button class="sec-tab" onclick="showLSec(4,this)">Section 4 (Q31–40)</button>
+      </div>
+
+      <div id="L-sec-1" class="l-sec"></div>
+      <div id="L-sec-2" class="l-sec hidden"></div>
+      <div id="L-sec-3" class="l-sec hidden"></div>
+      <div id="L-sec-4" class="l-sec hidden"></div>
+    </div>
+
+
+    <!-- READING PANEL -->
+    <div id="p-reading" class="panel">
+      <div class="panel-title">Reading Section</div>
+      <div class="panel-desc">Edit reading passages and their questions. You can also use Form/Note Completion layout per passage.</div>
+      <div class="section-tabs">
+        <button class="sec-tab active" onclick="showRPass(1,this)">Passage 1 (Q1–13)</button>
+        <button class="sec-tab" onclick="showRPass(2,this)">Passage 2 (Q14–26)</button>
+        <button class="sec-tab" onclick="showRPass(3,this)">Passage 3 (Q27–40)</button>
+      </div>
+      <div id="R-pass-1" class="r-pass">
+        <div class="card"><div class="card-title">Passage 1 Text</div><textarea class="passage-textarea" id="R-text-1" placeholder="Paste or type the reading passage here..."></textarea></div>
+        <div class="card">
+          <div class="card-title">Questions 1–13</div>
+          <div id="R-qs-1">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+              <button class="btn-add-q-modal" onclick="qmOpen('R',1)" style="margin:0">+ Add Question</button>
+              <button class="btn-add-q-modal" onclick="openAIGen('R',1)" style="margin:0;border-color:var(--gold);color:var(--gold)">✨ AI Generate</button>
+            </div>
+            <div id="qlist-R-1" class="qlist"></div>
+          </div>
+        </div>
+      </div>
+      <div id="R-pass-2" class="r-pass hidden">
+        <div class="card"><div class="card-title">Passage 2 Text</div><textarea class="passage-textarea" id="R-text-2" placeholder="Paste or type the reading passage here..."></textarea></div>
+        <div class="card">
+          <div class="card-title">Questions 14–26</div>
+          <div id="R-qs-2">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+              <button class="btn-add-q-modal" onclick="qmOpen('R',2)" style="margin:0">+ Add Question</button>
+              <button class="btn-add-q-modal" onclick="openAIGen('R',2)" style="margin:0;border-color:var(--gold);color:var(--gold)">✨ AI Generate</button>
+            </div>
+            <div id="qlist-R-2" class="qlist"></div>
+          </div>
+        </div>
+      </div>
+      <div id="R-pass-3" class="r-pass hidden">
+        <div class="card"><div class="card-title">Passage 3 Text</div><textarea class="passage-textarea" id="R-text-3" placeholder="Paste or type the reading passage here..."></textarea></div>
+        <div class="card">
+          <div class="card-title">Questions 27–40</div>
+          <div id="R-qs-3">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+              <button class="btn-add-q-modal" onclick="qmOpen('R',3)" style="margin:0">+ Add Question</button>
+              <button class="btn-add-q-modal" onclick="openAIGen('R',3)" style="margin:0;border-color:var(--gold);color:var(--gold)">✨ AI Generate</button>
+            </div>
+            <div id="qlist-R-3" class="qlist"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- WRITING PANEL -->
+    <div id="p-writing" class="panel">
+      <div class="panel-title">Writing Section</div>
+      <div class="panel-desc">Set task prompts and upload chart/diagram images.</div>
+      <div class="card">
+        <div class="card-title">Task 1 — Report</div>
+        <div class="field"><label>Task Prompt</label><textarea id="W-prompt-1" placeholder="The chart below shows..." style="min-height:80px"></textarea></div>
+        <div class="field" style="margin-top:12px">
+          <label>Chart / Diagram Image URL <span style="font-weight:400;color:var(--ink3)">(optional — chart, graph, table or diagram)</span></label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="text" id="W-img-url-1"
+              placeholder="https://raw.githubusercontent.com/username/ielts-sim/main/images/chart.jpg"
+              oninput="saveWritingImgURL(1,this.value)"
+              style="flex:1;font-family:monospace;font-size:0.82rem">
+            <button class="btn btn-ghost" style="padding:6px 12px;font-size:0.78rem;white-space:nowrap" onclick="previewWritingImg(1)">👁 Preview</button>
+          </div>
+          <div id="W-img-preview-1" style="margin-top:6px"></div>
+        </div>
+        <div class="field"><label>Minimum Word Count</label><input type="text" id="W-min-1" value="150"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Task 2 — Essay</div>
+        <div class="field"><label>Task Prompt</label><textarea id="W-prompt-2" placeholder="Some people believe that..." style="min-height:80px"></textarea></div>
+        <div class="field"><label>Minimum Word Count</label><input type="text" id="W-min-2" value="250"></div>
+      </div>
+    </div>
+
+
+    <!-- ANSWER KEY PANEL -->
+    <div id="p-answerkey" class="panel">
+      <div class="panel-title">Answer Key</div>
+      <div class="panel-desc">Set correct answers for Listening and Reading. This is used by the auto-checker.</div>
+      <div class="section-tabs">
+        <button class="sec-tab active" onclick="showAKTab('L',this)">Listening (1–40)</button>
+        <button class="sec-tab" onclick="showAKTab('R',this)">Reading (1–40)</button>
+      </div>
+      <div id="AK-L" class="ak-tab">
+        <div class="card"><div class="card-title">Listening Answer Key</div><div id="AK-L-grid" class="row2"></div></div>
+      </div>
+      <div id="AK-R" class="ak-tab hidden">
+        <div class="card"><div class="card-title">Reading Answer Key</div><div id="AK-R-grid" class="row2"></div></div>
+      </div>
+    </div>
+
+
+    <!-- CHECKER PANEL -->
+    <div id="p-checker" class="panel">
+      <div class="panel-title">Answer Checker</div>
+      <div class="panel-desc">Load a candidate's JSON response file and check against the answer key.</div>
+      <div class="card">
+        <div class="card-title">Load Candidate Responses</div>
+        <div class="field"><label>Candidate Response File (.json)</label><input type="file" accept=".json" onchange="loadCandidateResponses(this)"></div>
+        <div id="checker-candidate-info" class="hidden" style="background:var(--paper2);border-radius:8px;padding:12px;margin-top:8px;font-size:0.85rem;color:var(--ink2)"></div>
+        <div class="btn-row"><button class="btn btn-blue" onclick="runChecker()">Run Checker</button></div>
+      </div>
+      <div id="checker-output" class="hidden">
+        <div class="card">
+          <div class="card-title">Results</div>
+          <div id="checker-score-display"></div>
+          <div id="checker-details-L"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Reading Results</div>
+          <div id="checker-details-R"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" onclick="exportCheckerPDF()">📄 Save Results as PDF</button>
+        </div>
+      </div>
+    </div>
+
+
+    <div id="p-export" class="panel">
+      <div class="panel-title">Save to PDF</div>
+      <div class="panel-desc">Export the question paper or answer sheet as a printable PDF.</div>
+      <div class="card">
+        <div class="card-title">Export Options</div>
+        <div class="field">
+          <label>Test Name / Title</label>
+          <input type="text" id="pdf-title" value="BandUp Simulation Test">
+        </div>
+        <div class="field">
+          <label>Subtitle / Date</label>
+          <input type="text" id="pdf-subtitle" value="">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-blue" onclick="exportQuestionPDF()">📄 Export Question Paper</button>
+          <button class="btn btn-green" onclick="exportAnswerSheetPDF()">📄 Export Answer Sheet</button>
+          <button class="btn btn-gold" onclick="exportAnswerKeyPDF()">🗝️ Export Answer Key</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- QUESTIONNAIRE MAKER PANEL -->
+    <div id="p-qmaker" class="panel">
+      <div class="panel-title">🧠 Questionnaire Maker</div>
+      <div class="panel-desc">AI-powered tools to build questions fast — generate from a passage, import via CSV, or browse the question bank.</div>
+
+      <!-- TOOL CARDS -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:24px">
+        <div class="card" style="cursor:pointer;transition:all 0.2s;border:2px solid transparent" onclick="showPanel('p-qbank')" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='transparent'">
+          <div style="font-size:2rem;margin-bottom:10px">🗄️</div>
+          <div style="font-weight:700;color:var(--blue);margin-bottom:4px">Question Bank</div>
+          <div style="font-size:0.82rem;color:var(--ink3)">Save, search, and reuse questions across test sets.</div>
+        </div>
+        <div class="card" style="cursor:pointer;transition:all 0.2s;border:2px solid transparent" onclick="openAIGen(null,null)" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='transparent'">
+          <div style="font-size:2rem;margin-bottom:10px">✨</div>
+          <div style="font-weight:700;color:var(--blue);margin-bottom:4px">AI Generator</div>
+          <div style="font-size:0.82rem;color:var(--ink3)">Paste a passage → Claude generates IELTS-style questions automatically.</div>
+        </div>
+        <div class="card" style="cursor:pointer;transition:all 0.2s;border:2px solid transparent" onclick="openCSVImport()" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='transparent'">
+          <div style="font-size:2rem;margin-bottom:10px">📥</div>
+          <div style="font-weight:700;color:var(--blue);margin-bottom:4px">Bulk CSV Import</div>
+          <div style="font-size:0.82rem;color:var(--ink3)">Upload a spreadsheet of questions to add them all at once.</div>
+        </div>
+      </div>
+
+      <!-- CSV IMPORT SECTION -->
+      <div class="card" id="csv-import-card" style="display:none">
+        <div class="card-title">📥 Bulk Import via CSV</div>
+        <div style="background:var(--paper2);border-radius:8px;padding:14px;font-size:0.83rem;color:var(--ink2);line-height:1.9;margin-bottom:14px">
+          <b style="color:var(--blue)">CSV Format:</b> Each row = one question.<br>
+          Required columns: <code>type, text, optionA, optionB, optionC, optionD, answer, section, part</code><br>
+          <b>type</b> options: <code>mc</code>, <code>tfng</code>, <code>yntg</code>, <code>short</code>, <code>fc</code><br>
+          <b>section</b>: <code>R</code> (Reading) or <code>L</code> (Listening) | <b>part</b>: <code>1</code>, <code>2</code>, or <code>3</code>
+        </div>
+        <div class="field">
+          <label>Download Template</label>
+          <button class="btn btn-ghost" onclick="downloadCSVTemplate()" style="padding:7px 14px;font-size:0.82rem">⬇ Download CSV Template</button>
+        </div>
+        <div class="field">
+          <label>Upload CSV File</label>
+          <input type="file" accept=".csv" onchange="handleCSVUpload(this)" style="font-size:0.83rem">
+        </div>
+        <div id="csv-preview-wrap" style="display:none">
+          <div style="font-size:0.78rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px">Preview (<span id="csv-count">0</span> questions)</div>
+          <div style="overflow-x:auto;margin-bottom:14px">
+            <table class="sheets-table" id="csv-preview-tbl">
+              <thead><tr><th>#</th><th>Type</th><th>Question Text</th><th>Answer</th><th>Section</th><th>Part</th></tr></thead>
+              <tbody id="csv-preview-body"></tbody>
+            </table>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-green" onclick="importCSVQuestions()">✅ Import All Questions</button>
+            <button class="btn btn-ghost" onclick="document.getElementById('csv-preview-wrap').style.display='none'">Cancel</button>
+          </div>
+          <div id="csv-import-status" style="margin-top:8px;font-size:0.83rem;display:none"></div>
+        </div>
+        <button class="btn btn-ghost" onclick="document.getElementById('csv-import-card').style.display='none'" style="margin-top:12px">✕ Close</button>
+      </div>
+    </div>
+
+
+    <!-- QUESTION BANK PANEL -->
+    <div id="p-qbank" class="panel">
+      <div class="panel-title">🗄️ Question Bank</div>
+      <div class="panel-desc">Your library of saved questions. Add any question here to reuse it across test sets.</div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+          <div class="card-title" style="margin:0">Saved Questions</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="text" id="qbank-search" placeholder="Search questions..." oninput="renderQBank()"
+              style="padding:7px 12px;border:1px solid var(--paper3);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.84rem;width:200px">
+            <select id="qbank-filter-type" onchange="renderQBank()"
+              style="padding:7px 10px;border:1px solid var(--paper3);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.82rem">
+              <option value="">All Types</option>
+              <option value="mc">Multiple Choice</option>
+              <option value="tfng">True/False/NG</option>
+              <option value="yntg">Yes/No/NG</option>
+              <option value="short">Short Answer</option>
+              <option value="fc">Form Completion</option>
+              <option value="match">Matching</option>
+            </select>
+            <button class="btn btn-blue" onclick="openAddToBank()" style="padding:7px 14px;font-size:0.82rem">+ Add Question</button>
+          </div>
+        </div>
+        <div id="qbank-wrap"><div class="tbl-empty">No questions in the bank yet. Add questions or generate them with AI.</div></div>
+      </div>
+
+      <!-- Add to Bank Form -->
+      <div class="card" id="qbank-add-card" style="display:none">
+        <div class="card-title">Add Question to Bank</div>
+        <div class="row2">
+          <div class="field">
+            <label>Question Type</label>
+            <select id="qbank-type">
+              <option value="mc">Multiple Choice</option>
+              <option value="tfng">True / False / Not Given</option>
+              <option value="yntg">Yes / No / Not Given</option>
+              <option value="short">Short Answer</option>
+              <option value="fc">Form Completion</option>
+              <option value="match">Matching</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Tags (comma-separated)</label>
+            <input type="text" id="qbank-tags" placeholder="e.g. reading, academic, environment">
+          </div>
+        </div>
+        <div class="field">
+          <label>Question Text</label>
+          <textarea id="qbank-qtext" placeholder="Enter the question..." style="min-height:70px"></textarea>
+        </div>
+        <div class="field">
+          <label>Options (one per line — for MC/TFNG)</label>
+          <textarea id="qbank-opts" placeholder="Option A&#10;Option B&#10;Option C&#10;Option D" style="min-height:80px"></textarea>
+        </div>
+        <div class="field">
+          <label>Correct Answer</label>
+          <input type="text" id="qbank-ans" placeholder="e.g. A or TRUE or the exact word">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-green" onclick="saveToBank()">💾 Save to Bank</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('qbank-add-card').style.display='none'">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- QUESTION MODAL -->
+
+<div class="qm-overlay" id="qm-overlay">
+  <div class="qm-box">
+    <button class="qm-close" onclick="qmClose()">×</button>
+    <div class="qm-title" id="qm-title">Add Question</div>
+
+    <div class="qm-field">
+      <label>Part / Group label (e.g. Part 1)</label>
+      <input type="text" id="qm-part" placeholder="Part 1">
+    </div>
+    <div class="qm-field">
+      <label>Instruction text</label>
+      <textarea id="qm-instr" placeholder="e.g. Complete the notes below. Write ONE WORD AND/OR A NUMBER for each answer."></textarea>
+    </div>
+
+    <hr class="qm-divider">
+
+    <div class="qm-field">
+      <label>Question Type</label>
+      <select id="qm-type" onchange="qmTypeChange()">
+        <option value="">— select type —</option>
+        <option value="fc">Form Completion (fill in the blank)</option>
+        <option value="mc">Multiple Choice (choose one)</option>
+        <option value="ct2">Choose TWO (multi-select)</option>
+        <option value="match">Matching</option>
+        <option value="short">Short Answer</option>
+        <option value="tfng">True / False / Not Given</option>
+        <option value="yntg">Yes / No / Not Given</option>
+      </select>
+    </div>
+
+    <div id="qm-type-area"></div>
+
+    <button class="qm-save-btn" onclick="qmSave()">SAVE QUESTION</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- AI GENERATOR MODAL -->
+
+<div class="qm-overlay" id="ai-gen-overlay">
+  <div class="qm-box" style="width:660px">
+    <button class="qm-close" onclick="closeAIGen()">×</button>
+    <div class="qm-title">✨ AI Question Generator</div>
+    <p style="font-size:0.82rem;color:var(--ink2);margin-bottom:16px;line-height:1.6">
+      Paste a passage or topic below. Claude will generate IELTS-style questions. Review them, then add to your test or Question Bank.
+    </p>
+
+    <div id="ai-gen-step1">
+      <div class="qm-field">
+        <label>Test Section</label>
+        <select id="ai-gen-section">
+          <option value="R">Reading</option>
+          <option value="L">Listening</option>
+        </select>
+      </div>
+      <div class="qm-field">
+        <label>Question Types to Generate</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem"><input type="checkbox" id="ai-t-mc" checked style="accent-color:var(--blue)"> Multiple Choice</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem"><input type="checkbox" id="ai-t-tfng" checked style="accent-color:var(--blue)"> True/False/NG</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem"><input type="checkbox" id="ai-t-yntg" style="accent-color:var(--blue)"> Yes/No/NG</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem"><input type="checkbox" id="ai-t-short" style="accent-color:var(--blue)"> Short Answer</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem"><input type="checkbox" id="ai-t-fc" style="accent-color:var(--blue)"> Form Completion</label>
+        </div>
+      </div>
+      <div class="qm-field">
+        <label>Number of Questions to Generate</label>
+        <select id="ai-gen-count">
+          <option value="3">3 questions</option>
+          <option value="5" selected>5 questions</option>
+          <option value="8">8 questions</option>
+          <option value="10">10 questions</option>
+        </select>
+      </div>
+      <div class="qm-field">
+        <label>Passage / Context Text</label>
+        <textarea id="ai-gen-passage" style="min-height:160px;resize:vertical;line-height:1.6" placeholder="Paste your reading passage or listening transcript here. The AI will base questions on this text.&#10;&#10;You can also type a topic (e.g. 'climate change and renewable energy') and the AI will create appropriate questions."></textarea>
+      </div>
+      <button class="qm-save-btn" id="ai-gen-btn" onclick="runAIGenerate()" style="background:linear-gradient(135deg,var(--blue),var(--blue2))">✨ Generate Questions</button>
+    </div>
+
+    <!-- Loading state -->
+    <div id="ai-gen-loading" style="display:none;text-align:center;padding:40px 20px">
+      <div class="spinner" style="border-top-color:var(--gold)"></div>
+      <div style="font-size:0.88rem;color:var(--ink2);margin-top:10px" id="ai-gen-loading-msg">Claude is generating questions...</div>
+    </div>
+
+    <!-- Results -->
+    <div id="ai-gen-results" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--green)">✅ <span id="ai-res-count">0</span> questions generated</div>
+        <button class="btn btn-ghost" onclick="resetAIGen()" style="padding:5px 12px;font-size:0.78rem">← Try Again</button>
+      </div>
+      <div id="ai-gen-cards"></div>
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn btn-green" onclick="addAllAIQuestions()">✅ Add All to Test</button>
+        <button class="btn btn-blue" onclick="saveAllAIToBank()">🗄️ Save All to Question Bank</button>
+        <button class="btn btn-ghost" onclick="closeAIGen()">Cancel</button>
+      </div>
+    </div>
+
+    <div id="ai-gen-error" style="display:none;background:#fff5f5;border:1px solid #f5b8b8;border-radius:8px;padding:14px;color:var(--red);font-size:0.84rem;margin-top:14px"></div>
+  </div>
+</div>
+
+
+<script src="bandup-api.js"></script>
+<script>
+// STATE
+// ═══════════════════════════════════════
+let config = {
+  listening: {
+    sections: [
+      { from:1, to:10, audioName:'', audioData:'', imgData:'' },
+      { from:11, to:20, audioName:'', audioData:'', imgData:'' },
+      { from:21, to:30, audioName:'', audioData:'', imgData:'' },
+      { from:31, to:40, audioName:'', audioData:'', imgData:'' },
+    ],
+    questions: {} // {1:{text:'',type:'short',options:[],answer:''}, ...}
+  },
+  reading: {
+    passages: { 1:'', 2:'', 3:'' },
+    questions: {}
+  },
+  writing: {
+    tasks: {
+      1: { prompt:'', imgURL:'', minWords:150 },
+      2: { prompt:'', imgData:'', minWords:250 }
+    }
+  },
+  answerKey: { L:{}, R:{} }
+};
+
+let candidateResponses = null;
+
+
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+window.onload = () => {
+  if (sessionStorage.getItem('userRole') !== 'Admin' || !sessionStorage.getItem('adminToken')) {
+    window.location.href = 'index.html'; return;
+  }
+  if (sessionStorage.getItem('adminRole') === 'SubAdmin') {   // sub-admins need the "questionmaker" permission
+    let perms = [];
+    try { perms = JSON.parse(sessionStorage.getItem('adminPerms') || '[]') || []; } catch(e) {}
+    if (!perms.includes('questionmaker')) { window.location.href = 'admin.html'; return; }
+  }
+  const saved = localStorage.getItem('ielts_admin_config');
+  if (saved) { try { config = JSON.parse(saved); } catch(e){} }
+
+  // Build Section 1 HTML first (it's the default active tab)
+  // Other sections are built lazily when tab is clicked
+  const sec1Container = document.getElementById('L-sec-1');
+  if (sec1Container && !sec1Container.innerHTML.trim()) {
+    const sec = config.listening.sections[0];
+    sec1Container.innerHTML = buildLSecHTML(1);
+    // Restore audio state
+    if (sec.audioURL) { switchAudioSrc(1,'url'); document.getElementById('audio-url-input-1').value = sec.audioURL; document.getElementById('audio-url-preview-1').innerHTML = buildURLPreview(sec.audioURL); }
+    if (sec.audioName) { document.getElementById('L-audio-name-1').textContent='🎵 '+sec.audioName; document.getElementById('L-audio-slot-1').classList.add('loaded'); }
+    if (sec.audioData) { const el=document.getElementById('L-audio-el-1'); el.src=sec.audioData; el.classList.remove('hidden'); }
+    if (sec.imgURL) {
+      const urlInp = document.getElementById('L-img-url-1');
+      const prev   = document.getElementById('L-img-preview-1');
+      if (urlInp) urlInp.value = sec.imgURL;
+      if (prev)   prev.innerHTML = `<img src="${sec.imgURL}" style="max-width:100%;max-height:150px;border-radius:6px;border:1px solid var(--border)">`;
+    }
+    if (sec.imgData) {
+      const prev = document.getElementById('L-img-preview-1');
+      if (prev) prev.innerHTML = `<img src="${sec.imgData}" style="max-width:100%;max-height:150px;border-radius:6px">`;
+    }
+  }
+
+  buildAnswerKeyGrids();
+  loadConfigToUI();
+};
+
+function toggleHdrMenu(){
+  document.getElementById('hdr-actions').classList.toggle('open');
+}
+function loadConfigToUI() {
+  // Writing
+  document.getElementById('W-prompt-1').value = config.writing.tasks[1].prompt || '';
+  document.getElementById('W-prompt-2').value = config.writing.tasks[2].prompt || '';
+  document.getElementById('W-min-1').value = config.writing.tasks[1].minWords || 150;
+  document.getElementById('W-min-2').value = config.writing.tasks[2].minWords || 250;
+  if (config.writing.tasks[1].imgURL) {
+    document.getElementById('W-img-url-1').value = config.writing.tasks[1].imgURL;
+    previewWritingImg(1);
+  }
+  // Reading passages
+  [1,2,3].forEach(i => {
+    document.getElementById('R-text-'+i).value = config.reading.passages[i] || '';
+  });
+  // Q values
+  populateQEditors();
+  // Answer key
+  populateAnswerKey();
+}
+
+// PANEL NAVIGATION
+// ═══════════════════════════════════════
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sb-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('sb-'+id).classList.add('active');
+  // When switching to Reading panel, re-render the active passage Q list
+  if (id === 'p-reading') {
+    const activeBtn = document.querySelector('#p-reading .sec-tab.active');
+    const n = activeBtn ? ([...document.querySelectorAll('#p-reading .sec-tab')].indexOf(activeBtn) + 1) : 1;
+    qmRenderList('R', n);
+  }
+  // Auto-load Question Bank when navigating to it
+  if (id === 'p-qbank') renderQBank();
+  // Auto-load monitor
+  if (id === 'p-monitor' && !document.querySelector('#monitor-wrap table')) loadMonitor();
+}
+
+// BUILD LISTENING SECTION HTML
+// ═══════════════════════════════════════
+function buildLSecHTML(n) {
+  const ranges = ['1–10','11–20','21–30','31–40'];
+  const sec    = config.listening.sections[n-1] || {};
+  const urlVal = escH(sec.audioURL||'');
+  const hasURL = !!sec.audioURL;
+  return `
+    <div class="card">
+      <div class="card-title">Audio — Section ${n}</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="sec-tab ${!hasURL?'active':''}" id="audio-src-file-${n}" onclick="switchAudioSrc(${n},'file')" style="font-size:0.78rem;padding:5px 12px">📁 Upload File</button>
+        <button class="sec-tab ${hasURL?'active':''}"  id="audio-src-url-${n}"  onclick="switchAudioSrc(${n},'url')"  style="font-size:0.78rem;padding:5px 12px">🔗 Paste URL</button>
+      </div>
+
+      <!-- FILE UPLOAD -->
+      <div id="audio-file-panel-${n}" ${hasURL?'style="display:none"':''}>
+        <div class="audio-slot" id="L-audio-slot-${n}">
+          <p id="L-audio-name-${n}">No audio loaded</p>
+          <input type="file" accept="audio/*" onchange="loadSectionAudio(${n},this)" style="font-size:0.83rem">
+          <audio id="L-audio-el-${n}" controls class="hidden"></audio>
+        </div>
+      </div>
+
+      <!-- PASTE URL -->
+      <div id="audio-url-panel-${n}" ${!hasURL?'style="display:none"':''}>
+        <div class="field" style="margin-bottom:6px">
+          <label>Audio / Video URL (YouTube, Google Drive, direct MP3)</label>
+          <input type="text" id="audio-url-input-${n}"
+            placeholder="https://www.youtube.com/embed/VIDEO_ID or direct audio URL"
+            value="${urlVal}"
+            oninput="saveAudioURL(${n},this.value)"
+            style="font-family:monospace;font-size:0.82rem">
+        </div>
+        <div style="font-size:0.73rem;color:var(--ink3);margin-bottom:8px;padding:8px;background:var(--paper2);border-radius:6px;line-height:1.7">
+          💡 <b>YouTube (unlisted):</b> use <code>https://www.youtube.com/embed/VIDEO_ID</code><br>
+          💡 <b>Google Drive:</b> share → "Anyone with link" → copy link<br>
+          💡 <b>Direct MP3:</b> paste the direct .mp3 URL
+        </div>
+        <div id="audio-url-preview-${n}">${hasURL ? buildURLPreview(sec.audioURL) : ''}</div>
+        <button class="btn btn-ghost" style="font-size:0.78rem;margin-top:8px" onclick="previewAudioURL(${n})">▶ Preview URL</button>
+      </div>
+
+      <!-- SECTION IMAGE — paste URL -->
+      <div class="field" style="margin-top:12px">
+        <label>Section Image URL <span style="font-weight:400;color:var(--ink3)">(optional — map/diagram/floor plan)</span></label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="L-img-url-${n}"
+            placeholder="https://raw.githubusercontent.com/username/ielts-sim/main/images/map.jpg"
+            value="${escH(sec.imgURL||'')}"
+            oninput="saveSectionImgURL(${n},this.value)"
+            style="flex:1;font-family:monospace;font-size:0.82rem">
+          <button class="btn btn-ghost" style="padding:6px 12px;font-size:0.78rem;white-space:nowrap" onclick="previewSectionImg(${n})">👁 Preview</button>
+        </div>
+        <div id="L-img-preview-${n}" style="margin-top:6px">
+          ${sec.imgURL?`<img src="${escH(sec.imgURL)}" style="max-width:100%;max-height:150px;border-radius:6px;border:1px solid var(--border)">`:''}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Questions ${ranges[n-1]}</div>
+
+      <!-- QUESTION LIST (modal-based) -->
+      <div id="L-qs-${n}">
+        <div id="qlist-L-${n}"></div>
+        <button class="btn-add-q-modal" onclick="qmOpen('L',${n},null)">+ Add Question</button>
+      </div>
+    </div>`;
+}
+
+// Convert a Google Drive "share" link (…/file/d/ID/view?usp=sharing) into
+// the direct-download form that actually works as a fetchable audio/video
+// source. The UI's own help text tells admins to paste a Drive share link
+// for audio, but without this conversion that link never plays for
+// candidates — it points at Drive's HTML preview page, not a media stream.
+function convertDriveAudioURL(url) {
+  if (!url) return '';
+  if (url.includes('export=download') || url.includes('uc?id=')) return url;
+  if (!url.includes('drive.google.com')) return url;
+  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  return match ? `https://drive.google.com/uc?export=download&id=${match[1]}` : url;
+}
+
+function buildURLPreview(url) {
+  if (!url) return '';
+  if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    let embedURL = url;
+    if (url.includes('watch?v=')) embedURL = url.replace('watch?v=','embed/').split('&')[0];
+    else if (url.includes('youtu.be/')) embedURL = 'https://www.youtube.com/embed/'+url.split('youtu.be/')[1].split('?')[0];
+    return `<iframe src="${escH(embedURL)}" style="width:100%;height:160px;border:none;border-radius:7px" allowfullscreen></iframe>`;
+  }
+  const playableURL = convertDriveAudioURL(url);
+  return `<audio controls src="${escH(playableURL)}" style="width:100%;margin-top:4px;border-radius:6px"></audio>`;
+}
+
+function switchAudioSrc(n, mode) {
+  const isURL = mode==='url';
+  document.getElementById('audio-file-panel-'+n).style.display = isURL ? 'none' : '';
+  document.getElementById('audio-url-panel-'+n).style.display  = isURL ? '' : 'none';
+  document.getElementById('audio-src-file-'+n).classList.toggle('active', !isURL);
+  document.getElementById('audio-src-url-'+n).classList.toggle('active',   isURL);
+  // Note: the saved audioURL is intentionally left alone here — it's only
+  // cleared once a file actually finishes uploading (see loadSectionAudio).
+  // Clearing it just from switching tabs used to wipe a pasted link the
+  // moment someone clicked "Upload File", even with nothing uploaded yet.
+}
+
+function saveAudioURL(n, val) {
+  config.listening.sections[n-1].audioURL = convertDriveAudioURL(val.trim());
+}
+
+function previewAudioURL(n) {
+  const url  = document.getElementById('audio-url-input-'+n).value.trim();
+  const wrap = document.getElementById('audio-url-preview-'+n);
+  if (!url) { wrap.innerHTML='<span style="color:var(--red);font-size:0.8rem">Please enter a URL first.</span>'; return; }
+  const converted = convertDriveAudioURL(url);
+  config.listening.sections[n-1].audioURL = converted;
+  wrap.innerHTML = buildURLPreview(url);
+  toast('Preview updated');
+}
+
+// ═══════════════════════════════════════
+function showLSec(n, btn) {
+  document.querySelectorAll('.l-sec').forEach(s=>s.classList.add('hidden'));
+  const container = document.getElementById('L-sec-'+n);
+  container.classList.remove('hidden');
+  btn.closest('.section-tabs').querySelectorAll('.sec-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const sec = config.listening.sections[n-1];
+
+  // Always rebuild the HTML shell (cheap, ensures containers exist)
+  container.innerHTML = buildLSecHTML(n);
+
+  // Restore audio state
+  if (sec.audioURL) {
+    switchAudioSrc(n,'url');
+    document.getElementById('audio-url-input-'+n).value = sec.audioURL;
+    document.getElementById('audio-url-preview-'+n).innerHTML = buildURLPreview(sec.audioURL);
+  }
+  if (sec.audioName) { document.getElementById('L-audio-name-'+n).textContent='🎵 '+sec.audioName; document.getElementById('L-audio-slot-'+n).classList.add('loaded'); }
+  if (sec.audioData) { const el=document.getElementById('L-audio-el-'+n); el.src=sec.audioData; el.classList.remove('hidden'); }
+  if (sec.imgURL) {
+    const urlInp = document.getElementById('L-img-url-'+n);
+    const prev   = document.getElementById('L-img-preview-'+n);
+    if (urlInp) urlInp.value = sec.imgURL;
+    if (prev)   prev.innerHTML = `<img src="${escH(sec.imgURL)}" style="max-width:100%;max-height:150px;border-radius:6px;border:1px solid var(--border)">`;
+  }
+  if (sec.imgData) {
+    const prev = document.getElementById('L-img-preview-'+n);
+    if (prev) prev.innerHTML = `<img src="${sec.imgData}" style="max-width:100%;max-height:150px;border-radius:6px">`;
+  }
+
+  // Always render question list
+  qmRenderList('L', n);
+}
+function showRPass(n, btn) {
+  document.querySelectorAll('.r-pass').forEach(s=>s.classList.add('hidden'));
+  document.getElementById('R-pass-'+n).classList.remove('hidden');
+  btn.closest('.section-tabs').querySelectorAll('.sec-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  // Re-render Q list for this passage
+  qmRenderList('R', n);
+}
+function showAKTab(t, btn) {
+  document.querySelectorAll('.ak-tab').forEach(s=>s.classList.add('hidden'));
+  document.getElementById('AK-'+t).classList.remove('hidden');
+  btn.closest('.section-tabs').querySelectorAll('.sec-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+
+// ═══════════════════════════════════════
+
+// QUESTION STORE — modal-based, per section/passage
+// config.listening.qBlocks[n]  = [{type,part,instr,...}, ...]
+// config.reading.qBlocks[n]    = [{type,part,instr,...}, ...]
+// ═══════════════════════════════════════
+const LTRS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+function getQBlocks(sec, n) {
+  if (sec === 'L') {
+    if (!config.listening.qBlocks) config.listening.qBlocks = {};
+    if (!config.listening.qBlocks[n]) config.listening.qBlocks[n] = [];
+    return config.listening.qBlocks[n];
+  } else {
+    if (!config.reading.qBlocks) config.reading.qBlocks = {};
+    if (!config.reading.qBlocks[n]) config.reading.qBlocks[n] = [];
+    return config.reading.qBlocks[n];
+  }
+}
+
+// ── MODAL STATE ──
+let _qmSec = 'L', _qmSecN = 1, _qmEditIdx = null;
+
+function qmOpen(sec, n, editIdx) {
+  editIdx = (editIdx !== undefined) ? editIdx : null;
+  _qmSec = sec; _qmSecN = n; _qmEditIdx = editIdx;
+  document.getElementById('qm-title').textContent = editIdx !== null ? 'Edit Question' : 'Add Question';
+  if (editIdx !== null) {
+    const q = getQBlocks(sec, n)[editIdx];
+    document.getElementById('qm-part').value  = q.part  || '';
+    document.getElementById('qm-instr').value = q.instr || '';
+    document.getElementById('qm-type').value  = q.type  || '';
+    qmTypeChange(q);
+  } else {
+    document.getElementById('qm-part').value  = '';
+    document.getElementById('qm-instr').value = '';
+    document.getElementById('qm-type').value  = '';
+    document.getElementById('qm-type-area').innerHTML = '';
+  }
+  document.getElementById('qm-overlay').classList.add('open');
+}
+function qmClose() {
+  document.getElementById('qm-overlay').classList.remove('open');
+  _qmEditIdx = null;
+}
+document.addEventListener('DOMContentLoaded', function() {
+  // Clicking the dark backdrop no longer closes the question editor —
+  // accidental clicks near the edges were wiping in-progress question data.
+  // Use the × button or Save/Cancel instead.
+  document.getElementById('ai-gen-overlay').addEventListener('click', function(e) {
+    if (e.target === document.getElementById('ai-gen-overlay')) closeAIGen();
+  });
+});
+
+// ── TYPE CHANGE ──
+function qmTypeChange(existing) {
+  existing = existing || null;
+  const type = document.getElementById('qm-type').value;
+  const area = document.getElementById('qm-type-area');
+  area.innerHTML = '';
+  if (!type) return;
+  const q = existing || {};
+
+  if (type === 'fc') {
+    const fcHtml = q.fcHtml || '';
+    const fcImgURL = q.fcImgURL || '';
+    // Default to Easy Builder unless this question was authored with raw
+    // HTML before (has fcHtml but no saved fcLines) — then open in
+    // Advanced mode so we never silently mangle someone's hand-written HTML.
+    const startMode = (q.fcLines && q.fcLines.length) ? 'easy' : (fcHtml ? 'advanced' : 'easy');
+    area.innerHTML = `
+      <div class="qm-field">
+        <label>Instructions <span style="font-weight:400;color:var(--ink3)">(e.g. Write ONE WORD AND/OR A NUMBER)</span></label>
+        <input type="text" id="qm-fc-instr" value="${escH(q.instr||q.fcInstr||'')}" placeholder="Complete the notes below. Write ONE WORD AND/OR A NUMBER for each answer.">
+      </div>
+
+      <div class="qm-field" style="margin-bottom:8px">
+        <div style="display:flex;gap:6px">
+          <button type="button" id="qm-fc-mode-easy" class="qm-add-opt" onclick="qmFCSetMode('easy')" style="font-weight:700"></button>
+          <button type="button" id="qm-fc-mode-adv" class="qm-add-opt" onclick="qmFCSetMode('advanced')" style="font-weight:700"></button>
+        </div>
+      </div>
+
+      <div id="qm-fc-easy-wrap">
+        <div style="font-size:0.78rem;color:var(--ink3);margin-bottom:8px;line-height:1.6">
+          Build the form line by line — <b>no HTML needed</b>. Add a line, tick <b>"Has a blank"</b> if the candidate needs to type an answer there, and fill in the question number + correct answer.
+        </div>
+        <div id="qm-fc-easy-lines"></div>
+        <button type="button" onclick="qmFCEasyAddLine()" class="qm-add-opt">+ Add Line</button>
+      </div>
+
+      <div id="qm-fc-adv-wrap" style="display:none">
+        <div class="qm-field">
+          <label>HTML Template
+            <span style="font-weight:400;color:var(--ink3)"> — use <code style="background:var(--paper2);padding:1px 5px;border-radius:3px">{{1}}</code> for blanks</span>
+          </label>
+          <div style="background:var(--paper2);border-radius:6px;padding:10px 12px;font-size:0.78rem;color:var(--ink2);margin-bottom:8px;line-height:1.8;border:1px solid var(--border)">
+            <b>How to use:</b> Type your form HTML below. Put <code>{{1}}</code>, <code>{{2}}</code>, etc. where the blanks should appear.<br>
+            <b>Example:</b><br>
+            <code>&lt;h3&gt;Transport Survey&lt;/h3&gt;</code><br>
+            <code>&lt;p&gt;&lt;strong&gt;Postcode:&lt;/strong&gt; {{1}}&lt;/p&gt;</code><br>
+            <code>&lt;p&gt;Got on bus at {{5}} Street&lt;/p&gt;</code><br>
+            <code>&lt;p&gt;Bus was {{6}} today&lt;/p&gt;</code>
+          </div>
+          <textarea id="qm-fc-html" style="min-height:220px;font-family:monospace;font-size:0.83rem;resize:vertical;line-height:1.6;width:100%;padding:10px;border:1px solid var(--paper3);border-radius:7px" placeholder="Paste or type your HTML here...">${escH(fcHtml)}</textarea>
+        </div>
+      </div>
+
+      <div class="qm-field">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <label>Answer Key <span style="font-weight:400;color:var(--ink3)">— one per blank</span></label>
+          <div style="display:flex;gap:6px">
+            <button type="button" onclick="qmScanFCBlanks()" class="qm-add-opt" style="font-size:0.78rem">🔍 Scan blanks</button>
+            <button type="button" onclick="qmPreviewFC()" class="qm-add-opt" style="font-size:0.78rem">👁 Preview</button>
+          </div>
+        </div>
+        <div id="qm-fc-answers" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+      </div>
+      <div id="qm-fc-preview" style="padding:14px;background:#fff;border:1px solid var(--border);border-radius:8px;display:none;font-family:'Source Serif 4',serif;font-size:0.9rem;line-height:2;margin-top:4px"></div>`;
+
+    // Restore existing Easy Builder lines if this question was authored that way
+    if (q.fcLines && q.fcLines.length) {
+      const wrap = document.getElementById('qm-fc-easy-lines');
+      q.fcLines.forEach(line => wrap.insertAdjacentHTML('beforeend', qmFCEasyLineRow(line)));
+    } else {
+      qmFCEasyAddLine(); // start with one blank line so the box isn't empty
+    }
+    qmFCApplyMode(startMode);
+
+    // Restore existing answers (works for both modes — Easy Builder syncs into these same fields)
+    if (q.fcAnswers && Object.keys(q.fcAnswers).length) {
+      const wrap = document.getElementById('qm-fc-answers');
+      Object.entries(q.fcAnswers).sort((a,b)=>parseInt(a[0])-parseInt(b[0])).forEach(([num,ans]) => {
+        const row = document.createElement('div');
+        row.className = 'fc-answer-row';
+        row.id = 'qm-fc-ans-'+num;
+        row.innerHTML = `<label>${num}</label><input type="text" class="fc-ans" placeholder="Answer for {{${num}}}" value="${escH(ans||'')}">`;
+        wrap.appendChild(row);
+      });
+    } else if (fcHtml && startMode === 'advanced') {
+      qmScanFCBlanks();
+    }
+
+  } else if (type === 'mc') {
+    const opts   = q.options || ['','',''];
+    const answer = q.answer  || '';
+    let html = `
+      <div class="qm-field">
+        <label>Question number</label>
+        <input type="number" id="qm-mc-qnum" min="1" max="99" value="${q.qNum||''}" placeholder="e.g. 11">
+      </div>
+      <div class="qm-field">
+        <label>Question text</label>
+        <textarea id="qm-mc-qtext" placeholder="What does the speaker say about...?">${escH(q.qText||'')}</textarea>
+      </div>
+      <div class="qm-section-label">Options — tick the correct one</div>
+      <div id="qm-mc-opts">`;
+    const optImgs = q.optionImages || [];
+    opts.forEach((o, i) => { html += qmMCOptRow(i, o, answer === LTRS[i], optImgs[i]||''); });
+    html += `</div><button class="qm-add-opt" onclick="qmAddMCOpt()">+ Add Option</button>`;
+    area.innerHTML = html;
+
+  } else if (type === 'ct2') {
+    const pick    = q.pick    || 2;
+    const opts    = q.options || ['','','','',''];
+    const answers = q.answers || [];
+    let html = `
+      <div class="qm-field">
+        <label>Question numbers (e.g. Q14 and Q15)</label>
+        <div class="qm-range-row">
+          Q <input type="number" id="qm-ct2-qfrom" min="1" max="99" value="${q.qFrom||''}" placeholder="14">
+          &amp; Q <input type="number" id="qm-ct2-qto" min="1" max="99" value="${q.qTo||''}" placeholder="15">
+        </div>
+      </div>
+      <div class="qm-field">
+        <label>Question / prompt text</label>
+        <textarea id="qm-ct2-qtext" placeholder="Which TWO of the following...?">${escH(q.qText||'')}</textarea>
+      </div>
+      <div class="ct2-pick-row">
+        <span>Candidates must choose</span>
+        <input type="number" id="qm-ct2-pick" min="1" max="10" value="${pick}">
+        <span>answer(s)</span>
+      </div>
+      <div class="qm-section-label">Options — tick all correct answers</div>
+      <div id="qm-ct2-opts">`;
+    const ct2OptImgs = q.optionImages || [];
+    opts.forEach((o, i) => { html += qmCT2OptRow(i, o, answers.includes(LTRS[i]), ct2OptImgs[i]||''); });
+    html += `</div><button class="qm-add-opt" onclick="qmAddCT2Opt()">+ Add Option</button>`;
+    area.innerHTML = html;
+
+  } else if (type === 'match') {
+    const choices = q.matchChoices || ['','','','',''];
+    const items   = q.matchItems   || [{num:'',label:'',answer:''}];
+    let html = `
+      <div class="qm-field">
+        <label>Shared prompt / context (optional)</label>
+        <textarea id="qm-match-prompt" placeholder="What does the speaker say about each of the following...">${escH(q.matchPrompt||'')}</textarea>
+      </div>
+      <div class="qm-field">
+        <label>Map / Plan / Diagram Image URL (optional)</label>
+        <input type="text" id="qm-match-img" placeholder="https://... (leave blank for a normal text-only Matching question)" value="${escH(q.mapImgURL||'')}" oninput="qmPreviewMatchImg(this)">
+        <div style="font-size:0.75rem;color:var(--ink3);margin-top:4px">Use this for Map/Plan/Diagram Labeling — candidates will see the picture above the Choice Box (e.g. a map with locations A–H) and type the matching letter for each question below.</div>
+        <img id="qm-match-img-preview" src="${escH(q.mapImgURL||'')}" style="max-width:100%;max-height:220px;border-radius:8px;margin-top:8px;display:${q.mapImgURL?'block':'none'}" onerror="this.style.display='none'" onload="this.style.display='block'">
+      </div>
+      <div class="qm-section-label">Choice Box (A, B, C… shown to candidates)</div>
+      <div style="font-size:0.75rem;color:var(--ink3);margin:-4px 0 8px">Leave all of these blank if the labels are already shown directly on the map/plan image above — the Choice Box will then be skipped automatically for candidates.</div>
+      <div id="qm-match-choices">`;
+    choices.forEach((c, i) => { html += qmMatchChoiceRow(i, c); });
+    html += `</div><button class="qm-add-opt" onclick="qmAddMatchChoice()">+ Add Choice</button>
+      <div class="qm-section-label" style="margin-top:12px">Items to Match — Q number, label &amp; correct letter</div>
+      <div id="qm-match-items">`;
+    items.forEach((it, i) => { html += qmMatchItemRow(i, it); });
+    html += `</div><button class="qm-add-opt" onclick="qmAddMatchItem()">+ Add Item</button>`;
+    area.innerHTML = html;
+
+  } else if (type === 'short') {
+    area.innerHTML = `
+      <div class="qm-field">
+        <label>Question number</label>
+        <input type="number" id="qm-short-qnum" min="1" max="99" value="${q.qNum||''}" placeholder="e.g. 5">
+      </div>
+      <div class="qm-field">
+        <label>Question / stem text</label>
+        <textarea id="qm-short-qtext" placeholder="Question text...">${escH(q.qText||'')}</textarea>
+      </div>
+      <div class="qm-field">
+        <label>Correct Answer</label>
+        <input type="text" id="qm-short-ans" class="qm-ans-field" placeholder="e.g. library" value="${escH(q.answer||'')}">
+      </div>`;
+
+  } else if (type === 'tfng') {
+    const ans = q.answer || '';
+    area.innerHTML = `
+      <div class="qm-field">
+        <label>Question number</label>
+        <input type="number" id="qm-tfng-qnum" min="1" max="99" value="${q.qNum||''}" placeholder="e.g. 7">
+      </div>
+      <div class="qm-field">
+        <label>Statement text</label>
+        <textarea id="qm-tfng-qtext" placeholder="Statement...">${escH(q.qText||'')}</textarea>
+      </div>
+      <div class="qm-section-label">Correct Answer</div>
+      <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
+        ${['TRUE','FALSE','NOT GIVEN'].map(v=>`<label style="display:flex;align-items:center;gap:5px;font-size:0.84rem;cursor:pointer;padding:6px 12px;border:1px solid var(--paper3);border-radius:7px;background:${ans===v?'#f0fff4':'#fff'}"><input type="radio" name="qm-tfng" value="${v}" ${ans===v?'checked':''} style="accent-color:var(--green)"> ${v}</label>`).join('')}
+      </div>`;
+
+  } else if (type === 'yntg') {
+    const ans = q.answer || '';
+    area.innerHTML = `
+      <div class="qm-field">
+        <label>Question number</label>
+        <input type="number" id="qm-yntg-qnum" min="1" max="99" value="${q.qNum||''}" placeholder="e.g. 7">
+      </div>
+      <div class="qm-field">
+        <label>Statement text</label>
+        <textarea id="qm-yntg-qtext" placeholder="Statement...">${escH(q.qText||'')}</textarea>
+      </div>
+      <div class="qm-section-label">Correct Answer</div>
+      <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
+        ${['YES','NO','NOT GIVEN'].map(v=>`<label style="display:flex;align-items:center;gap:5px;font-size:0.84rem;cursor:pointer;padding:6px 12px;border:1px solid var(--paper3);border-radius:7px;background:${ans===v?'#f0fff4':'#fff'}"><input type="radio" name="qm-yntg" value="${v}" ${ans===v?'checked':''} style="accent-color:var(--green)"> ${v}</label>`).join('')}
+      </div>`;
+  }
+}
+
+// ── ROW BUILDERS ──
+function qmMCOptRow(i, val, correct, imgUrl) {
+  imgUrl = imgUrl || '';
+  return `<div class="qm-opt-row-wrap" id="qm-mc-opt-${i}">
+    <div class="qm-opt-row">
+      <span class="qm-opt-ltr">${LTRS[i]}</span>
+      <input type="text" class="qm-mc-val" placeholder="Option ${LTRS[i]}..." value="${escH(val)}" oninput="qmSyncMCLabels()">
+      <input type="checkbox" class="qm-mc-chk" ${correct?'checked':''} onchange="qmMCOnlyOne(this,${i})">
+      <button class="qm-del-opt" onclick="qmRemoveMCOpt(${i})">x</button>
+    </div>
+    <div class="qm-opt-imgrow">
+      <span class="qm-opt-img-icon">🖼️</span>
+      <input type="text" class="qm-mc-img qm-opt-img-url" placeholder="Image URL for this option (optional)" value="${escH(imgUrl)}" oninput="qmPreviewOptImg(this)">
+      <img src="${escH(imgUrl)}" class="qm-opt-thumb" style="display:${imgUrl?'block':'none'}" onerror="this.style.display='none'">
+    </div>
+  </div>`;
+}
+function qmAddMCOpt() {
+  const wrap = document.getElementById('qm-mc-opts');
+  const i = wrap.querySelectorAll('.qm-opt-row-wrap').length;
+  const d = document.createElement('div'); d.innerHTML = qmMCOptRow(i,'',false,'');
+  wrap.appendChild(d.firstElementChild); qmSyncMCLabels();
+}
+function qmRemoveMCOpt(i) {
+  const rows = [...document.querySelectorAll('#qm-mc-opts .qm-opt-row-wrap')];
+  if (rows.length <= 2) return; rows[i] && rows[i].remove(); qmSyncMCLabels();
+}
+function qmSyncMCLabels() {
+  document.querySelectorAll('#qm-mc-opts .qm-opt-row-wrap').forEach((wrap,i)=>{
+    wrap.id=`qm-mc-opt-${i}`;
+    const ltr = wrap.querySelector('.qm-opt-ltr');
+    if (ltr) ltr.textContent = LTRS[i];
+  });
+}
+function qmMCOnlyOne(el, i) {
+  document.querySelectorAll('#qm-mc-opts .qm-mc-chk').forEach((c,j)=>{ if(j!==i) c.checked=false; });
+}
+// Shared by MC and CT2 option-image rows — live-updates the thumbnail as the URL is typed.
+function qmPreviewOptImg(inputEl) {
+  const row = inputEl.closest('.qm-opt-imgrow');
+  const thumb = row && row.querySelector('.qm-opt-thumb');
+  if (!thumb) return;
+  const url = inputEl.value.trim();
+  if (url) { thumb.src = url; thumb.style.display = 'block'; }
+  else { thumb.src = ''; thumb.style.display = 'none'; }
+}
+
+function qmPreviewMatchImg(inputEl) {
+  const img = document.getElementById('qm-match-img-preview');
+  if (!img) return;
+  const url = inputEl.value.trim();
+  img.src = url;
+  img.style.display = url ? 'block' : 'none';
+}
+
+function qmCT2OptRow(i, val, correct, imgUrl) {
+  imgUrl = imgUrl || '';
+  return `<div class="qm-opt-row-wrap" id="qm-ct2-opt-${i}">
+    <div class="qm-opt-row">
+      <span class="qm-opt-ltr">${LTRS[i]}</span>
+      <input type="text" class="qm-ct2-val" placeholder="Option ${LTRS[i]}..." value="${escH(val)}" oninput="qmSyncCT2Labels()">
+      <input type="checkbox" class="qm-ct2-chk" ${correct?'checked':''}>
+      <button class="qm-del-opt" onclick="qmRemoveCT2Opt(${i})">x</button>
+    </div>
+    <div class="qm-opt-imgrow">
+      <span class="qm-opt-img-icon">🖼️</span>
+      <input type="text" class="qm-ct2-img qm-opt-img-url" placeholder="Image URL for this option (optional)" value="${escH(imgUrl)}" oninput="qmPreviewOptImg(this)">
+      <img src="${escH(imgUrl)}" class="qm-opt-thumb" style="display:${imgUrl?'block':'none'}" onerror="this.style.display='none'">
+    </div>
+  </div>`;
+}
+function qmAddCT2Opt() {
+  const wrap = document.getElementById('qm-ct2-opts');
+  const i = wrap.querySelectorAll('.qm-opt-row-wrap').length;
+  const d = document.createElement('div'); d.innerHTML = qmCT2OptRow(i,'',false,'');
+  wrap.appendChild(d.firstElementChild); qmSyncCT2Labels();
+}
+function qmRemoveCT2Opt(i) {
+  const rows=[...document.querySelectorAll('#qm-ct2-opts .qm-opt-row-wrap')];
+  if(rows.length<=2)return; rows[i]&&rows[i].remove(); qmSyncCT2Labels();
+}
+function qmSyncCT2Labels() {
+  document.querySelectorAll('#qm-ct2-opts .qm-opt-row-wrap').forEach((wrap,i)=>{
+    wrap.id=`qm-ct2-opt-${i}`;
+    const ltr = wrap.querySelector('.qm-opt-ltr');
+    if (ltr) ltr.textContent = LTRS[i];
+  });
+}
+
+function qmMatchChoiceRow(i, val) {
+  return `<div class="qm-match-choice-row" id="qm-mc-ch-${i}">
+    <span class="qm-match-ltr">${LTRS[i]}</span>
+    <input type="text" class="qm-mc-choice-val" placeholder="Choice ${LTRS[i]}..." value="${escH(val)}" style="flex:1;padding:6px 9px;border:1px solid var(--paper3);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.84rem">
+    <button class="qm-del-opt" onclick="qmRemoveMatchChoice(${i})">x</button>
+  </div>`;
+}
+function qmAddMatchChoice() {
+  const wrap=document.getElementById('qm-match-choices');
+  const i=wrap.querySelectorAll('.qm-match-choice-row').length;
+  const d=document.createElement('div'); d.innerHTML=qmMatchChoiceRow(i,'');
+  wrap.appendChild(d.firstElementChild); qmSyncChoiceLetters();
+}
+function qmRemoveMatchChoice(i) {
+  const rows=[...document.querySelectorAll('#qm-match-choices .qm-match-choice-row')];
+  if(rows.length<=2)return; rows[i]&&rows[i].remove(); qmSyncChoiceLetters();
+}
+function qmSyncChoiceLetters() {
+  document.querySelectorAll('#qm-match-choices .qm-match-choice-row').forEach((r,i)=>{
+    r.id=`qm-mc-ch-${i}`; r.querySelector('.qm-match-ltr').textContent=LTRS[i];
+  });
+}
+function qmMatchItemRow(i, item) {
+  return `<div class="qm-match-item-row" id="qm-mi-${i}">
+    <span class="qm-match-num">Q</span>
+    <input type="number" class="item-qnum" style="width:54px;padding:6px 7px;border:1px solid var(--paper3);border-radius:6px;font-size:0.84rem;text-align:center" min="1" max="99" placeholder="No." value="${escH(item.num||'')}">
+    <input type="text" class="item-lbl" placeholder="e.g. Fundraising..." value="${escH(item.label||'')}">
+    <input type="text" class="item-ans" maxlength="2" placeholder="A" value="${escH(item.answer||'')}">
+    <button class="qm-del-opt" onclick="qmRemoveMatchItem(${i})">x</button>
+  </div>`;
+}
+function qmAddMatchItem() {
+  const wrap=document.getElementById('qm-match-items');
+  const i=wrap.querySelectorAll('.qm-match-item-row').length;
+  const d=document.createElement('div'); d.innerHTML=qmMatchItemRow(i,{});
+  wrap.appendChild(d.firstElementChild);
+}
+function qmRemoveMatchItem(i) {
+  const rows=[...document.querySelectorAll('#qm-match-items .qm-match-item-row')];
+  if(rows.length<=1)return; rows[i]&&rows[i].remove();
+}
+
+
+// FC HTML TEMPLATE HELPERS
+// ══════════════════════════════════════════════
+// Public button handler: if we're in Easy Builder mode, that mode already
+// keeps blanks/answers in sync on every edit — just re-run the sync. If in
+// Advanced mode, actually parse the raw HTML textarea for {{n}} markers.
+function qmScanFCBlanks() {
+  const area = document.getElementById('qm-type-area');
+  if (area && area.dataset.fcMode === 'easy') { qmFCEasyBuild(); return; }
+  qmScanFCBlanksRaw_();
+}
+
+// Does the actual {{n}} parsing + #qm-fc-answers rebuild from whatever is
+// currently in the raw HTML textarea. Called directly by qmFCEasyBuild()
+// (never via qmScanFCBlanks(), to avoid the two calling each other forever).
+function qmScanFCBlanksRaw_() {
+  const tpl  = (document.getElementById('qm-fc-html')||{}).value || '';
+  const nums = [...new Set([...tpl.matchAll(/\{\{(\d+)\}\}/g)].map(m=>parseInt(m[1])))].sort((a,b)=>a-b);
+  const wrap = document.getElementById('qm-fc-answers');
+  if (!wrap) return;
+  // Keep existing answer values
+  const existing = {};
+  wrap.querySelectorAll('.fc-answer-row').forEach(r => {
+    const lbl = r.querySelector('label');
+    const inp = r.querySelector('input');
+    if (lbl && inp) existing[lbl.textContent.trim()] = inp.value;
+  });
+  wrap.innerHTML = '';
+  if (!nums.length) {
+    wrap.innerHTML = '<span style="color:var(--ink3);font-size:0.82rem">No {{n}} blanks found — type {{1}}, {{2}} etc. in your template.</span>';
+    return;
+  }
+  nums.forEach(n => {
+    const row = document.createElement('div');
+    row.className = 'fc-answer-row';
+    row.id = 'qm-fc-ans-'+n;
+    row.innerHTML = `<label>${n}</label><input type="text" class="fc-ans" placeholder="Answer for {{${n}}}" value="${escH(existing[n]||'')}">`;
+    wrap.appendChild(row);
+  });
+  toast(`Found ${nums.length} blank${nums.length>1?'s':''}: Q${nums.join(', Q')}`);
+}
+
+function qmPreviewFC() {
+  const area = document.getElementById('qm-type-area');
+  if (area && area.dataset.fcMode === 'easy') qmFCEasyBuild(); // make sure the preview reflects the latest Easy Builder edits
+  const tpl  = (document.getElementById('qm-fc-html')||{}).value || '';
+  const wrap = document.getElementById('qm-fc-preview');
+  if (!wrap) return;
+  const rendered = tpl.replace(/\{\{(\d+)\}\}/g, (_,n) =>
+    `<span style="display:inline-block;border-bottom:2px solid var(--blue);min-width:80px;padding:0 6px;margin:0 3px;text-align:center;color:var(--ink3);font-size:0.78rem;background:#f0f5ff;border-radius:2px 2px 0 0">${n}</span>`
+  );
+  wrap.style.display = 'block';
+  wrap.innerHTML = rendered || '<span style="color:var(--ink3)">Nothing to preview yet.</span>';
+}
+
+function qmPreviewFCImg() {
+  const url  = (document.getElementById('qm-fc-img-url')||{}).value || '';
+  const wrap = document.getElementById('qm-fc-img-preview');
+  if (!wrap) return;
+  if (!url) { wrap.innerHTML='<span style="color:var(--red);font-size:0.8rem">No URL entered.</span>'; return; }
+  wrap.innerHTML = `<img src="${escH(url)}" style="max-width:100%;max-height:150px;border-radius:6px;border:1px solid var(--border)" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span style="color:var(--red);font-size:0.8rem;display:none">Cannot load image.</span>`;
+}
+
+// ═══════════════════════════════════════
+// FORM COMPLETION — EASY BUILDER (dummy-friendly, no HTML needed)
+// Builds ordinary lines of text with optional blanks. Whatever the admin
+// builds here gets converted into the exact same {{n}}-style HTML template
+// and answer-key rows that the Advanced/raw-HTML mode already produces, so
+// saving, grading, and everything downstream is completely unchanged.
+// ═══════════════════════════════════════
+function qmFCApplyMode(mode) {
+  const area = document.getElementById('qm-type-area');
+  if (!area) return;
+  area.dataset.fcMode = mode;
+  const easyWrap = document.getElementById('qm-fc-easy-wrap');
+  const advWrap  = document.getElementById('qm-fc-adv-wrap');
+  const easyBtn  = document.getElementById('qm-fc-mode-easy');
+  const advBtn   = document.getElementById('qm-fc-mode-adv');
+  if (!easyWrap || !advWrap) return;
+
+  if (mode === 'advanced') {
+    easyWrap.style.display = 'none';
+    advWrap.style.display  = 'block';
+    if (easyBtn) { easyBtn.style.background=''; easyBtn.style.color=''; easyBtn.textContent='🧱 Easy Builder'; }
+    if (advBtn)  { advBtn.style.background='var(--blue)'; advBtn.style.color='#fff'; advBtn.textContent='</> Advanced (HTML) ✓'; }
+  } else {
+    easyWrap.style.display = 'block';
+    advWrap.style.display  = 'none';
+    if (easyBtn) { easyBtn.style.background='var(--blue)'; easyBtn.style.color='#fff'; easyBtn.textContent='🧱 Easy Builder ✓'; }
+    if (advBtn)  { advBtn.style.background=''; advBtn.style.color=''; advBtn.textContent='</> Advanced (HTML)'; }
+  }
+}
+
+// Called from the mode-toggle buttons (a person clicking mid-edit) — unlike
+// qmFCApplyMode, this also carries the Easy Builder's current content over
+// into the raw HTML box the first time someone switches to Advanced, so
+// they get a real starting point instead of a blank textarea.
+function qmFCSetMode(mode) {
+  const area = document.getElementById('qm-type-area');
+  const current = area && area.dataset.fcMode;
+  if (mode === 'advanced' && current === 'easy') {
+    qmFCEasyBuild();
+  }
+  qmFCApplyMode(mode);
+}
+
+
+function qmFCEasyLineRow(line) {
+  line = line || {};
+  const hasBlank = !!line.hasBlank;
+  return `<div class="qm-fc-easy-row" style="border:1px solid var(--paper3);border-radius:8px;padding:10px;margin-bottom:8px;background:#fafbfc">
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:7px">
+      <label style="display:flex;align-items:center;gap:5px;font-size:0.78rem;white-space:nowrap;cursor:pointer">
+        <input type="checkbox" class="fce-blank-chk" ${hasBlank?'checked':''} onchange="qmFCEasyToggleBlank(this)"> Has a blank
+      </label>
+      <button type="button" onclick="qmFCEasyRemoveLine(this)" style="margin-left:auto;background:none;border:none;color:var(--red);cursor:pointer;font-size:0.95rem;line-height:1" title="Remove line">✕</button>
+    </div>
+    <div class="fce-plain-wrap" style="display:${hasBlank?'none':'block'}">
+      <input type="text" class="fce-plain-text" placeholder="e.g. Transport Survey  (a heading or plain line of text)" value="${escH(line.text||'')}" style="width:100%;padding:7px 10px;border:1px solid var(--paper3);border-radius:6px;font-size:0.85rem">
+    </div>
+    <div class="fce-blank-wrap" style="display:${hasBlank?'flex':'none'};gap:6px;flex-wrap:wrap;align-items:center">
+      <input type="text" class="fce-before" placeholder="Text before the blank..." value="${escH(line.before||'')}" style="flex:1;min-width:110px;padding:7px 9px;border:1px solid var(--paper3);border-radius:6px;font-size:0.85rem">
+      <span style="font-size:0.72rem;color:var(--ink3);white-space:nowrap">Q#</span>
+      <input type="number" class="fce-qnum" min="1" max="99" value="${line.qNum||''}" placeholder="e.g. 5" style="width:58px;padding:7px 6px;border:1px solid var(--paper3);border-radius:6px;font-size:0.85rem;text-align:center">
+      <span style="font-size:0.72rem;color:var(--ink3);white-space:nowrap">Answer</span>
+      <input type="text" class="fce-answer" placeholder="correct answer" value="${escH(line.answer||'')}" style="width:130px;padding:7px 9px;border:1px solid var(--paper3);border-radius:6px;font-size:0.85rem;font-weight:600;color:var(--green)">
+      <input type="text" class="fce-after" placeholder="Text after the blank... (optional)" value="${escH(line.after||'')}" style="flex:1;min-width:110px;padding:7px 9px;border:1px solid var(--paper3);border-radius:6px;font-size:0.85rem">
+    </div>
+  </div>`;
+}
+
+function qmFCEasyAddLine() {
+  const wrap = document.getElementById('qm-fc-easy-lines');
+  if (!wrap) return;
+  // Suggest the next question number automatically so the admin doesn't
+  // have to keep track of numbering across lines.
+  const usedNums = [...wrap.querySelectorAll('.fce-qnum')].map(i=>parseInt(i.value)||0);
+  const nextNum = usedNums.length ? Math.max(...usedNums)+1 : '';
+  wrap.insertAdjacentHTML('beforeend', qmFCEasyLineRow({ hasBlank:false, qNum: nextNum }));
+}
+
+function qmFCEasyRemoveLine(btn) {
+  const row = btn.closest('.qm-fc-easy-row');
+  if (row) row.remove();
+}
+
+function qmFCEasyToggleBlank(chk) {
+  const row = chk.closest('.qm-fc-easy-row');
+  if (!row) return;
+  const plain = row.querySelector('.fce-plain-wrap');
+  const blank = row.querySelector('.fce-blank-wrap');
+  if (chk.checked) {
+    plain.style.display = 'none';
+    blank.style.display = 'flex';
+    // auto-fill the next available Q# if this row doesn't have one yet
+    const qnumInput = row.querySelector('.fce-qnum');
+    if (qnumInput && !qnumInput.value) {
+      const wrap = document.getElementById('qm-fc-easy-lines');
+      const usedNums = [...wrap.querySelectorAll('.fce-qnum')].map(i=>parseInt(i.value)||0);
+      qnumInput.value = usedNums.length ? Math.max(...usedNums)+1 : 1;
+    }
+  } else {
+    plain.style.display = 'block';
+    blank.style.display = 'none';
+  }
+}
+
+// Reads the Easy Builder rows, builds the {{n}}-style HTML template + line
+// data, writes it into the (hidden) Advanced textarea, and re-syncs the
+// Answer Key section — all through the exact same functions Advanced mode
+// already uses, so nothing downstream needs to know which mode was used.
+function qmFCEasyBuild() {
+  const rows = [...document.querySelectorAll('#qm-fc-easy-lines .qm-fc-easy-row')];
+  const fcLines = [];
+  const htmlParts = [];
+  const answersByNum = {};
+
+  rows.forEach(row => {
+    const hasBlank = row.querySelector('.fce-blank-chk').checked;
+    if (hasBlank) {
+      const before = row.querySelector('.fce-before').value.trim();
+      const after  = row.querySelector('.fce-after').value.trim();
+      const qNum   = parseInt(row.querySelector('.fce-qnum').value) || null;
+      const answer = row.querySelector('.fce-answer').value.trim();
+      fcLines.push({ hasBlank:true, before, after, qNum, answer });
+      if (qNum) {
+        htmlParts.push(`<p>${escH(before)}${before?' ':''}{{${qNum}}}${after?' ':''}${escH(after)}</p>`);
+        if (answer) answersByNum[qNum] = answer;
+      }
+    } else {
+      const text = row.querySelector('.fce-plain-text').value.trim();
+      fcLines.push({ hasBlank:false, text });
+      if (text) htmlParts.push(`<p>${escH(text)}</p>`);
+    }
+  });
+
+  const html = htmlParts.join('\n');
+  const htmlInput = document.getElementById('qm-fc-html');
+  if (htmlInput) htmlInput.value = html;
+
+  qmScanFCBlanksRaw_(); // rebuilds #qm-fc-answers rows from the {{n}} markers above
+  // qmScanFCBlanks preserves any values already typed directly into the
+  // Answer Key boxes, but our authoritative source is the Easy Builder rows
+  // — write those values in now so the two stay in sync either direction.
+  Object.entries(answersByNum).forEach(([num, ans]) => {
+    const el = document.getElementById('qm-fc-ans-'+num);
+    if (el) { const inp = el.querySelector('input'); if (inp) inp.value = ans; }
+  });
+
+  return { html, fcLines };
+}
+
+// ── SAVE ──
+function qmSave() {
+  const type  = document.getElementById('qm-type').value;
+  const part  = document.getElementById('qm-part').value.trim();
+  const instr = document.getElementById('qm-instr').value.trim();
+  if (!type) { alert('Please select a question type.'); return; }
+
+  let q = { type, part, instr };
+
+  if (type === 'fc') {
+    const area = document.getElementById('qm-type-area');
+    const fcMode = (area && area.dataset.fcMode) || 'easy';
+    let fcLines = null;
+    if (fcMode === 'easy') {
+      fcLines = qmFCEasyBuild().fcLines; // sync Easy Builder rows -> hidden HTML template + answer key, before reading them below
+    }
+    const fcHtml   = (document.getElementById('qm-fc-html')||{}).value||'';
+    const fcInstr  = (document.getElementById('qm-fc-instr')||{}).value||'';
+    // Extract blank numbers from template
+    const nums = [...new Set([...fcHtml.matchAll(/\{\{(\d+)\}\}/g)].map(m=>parseInt(m[1])))].sort((a,b)=>a-b);
+    // Collect answers
+    const fcAnswers = {};
+    document.querySelectorAll('#qm-fc-answers .fc-answer-row').forEach(r => {
+      const lbl = r.querySelector('label');
+      const inp = r.querySelector('input');
+      if (lbl && inp && inp.value.trim()) fcAnswers[lbl.textContent.trim()] = inp.value.trim();
+    });
+    const blanks = nums.map(n => ({ num:n, answer: fcAnswers[n]||'' }));
+    const fcFrom = nums[0]||1, fcTo = nums[nums.length-1]||fcFrom;
+    // fcLines is only kept when built in Easy mode — if the admin used
+    // Advanced/raw HTML, we don't store a (possibly inaccurate) line
+    // breakdown, so re-editing correctly reopens in Advanced mode instead.
+    Object.assign(q, { fcHtml, fcInstr, fcAnswers, blanks, fcFrom, fcTo, fcLines, instr: fcInstr||q.instr });
+    blanks.forEach(b => {
+      if (b.answer) {
+        config.answerKey[_qmSec][b.num] = b.answer;
+        const el = document.getElementById('ak-'+_qmSec+'-'+b.num);
+        if (el) el.value = b.answer;
+      }
+    });
+
+  } else if (type === 'mc') {
+    const qNum  = parseInt(document.getElementById('qm-mc-qnum').value)||null;
+    const qText = document.getElementById('qm-mc-qtext').value.trim();
+    const opts  = [...document.querySelectorAll('#qm-mc-opts .qm-mc-val')].map(i=>i.value.trim());
+    const optionImages = [...document.querySelectorAll('#qm-mc-opts .qm-mc-img')].map(i=>i.value.trim());
+    const ci    = [...document.querySelectorAll('#qm-mc-opts .qm-mc-chk')].findIndex(c=>c.checked);
+    const answer= ci>=0 ? LTRS[ci] : '';
+    Object.assign(q, {qNum,qText,options:opts,optionImages,answer});
+    if(qNum && answer){ config.answerKey[_qmSec][qNum]=answer; const el=document.getElementById('ak-'+_qmSec+'-'+qNum); if(el)el.value=answer; }
+
+  } else if (type === 'ct2') {
+    const qFrom   = parseInt(document.getElementById('qm-ct2-qfrom').value)||null;
+    const qTo     = parseInt(document.getElementById('qm-ct2-qto').value)||null;
+    const qText   = document.getElementById('qm-ct2-qtext').value.trim();
+    const pick    = parseInt(document.getElementById('qm-ct2-pick').value)||2;
+    const opts    = [...document.querySelectorAll('#qm-ct2-opts .qm-ct2-val')].map(i=>i.value.trim());
+    const optionImages = [...document.querySelectorAll('#qm-ct2-opts .qm-ct2-img')].map(i=>i.value.trim());
+    const answers = [...document.querySelectorAll('#qm-ct2-opts .qm-ct2-chk')].map((c,i)=>c.checked?LTRS[i]:null).filter(Boolean);
+    Object.assign(q, {qFrom,qTo,qText,pick,options:opts,optionImages,answers});
+
+  } else if (type === 'match') {
+    const matchPrompt  = document.getElementById('qm-match-prompt').value.trim();
+    const mapImgURL    = document.getElementById('qm-match-img').value.trim();
+    const matchChoices = [...document.querySelectorAll('#qm-match-choices .qm-mc-choice-val')].map(i=>i.value.trim());
+    const matchItems   = [...document.querySelectorAll('#qm-match-items .qm-match-item-row')].map(r=>({
+      num:    r.querySelector('.item-qnum').value.trim(),
+      label:  r.querySelector('.item-lbl').value.trim(),
+      answer: r.querySelector('.item-ans').value.trim().toUpperCase()
+    }));
+    Object.assign(q, {matchPrompt,mapImgURL,matchChoices,matchItems});
+    matchItems.forEach(it=>{
+      if(it.num && it.answer){ config.answerKey[_qmSec][it.num]=it.answer; const el=document.getElementById('ak-'+_qmSec+'-'+it.num); if(el)el.value=it.answer; }
+    });
+
+  } else if (type === 'short') {
+    const qNum  = parseInt(document.getElementById('qm-short-qnum').value)||null;
+    const qText = document.getElementById('qm-short-qtext').value.trim();
+    const answer= document.getElementById('qm-short-ans').value.trim();
+    Object.assign(q, {qNum,qText,answer});
+    if(qNum && answer){ config.answerKey[_qmSec][qNum]=answer; const el=document.getElementById('ak-'+_qmSec+'-'+qNum); if(el)el.value=answer; }
+
+  } else if (type === 'tfng') {
+    const qNum  = parseInt(document.getElementById('qm-tfng-qnum').value)||null;
+    const qText = document.getElementById('qm-tfng-qtext').value.trim();
+    const chk   = document.querySelector('input[name="qm-tfng"]:checked');
+    const answer= chk ? chk.value : '';
+    Object.assign(q, {qNum,qText,answer});
+    if(qNum && answer){ config.answerKey[_qmSec][qNum]=answer; const el=document.getElementById('ak-'+_qmSec+'-'+qNum); if(el)el.value=answer; }
+
+  } else if (type === 'yntg') {
+    const qNum  = parseInt(document.getElementById('qm-yntg-qnum').value)||null;
+    const qText = document.getElementById('qm-yntg-qtext').value.trim();
+    const chk   = document.querySelector('input[name="qm-yntg"]:checked');
+    const answer= chk ? chk.value : '';
+    Object.assign(q, {qNum,qText,answer});
+    if(qNum && answer){ config.answerKey[_qmSec][qNum]=answer; const el=document.getElementById('ak-'+_qmSec+'-'+qNum); if(el)el.value=answer; }
+  }
+
+  const blocks = getQBlocks(_qmSec, _qmSecN);
+  if (_qmEditIdx !== null) blocks[_qmEditIdx] = q; else blocks.push(q);
+  qmClose();
+  qmRenderList(_qmSec, _qmSecN);
+  toast('Question saved!');
+}
+
+// ── RENDER CARDS ──
+function qmRenderList(sec, n) {
+  const listId = 'qlist-'+sec+'-'+n;
+  const wrap = document.getElementById(listId);
+  if (!wrap) return;
+  const blocks = getQBlocks(sec, n);
+  const typeLbl = {fc:'Form Completion',mc:'Multiple Choice',ct2:'Choose TWO',match:'Matching',short:'Short Answer',tfng:'T/F/NG',yntg:'Y/N/NG'};
+
+  if (!blocks.length) {
+    wrap.innerHTML = '<div class="q-card-empty"><span>📝</span>No questions yet. Click <b>+ Add Question</b> to get started.</div>';
+    return;
+  }
+  wrap.innerHTML = '';
+  blocks.forEach((q, i) => {
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    card.innerHTML = qmCardHTML(q, i, sec, n);
+    wrap.appendChild(card);
+  });
+}
+
+function qmCardHTML(q, i, sec, n) {
+  const typeLbl = {fc:'Form Completion',mc:'Multiple Choice',ct2:'Choose TWO',match:'Matching',short:'Short Answer',tfng:'T/F/NG',yntg:'Y/N/NG'};
+  const badge   = '<span class="q-type-badge">'+( typeLbl[q.type]||q.type )+'</span>';
+  const partTag = q.part ? '<span style="font-size:0.73rem;color:var(--ink3)">'+escH(q.part)+'</span>' : '';
+  const instr   = q.instr ? '<div style="font-size:0.8rem;color:var(--ink3);margin-bottom:6px;font-style:italic">'+escH(q.instr)+'</div>' : '';
+  let body = '';
+
+  if (q.type === 'fc') {
+    body = '<div style="font-size:0.8rem;color:var(--ink2);margin-bottom:4px">Q'+q.fcFrom+'&ndash;Q'+q.fcTo+'</div>';
+    (q.blanks||[]).forEach(function(b){
+      body += '<div style="margin:3px 0;font-size:0.83rem"><b>Q'+b.num+'</b> '+escH(b.label||'')+' <span style="border-bottom:1px dotted #888;display:inline-block;min-width:80px;text-align:center;font-size:0.8rem;color:var(--ink3)">'+(escH(b.answer)||'___')+'</span> <span class="q-card-ans">'+escH(b.answer)+'</span></div>';
+    });
+  } else if (q.type === 'mc') {
+    body = '<div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:4px">Q'+(q.qNum||'?')+'</div>';
+    body += '<div class="q-card-text">'+escH(q.qText||'')+'</div>';
+    (q.options||[]).forEach(function(o,j){ body += '<div class="q-card-opt">'+LTRS[j]+'. '+escH(o)+'</div>'; });
+    if(q.answer) body += '<span class="q-card-ans">&#10003; '+q.answer+'</span>';
+  } else if (q.type === 'ct2') {
+    body = '<div style="font-size:0.8rem;color:var(--ink3);margin-bottom:4px">Q'+(q.qFrom||'?')+' &amp; Q'+(q.qTo||'?')+' &mdash; Choose '+(q.pick||2)+'</div>';
+    body += '<div class="q-card-text">'+escH(q.qText||'')+'</div>';
+    (q.options||[]).forEach(function(o,j){ body += '<div class="q-card-opt">'+LTRS[j]+'. '+escH(o)+'</div>'; });
+    if((q.answers||[]).length) body += '<span class="q-card-ans">&#10003; '+q.answers.join(', ')+'</span>';
+  } else if (q.type === 'match') {
+    if(q.matchPrompt) body += '<div class="q-card-text">'+escH(q.matchPrompt)+'</div>';
+    if(q.mapImgURL) body += '<img src="'+escH(q.mapImgURL)+'" style="max-width:100%;max-height:140px;border-radius:6px;margin-bottom:8px;display:block" onerror="this.style.display=\'none\'">';
+    const filledChoices = (q.matchChoices||[]).filter(function(c){ return (c||'').trim(); });
+    if(filledChoices.length){
+      body += '<div class="match-preview-box"><div class="match-preview-grid">';
+      filledChoices.forEach(function(c,j){ body += '<div><b>'+LTRS[j]+'</b> '+escH(c)+'</div>'; });
+      body += '</div></div>';
+    } else if(q.mapImgURL) {
+      body += '<div style="font-size:0.75rem;color:var(--ink3);margin-bottom:4px">(labels shown on map image — no separate choice box)</div>';
+    }
+    (q.matchItems||[]).forEach(function(it){ body += '<div class="match-item-line"><b>Q'+(it.num||'?')+'</b> '+escH(it.label||'')+' <span class="match-item-blank">'+(escH(it.answer)||'_')+'</span></div>'; });
+  } else if (q.type === 'short') {
+    body = '<div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:4px">Q'+(q.qNum||'?')+'</div>';
+    body += '<div class="q-card-text">'+escH(q.qText||'')+'</div>';
+    if(q.answer) body += '<span class="q-card-ans">&#10003; '+escH(q.answer)+'</span>';
+  } else if (q.type === 'tfng') {
+    body = '<div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:4px">Q'+(q.qNum||'?')+'</div>';
+    body += '<div class="q-card-text">'+escH(q.qText||'')+'</div>';
+    if(q.answer) body += '<span class="q-card-ans">&#10003; '+escH(q.answer)+'</span>';
+  } else if (q.type === 'yntg') {
+    body = '<div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:4px">Q'+(q.qNum||'?')+'</div>';
+    body += '<div class="q-card-text">'+escH(q.qText||'')+'</div>';
+    if(q.answer) body += '<span class="q-card-ans">&#10003; '+escH(q.answer)+'</span>';
+  }
+
+  return '<div class="q-card-header"><div class="q-num-badge">'+(i+1)+'</div>'+badge+' '+partTag+'</div>'+
+    instr+body+
+    '<div class="q-card-actions">'+
+    '<button class="btn btn-green" style="padding:4px 12px;font-size:0.75rem" onclick="qmOpen(\''+sec+'\','+n+','+i+')">Edit</button>'+
+    '<button class="btn btn-ghost" style="padding:4px 12px;font-size:0.75rem" onclick="qmDup(\''+sec+'\','+n+','+i+')">Duplicate</button>'+
+    '<button class="btn btn-red"   style="padding:4px 12px;font-size:0.75rem" onclick="qmRemove(\''+sec+'\','+n+','+i+')">Remove</button>'+
+    '</div>';
+}
+
+function qmDup(sec, n, i) {
+  const blocks = getQBlocks(sec, n);
+  blocks.push(JSON.parse(JSON.stringify(blocks[i])));
+  qmRenderList(sec, n); toast('Duplicated!');
+}
+function qmRemove(sec, n, i) {
+  if (!confirm('Remove this question?')) return;
+  getQBlocks(sec, n).splice(i, 1);
+  qmRenderList(sec, n);
+}
+
+function populateQEditors() {
+  // Only render Section 1 (others built lazily on tab click)
+  qmRenderList('L', 1);
+  // Reading passage 1 (active by default)
+  [1,2,3].forEach(function(n){ qmRenderList('R', n); });
+}
+
+
+
+// ANSWER KEY
+// ═══════════════════════════════════════
+function buildAnswerKeyGrids() {
+  ['L','R'].forEach(sec => {
+    const grid = document.getElementById('AK-'+sec+'-grid');
+    grid.innerHTML = '';
+    for (let i=1; i<=40; i++) {
+      const div = document.createElement('div');
+      div.className = 'field';
+      div.innerHTML = `<label>Q${i}</label><input type="text" id="ak-${sec}-${i}" placeholder="Answer..." value="${escH(config.answerKey[sec][i]||'')}" oninput="config.answerKey['${sec}'][${i}]=this.value">`;
+      grid.appendChild(div);
+    }
+  });
+}
+function populateAnswerKey() {
+  ['L','R'].forEach(sec => {
+    for (let i=1;i<=40;i++) {
+      const el = document.getElementById(`ak-${sec}-${i}`);
+      if (el) el.value = config.answerKey[sec][i] || '';
+    }
+  });
+}
+
+
+// AUDIO / IMAGE
+// ═══════════════════════════════════════
+function loadSectionAudio(n, input) {
+  if (!input.files[0]) return;
+  const file = input.files[0];
+  const reader = new FileReader();
+  reader.onload = e => {
+    config.listening.sections[n-1].audioData = e.target.result;
+    config.listening.sections[n-1].audioName = file.name;
+    config.listening.sections[n-1].audioURL = ''; // uploaded file replaces any pasted URL as the active source
+    document.getElementById('L-audio-name-'+n).textContent = '🎵 ' + file.name;
+    document.getElementById('L-audio-slot-'+n).classList.add('loaded');
+    const el = document.getElementById('L-audio-el-'+n);
+    el.src = e.target.result; el.classList.remove('hidden');
+    toast('Audio loaded: ' + file.name);
+  };
+  reader.readAsDataURL(file);
+}
+function loadSectionImg(n, input) {
+  // Legacy — kept for compat
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => { config.listening.sections[n-1].imgData = e.target.result; toast('Image loaded'); };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function saveSectionImgURL(n, val) {
+  config.listening.sections[n-1].imgURL = val.trim();
+}
+
+function previewSectionImg(n) {
+  const url  = document.getElementById('L-img-url-'+n).value.trim();
+  const wrap = document.getElementById('L-img-preview-'+n);
+  if (!url) { wrap.innerHTML='<span style="color:var(--red);font-size:0.8rem">No URL entered.</span>'; return; }
+  config.listening.sections[n-1].imgURL = url;
+  wrap.innerHTML = `<img src="${escH(url)}" style="max-width:100%;max-height:150px;border-radius:6px;border:1px solid var(--border)" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span style="color:var(--red);font-size:0.8rem;display:none">Cannot load — check URL.</span>`;
+  toast('Image preview updated');
+}
+function saveWritingImgURL(n, val) {
+  config.writing.tasks[n].imgURL = val.trim();
+}
+
+function previewWritingImg(n) {
+  const url  = document.getElementById('W-img-url-'+n).value.trim();
+  const wrap = document.getElementById('W-img-preview-'+n);
+  if (!wrap) return;
+  if (!url) { wrap.innerHTML='<span style="color:var(--red);font-size:0.8rem">No URL entered.</span>'; return; }
+  config.writing.tasks[n].imgURL = url;
+  wrap.innerHTML = `<img src="${escH(url)}" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid var(--border)" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span style="color:var(--red);font-size:0.8rem;display:none">Cannot load — check URL.</span>`;
+  toast('Image preview updated');
+}
+
+
+// SAVE / LOAD CONFIG
+// ═══════════════════════════════════════
+function collectConfig() {
+  // Passages
+  [1,2,3].forEach(i => {
+    const el = document.getElementById('R-text-'+i);
+    if (el) config.reading.passages[i] = el.value;
+  });
+  // Writing
+  config.writing.tasks[1].prompt   = document.getElementById('W-prompt-1').value;
+  config.writing.tasks[2].prompt   = document.getElementById('W-prompt-2').value;
+  config.writing.tasks[1].minWords = parseInt(document.getElementById('W-min-1').value)||150;
+  config.writing.tasks[2].minWords = parseInt(document.getElementById('W-min-2').value)||250;
+  // Writing image URL — sweep from DOM (was missing, causing image loss when loaded on other devices)
+  const wImgInput1 = document.getElementById('W-img-url-1');
+  if (wImgInput1) config.writing.tasks[1].imgURL = wImgInput1.value.trim();
+
+  // Collect question text inputs from DOM for both L and R
+  // (qBlocks are already saved live via qmSave; just ensure answerKey is synced)
+  ['L','R'].forEach(sec => {
+    const blocks_store = sec==='L' ? config.listening.qBlocks : config.reading.qBlocks;
+    if (!blocks_store) return;
+    Object.keys(blocks_store).forEach(n => {
+      (blocks_store[n]||[]).forEach(q => {
+        if (q.type==='fc') {
+          (q.blanks||[]).forEach(b => { if(b.num && b.answer) config.answerKey[sec][b.num]=b.answer; });
+        } else if (q.type==='mc'||q.type==='short'||q.type==='tfng'||q.type==='yntg') {
+          if(q.qNum && q.answer) config.answerKey[sec][q.qNum]=q.answer;
+        } else if (q.type==='match') {
+          (q.matchItems||[]).forEach(it => { if(it.num && it.answer) config.answerKey[sec][it.num]=it.answer; });
+        }
+      });
+    });
+  });
+
+  // Audio URL — sweep from DOM inputs
+  [1,2,3,4].forEach(n => {
+    const urlInput = document.getElementById('audio-url-input-'+n);
+    if (urlInput && urlInput.value.trim()) {
+      config.listening.sections[n-1].audioURL = urlInput.value.trim();
+    }
+  });
+}
+
+function saveAllConfig() {
+  collectConfig();
+  // Save Drive URL into config so simulation can read it
+  const driveURL = localStorage.getItem('ielts_drive_url') || '';
+  config._driveURL = driveURL;
+  // Keep the FULL config (with real answers) only in this browser's localStorage
+  localStorage.setItem('ielts_admin_config', JSON.stringify(config));
+
+  // The downloadable/uploadable file must NOT contain real answers —
+  // this file is meant for a public GitHub repo. Answers go via
+  // "Send Answer Key to Sheet" -> Google Sheets (protected by API key) instead.
+  const publicConfig = JSON.parse(JSON.stringify(config));
+  publicConfig.answerKey = { L: {}, R: {}, _note: 'Answer key withheld — stored separately in Google Sheets, not in this public file.' };
+
+  const blob = new Blob([JSON.stringify(publicConfig, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'ielts_config.json'; a.click();
+  toast('✅ Config saved (answers withheld from file)! Upload ielts_config.json to Google Drive/GitHub, then use "Send Answer Key" to store the real answers safely.');
+}
+
+
+function loadConfig(input) {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      config = JSON.parse(e.target.result);
+      localStorage.setItem('ielts_admin_config', JSON.stringify(config));
+      buildAnswerKeyGrids();
+      loadConfigToUI();
+      toast('✅ Config loaded successfully!');
+    } catch(err) { alert('Invalid config file.'); }
+  };
+  reader.readAsText(input.files[0]);
+}
+
+
+// ═══════════════════════════════════════
+// SEND ANSWER KEY TO THE SERVER (protected — candidates can never read it)
+// Same connection pattern as admin.html / simulation.html — plain fetch()
+// to the Apps Script Web App is blocked by CORS, so we use a JSONP-style
+// <script> tag callback instead.
+// ═══════════════════════════════════════
+// callSheets() now comes from bandup-api.js (Supabase) — it adds the admin token automatically.
+
+async function sendAnswerKeyToSheet() {
+  collectConfig(); // make sure config.answerKey reflects current questions in the UI
+
+  const listeningKey = config.answerKey.L || {};
+  const readingKey = config.answerKey.R || {};
+
+  if (Object.keys(listeningKey).length === 0 && Object.keys(readingKey).length === 0) {
+    if (!confirm('The answer key looks empty right now. Send anyway?')) return;
+  }
+
+  let testSetID = localStorage.getItem('ielts_active_setid') || '';
+  testSetID = prompt('Enter the TestSetID this answer key belongs to (see TestSets sheet in admin.html):', testSetID);
+  if (!testSetID) { toast('⚠️ Cancelled — TestSetID needed to send the answer key.'); return; }
+  localStorage.setItem('ielts_active_setid', testSetID.trim());
+
+  try {
+    toast('⏳ Sending answer key...');
+    const data = await callSheets({
+      action: 'saveAnswerKey',
+      testSetID: testSetID.trim(),
+      listeningKey: JSON.stringify(listeningKey),
+      readingKey: JSON.stringify(readingKey),
+      updatedBy: 'question-maker'
+    });
+    if (data.success) {
+      toast('✅ Answer key saved for ' + testSetID.trim() + '!');
+    } else {
+      alert('Failed to save answer key: ' + (data.message || 'Unknown error'));
+    }
+  } catch (err) {
+    alert('Could not reach the backend.\n\n' + err.message);
+  }
+}
+
+
+// ═══════════════════════════════════════
+// CHECKER
+// ═══════════════════════════════════════
+function loadCandidateResponses(input) {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      candidateResponses = JSON.parse(e.target.result);
+      const info = document.getElementById('checker-candidate-info');
+      info.classList.remove('hidden');
+      info.innerHTML = `<b>${candidateResponses.candidateName || 'Unknown'}</b> &nbsp;|&nbsp; ID: ${candidateResponses.candidateID || 'N/A'} &nbsp;|&nbsp; ${candidateResponses.candidateNationality || ''}<br>Submitted: ${candidateResponses.submitTime ? new Date(candidateResponses.submitTime).toLocaleString() : 'N/A'}`;
+      toast('Candidate file loaded');
+    } catch(err) { alert('Invalid response file.'); }
+  };
+  reader.readAsText(input.files[0]);
+}
+
+function runChecker() {
+  if (!candidateResponses) { alert('Load a candidate response file first.'); return; }
+  collectConfig();
+
+  let lScore=0, rScore=0;
+  const lDetails = document.getElementById('checker-details-L');
+  const rDetails = document.getElementById('checker-details-R');
+  lDetails.innerHTML = '<div style="font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px">Listening</div>';
+  rDetails.innerHTML = '<div style="font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px">Reading</div>';
+
+  const lAnswers = candidateResponses.listening || {};
+  const rAnswers = candidateResponses.reading || {};
+
+  for (let i=1; i<=40; i++) {
+    const key = (config.answerKey.L[i]||'').toString().trim().toLowerCase();
+    const given = (lAnswers[i]||'').toString().trim().toLowerCase();
+    const correct = key !== '' && given === key;
+    if (correct) lScore++;
+    lDetails.innerHTML += `<div class="checker-result ${correct?'checker-correct':'checker-wrong'}">
+      <b>Q${i}:</b> ${given||'<em>no answer</em>'} ${correct?'✓':'✗ Correct: '+escH(config.answerKey.L[i]||'—')}
+    </div>`;
+  }
+  for (let i=1; i<=40; i++) {
+    const key = (config.answerKey.R[i]||'').toString().trim().toLowerCase();
+    const given = (rAnswers[i]||'').toString().trim().toLowerCase();
+    const correct = key !== '' && given === key;
+    if (correct) rScore++;
+    rDetails.innerHTML += `<div class="checker-result ${correct?'checker-correct':'checker-wrong'}">
+      <b>Q${i}:</b> ${given||'<em>no answer</em>'} ${correct?'✓':'✗ Correct: '+escH(config.answerKey.R[i]||'—')}
+    </div>`;
+  }
+
+  const lBand = scoreToBand(lScore);
+  const rBand = scoreToBand(rScore);
+  document.getElementById('checker-score-display').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div style="text-align:center;padding:20px;background:var(--paper2);border-radius:10px">
+        <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3)">Listening</div>
+        <div class="checker-score">${lScore}/40</div>
+        <div class="checker-band">Band ${lBand}</div>
+      </div>
+      <div style="text-align:center;padding:20px;background:var(--paper2);border-radius:10px">
+        <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3)">Reading</div>
+        <div class="checker-score">${rScore}/40</div>
+        <div class="checker-band">Band ${rBand}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('checker-output').classList.remove('hidden');
+  toast('Checker complete!');
+}
+
+function scoreToBand(score) {
+  if (score >= 39) return 9.0;
+  if (score >= 37) return 8.5;
+  if (score >= 35) return 8.0;
+  if (score >= 33) return 7.5;
+  if (score >= 30) return 7.0;
+  if (score >= 27) return 6.5;
+  if (score >= 23) return 6.0;
+  if (score >= 20) return 5.5;
+  if (score >= 16) return 5.0;
+  if (score >= 13) return 4.5;
+  if (score >= 10) return 4.0;
+  return 3.5;
+}
+
+// ═══════════════════════════════════════
+
+// PDF EXPORT
+// ═══════════════════════════════════════
+function openPrintWindow(html) {
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>BandUp Export</title>
+  <style>
+    body{font-family:Georgia,serif;max-width:800px;margin:0 auto;padding:40px;color:#1a1a2e}
+    h1{font-size:1.5rem;color:#002f5f;border-bottom:3px solid #c8a84b;padding-bottom:10px;margin-bottom:6px}
+    h2{font-size:1.1rem;color:#002f5f;margin-top:28px;margin-bottom:8px}
+    h3{font-size:0.95rem;color:#4a4a6a;margin:16px 0 6px}
+    .q{margin-bottom:12px;padding:8px 12px;border:1px solid #e8e5df;border-radius:4px}
+    .q-num{font-weight:bold;color:#002f5f}
+    .answer-line{border-bottom:1px solid #888;min-width:200px;display:inline-block;height:18px;margin-left:8px}
+    .correct{color:#2e7d4f;font-weight:bold}
+    .wrong{color:#c0392b}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    td,th{border:1px solid #e8e5df;padding:6px 10px;font-size:0.88rem}
+    th{background:#f2f0ec;font-weight:700;color:#002f5f}
+    @media print{body{padding:20px}}
+  </style></head><body>${html}<script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
+}
+
+function exportQuestionPDF() {
+  collectConfig();
+  const title = document.getElementById('pdf-title').value;
+  const subtitle = document.getElementById('pdf-subtitle').value;
+  let html = `<h1>${escH(title)}</h1><p style="color:#8888aa;margin-bottom:24px">${escH(subtitle)}</p>`;
+  html += `<h2>Listening Section</h2>`;
+  for (let i=1; i<=40; i++) {
+    const q = config.listening.questions[i];
+    html += `<div class="q"><span class="q-num">${i}.</span> ${escH(q?.text||'Question '+i)} <span class="answer-line"></span></div>`;
+  }
+  html += `<h2>Reading Section</h2>`;
+  [1,2,3].forEach(p => {
+    html += `<h3>Passage ${p}</h3><p style="font-size:0.85rem;color:#4a4a6a;margin-bottom:10px">${escH(config.reading.passages[p]||'').substring(0,300)}...</p>`;
+  });
+  for (let i=1; i<=40; i++) {
+    const q = config.reading.questions[i];
+    html += `<div class="q"><span class="q-num">${i}.</span> ${escH(q?.text||'Question '+i)} <span class="answer-line"></span></div>`;
+  }
+  html += `<h2>Writing Section</h2>`;
+  html += `<h3>Task 1</h3><p>${escH(config.writing.tasks[1].prompt||'')}</p>`;
+  html += `<h3>Task 2</h3><p>${escH(config.writing.tasks[2].prompt||'')}</p>`;
+  openPrintWindow(html);
+}
+
+function exportAnswerSheetPDF() {
+  const title = document.getElementById('pdf-title').value;
+  let html = `<h1>${escH(title)} — Answer Sheet</h1>`;
+  html += `<h2>Listening</h2><table><tr><th>Q</th><th>Answer</th><th>Q</th><th>Answer</th><th>Q</th><th>Answer</th><th>Q</th><th>Answer</th></tr>`;
+  for (let i=1; i<=10; i++) html += `<tr><td>${i}</td><td style="min-width:100px">&nbsp;</td><td>${i+10}</td><td>&nbsp;</td><td>${i+20}</td><td>&nbsp;</td><td>${i+30}</td><td>&nbsp;</td></tr>`;
+  html += `</table><h2>Reading</h2><table><tr><th>Q</th><th>Answer</th><th>Q</th><th>Answer</th><th>Q</th><th>Answer</th><th>Q</th><th>Answer</th></tr>`;
+  for (let i=1; i<=10; i++) html += `<tr><td>${i}</td><td style="min-width:100px">&nbsp;</td><td>${i+10}</td><td>&nbsp;</td><td>${i+20}</td><td>&nbsp;</td><td>${i+30}</td><td>&nbsp;</td></tr>`;
+  html += `</table>`;
+  openPrintWindow(html);
+}
+
+function exportAnswerKeyPDF() {
+  collectConfig();
+  const title = document.getElementById('pdf-title').value;
+  let html = `<h1>${escH(title)} — Answer Key</h1><p style="color:#c0392b;font-size:0.8rem">CONFIDENTIAL — FOR ADMIN USE ONLY</p>`;
+  html += `<h2>Listening</h2><table><tr><th>Q</th><th class="correct">Answer</th><th>Q</th><th class="correct">Answer</th><th>Q</th><th class="correct">Answer</th><th>Q</th><th class="correct">Answer</th></tr>`;
+  for (let i=1; i<=10; i++) html += `<tr><td>${i}</td><td class="correct">${escH(config.answerKey.L[i]||'')}</td><td>${i+10}</td><td class="correct">${escH(config.answerKey.L[i+10]||'')}</td><td>${i+20}</td><td class="correct">${escH(config.answerKey.L[i+20]||'')}</td><td>${i+30}</td><td class="correct">${escH(config.answerKey.L[i+30]||'')}</td></tr>`;
+  html += `</table><h2>Reading</h2><table><tr><th>Q</th><th class="correct">Answer</th><th>Q</th><th class="correct">Answer</th><th>Q</th><th class="correct">Answer</th><th>Q</th><th class="correct">Answer</th></tr>`;
+  for (let i=1; i<=10; i++) html += `<tr><td>${i}</td><td class="correct">${escH(config.answerKey.R[i]||'')}</td><td>${i+10}</td><td class="correct">${escH(config.answerKey.R[i+10]||'')}</td><td>${i+20}</td><td class="correct">${escH(config.answerKey.R[i+20]||'')}</td><td>${i+30}</td><td class="correct">${escH(config.answerKey.R[i+30]||'')}</td></tr>`;
+  html += `</table>`;
+  openPrintWindow(html);
+}
+
+function exportCheckerPDF() {
+  const output = document.getElementById('checker-output').innerHTML;
+  openPrintWindow(`<h1>IELTS Checker Results</h1>${output}`);
+}
+
+// ═══════════════════════════════════════
+
+// UTILS
+// ═══════════════════════════════════════
+function escH(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// ═══════════════════════════════════════
+
+// AI QUESTION GENERATOR
+// ═══════════════════════════════════════
+let aiGenTarget = { section: null, part: null };
+let aiGeneratedQuestions = [];
+
+function openAIGen(section, part) {
+  aiGenTarget = { section, part };
+  if (section) document.getElementById('ai-gen-section').value = section;
+  resetAIGen();
+  document.getElementById('ai-gen-overlay').classList.add('open');
+}
+function closeAIGen() {
+  document.getElementById('ai-gen-overlay').classList.remove('open');
+}
+function resetAIGen() {
+  document.getElementById('ai-gen-step1').style.display = '';
+  document.getElementById('ai-gen-loading').style.display = 'none';
+  document.getElementById('ai-gen-results').style.display = 'none';
+  document.getElementById('ai-gen-error').style.display = 'none';
+  aiGeneratedQuestions = [];
+}
+
+async function runAIGenerate() {
+  const passage = document.getElementById('ai-gen-passage').value.trim();
+  if (!passage) { alert('Please paste a passage or topic first.'); return; }
+
+  const section  = document.getElementById('ai-gen-section').value;
+  const count    = document.getElementById('ai-gen-count').value;
+  const wantMC   = document.getElementById('ai-t-mc').checked;
+  const wantTF   = document.getElementById('ai-t-tfng').checked;
+  const wantYN   = document.getElementById('ai-t-yntg').checked;
+  const wantSA   = document.getElementById('ai-t-short').checked;
+  const wantFC   = document.getElementById('ai-t-fc').checked;
+
+  const types = [];
+  if (wantMC) types.push('Multiple Choice (mc)');
+  if (wantTF) types.push('True/False/Not Given (tfng)');
+  if (wantYN) types.push('Yes/No/Not Given (yntg)');
+  if (wantSA) types.push('Short Answer (short)');
+  if (wantFC) types.push('Form Completion (fc)');
+  if (!types.length) { alert('Please select at least one question type.'); return; }
+
+  document.getElementById('ai-gen-step1').style.display = 'none';
+  document.getElementById('ai-gen-loading').style.display = '';
+  document.getElementById('ai-gen-error').style.display = 'none';
+
+  const loadingMsgs = [
+    'Reading the passage carefully...',
+    'Identifying key facts and ideas...',
+    'Crafting IELTS-style questions...',
+    'Preparing answer options...'
+  ];
+  let mi = 0;
+  const msgEl = document.getElementById('ai-gen-loading-msg');
+  const msgInterval = setInterval(() => {
+    msgEl.textContent = loadingMsgs[mi++ % loadingMsgs.length];
+  }, 1800);
+
+  const prompt = `You are an expert IELTS examiner. Given the following passage or topic, generate exactly ${count} IELTS Academic ${section === 'R' ? 'Reading' : 'Listening'} questions.
+
+Question types to use (mix them proportionally): ${types.join(', ')}.
+
+For each question, output a JSON object with these fields:
+- type: "mc" | "tfng" | "yntg" | "short" | "fc"
+- text: the question or instruction stem
+- options: array of strings (for mc: 4 options A-D; for tfng: ["TRUE","FALSE","NOT GIVEN"]; for yntg: ["YES","NO","NOT GIVEN"]; for short/fc: [])
+- answer: the correct answer (for mc: "A"/"B"/"C"/"D"; for tfng: "TRUE"/"FALSE"/"NOT GIVEN"; for yntg: "YES"/"NO"/"NOT GIVEN"; for short/fc: the exact word/phrase)
+- explanation: one-sentence rationale for the answer
+
+Return ONLY a valid JSON array of question objects. No preamble, no markdown, no extra text.
+
+PASSAGE / TOPIC:
+${passage}`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    clearInterval(msgInterval);
+
+    const raw = (data.content || []).map(c => c.text || '').join('');
+    const clean = raw.replace(/```json|```/g,'').trim();
+    let questions;
+    try { questions = JSON.parse(clean); }
+    catch(e) {
+      // Try to extract JSON array from response
+      const match = clean.match(/\[[\s\S]*\]/);
+      if (match) questions = JSON.parse(match[0]);
+      else throw new Error('Could not parse AI response as JSON.');
+    }
+
+    aiGeneratedQuestions = questions;
+    renderAIResults(questions);
+
+  } catch(e) {
+    clearInterval(msgInterval);
+    document.getElementById('ai-gen-loading').style.display = 'none';
+    document.getElementById('ai-gen-step1').style.display = '';
+    const errEl = document.getElementById('ai-gen-error');
+    errEl.style.display = '';
+    errEl.textContent = '❌ ' + e.message;
+  }
+}
+
+function renderAIResults(questions) {
+  document.getElementById('ai-gen-loading').style.display = 'none';
+  document.getElementById('ai-gen-results').style.display = '';
+  document.getElementById('ai-res-count').textContent = questions.length;
+
+  const container = document.getElementById('ai-gen-cards');
+  const typeLabels = { mc:'Multiple Choice', tfng:'True/False/NG', yntg:'Yes/No/NG', short:'Short Answer', fc:'Form Completion' };
+
+  container.innerHTML = questions.map((q, i) => `
+    <div class="ai-q-card selected" id="ai-qcard-${i}">
+      <input type="checkbox" class="ai-q-chk" id="ai-chk-${i}" checked>
+      <div class="ai-q-card-hdr">
+        <span class="q-num-badge">${i+1}</span>
+        <span class="ai-q-type-badge">${typeLabels[q.type]||q.type}</span>
+      </div>
+      <div class="ai-q-text">${escH(q.text)}</div>
+      ${(q.options&&q.options.length) ? `<div class="ai-q-opts">${q.options.map((o,j)=>`<div class="ai-q-opt"><b>${String.fromCharCode(65+j)}.</b> ${escH(o)}</div>`).join('')}</div>` : ''}
+      <div><span class="ai-q-ans">✓ ${escH(String(q.answer))}</span></div>
+      ${q.explanation ? `<div style="font-size:0.76rem;color:var(--ink3);margin-top:6px;font-style:italic">${escH(q.explanation)}</div>` : ''}
+      <div class="ai-q-actions">
+        <button class="btn btn-green" style="padding:5px 12px;font-size:0.76rem" onclick="addSingleAIQuestion(${i})">+ Add to Test</button>
+        <button class="btn btn-blue" style="padding:5px 12px;font-size:0.76rem" onclick="saveSingleAIToBank(${i})">🗄️ To Bank</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Toggle selection on card click
+  questions.forEach((_, i) => {
+    const chk = document.getElementById('ai-chk-' + i);
+    chk.addEventListener('change', () => {
+      document.getElementById('ai-qcard-' + i).classList.toggle('selected', chk.checked);
+    });
+  });
+}
+
+function getCheckedAIQuestions() {
+  return aiGeneratedQuestions.filter((_, i) => {
+    const chk = document.getElementById('ai-chk-' + i);
+    return chk && chk.checked;
+  });
+}
+
+function addSingleAIQuestion(idx) {
+  const q = aiGeneratedQuestions[idx];
+  if (!q) return;
+  insertAIQuestionToTest([q]);
+}
+
+function addAllAIQuestions() {
+  const selected = getCheckedAIQuestions();
+  if (!selected.length) { alert('No questions selected.'); return; }
+  insertAIQuestionToTest(selected);
+  closeAIGen();
+}
+
+function insertAIQuestionToTest(questions) {
+  const section = aiGenTarget.section || document.getElementById('ai-gen-section').value;
+  const part    = aiGenTarget.part || 1;
+  if (!section) { alert('No section target set.'); return; }
+
+  questions.forEach(q => {
+    // Build a compatible question object for qStore
+    const qObj = {
+      id: 'q_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+      type: q.type,
+      part: 'AI Generated',
+      instr: '',
+      text: q.text,
+      options: (q.options||[]).map((o,i) => ({ letter: String.fromCharCode(65+i), text: o })),
+      answer: q.answer
+    };
+
+    // Push into the appropriate store
+    const key = section === 'R' ? `qstore_R_${part}` : `qstore_L_${part}`;
+    let store = JSON.parse(localStorage.getItem(key) || '[]');
+    store.push(qObj);
+    localStorage.setItem(key, JSON.stringify(store));
+  });
+
+  toast(`✅ ${questions.length} question(s) added to ${section === 'R' ? 'Reading' : 'Listening'} section`);
+
+  // Refresh the relevant question list if visible
+  if (typeof renderQList === 'function') {
+    try { renderQList(section, part); } catch(e) {}
+  }
+}
+
+// ═══════════════════════════════════════
+
+// QUESTION BANK
+// ═══════════════════════════════════════
+function loadQBank() { renderQBank(); }
+
+function getQBank() {
+  return JSON.parse(localStorage.getItem('ielts_qbank') || '[]');
+}
+function saveQBank(bank) {
+  localStorage.setItem('ielts_qbank', JSON.stringify(bank));
+}
+
+function renderQBank() {
+  const wrap = document.getElementById('qbank-wrap');
+  if (!wrap) return;
+  const bank = getQBank();
+  const search = (document.getElementById('qbank-search')?.value||'').toLowerCase();
+  const typeF  = document.getElementById('qbank-filter-type')?.value||'';
+
+  const filtered = bank.filter(q => {
+    const matchType = !typeF || q.type === typeF;
+    const matchSearch = !search || q.text.toLowerCase().includes(search) || (q.tags||[]).some(t=>t.includes(search));
+    return matchType && matchSearch;
+  });
+
+  if (!filtered.length) {
+    wrap.innerHTML = '<div class="tbl-empty">No questions found. Try adjusting your search or add new ones.</div>';
+    return;
+  }
+
+  const typeLabels = { mc:'MC', tfng:'TF/NG', yntg:'YN/NG', short:'Short', fc:'FC', match:'Match' };
+  wrap.innerHTML = filtered.map((q, i) => `
+    <div class="qbank-card">
+      <div class="qbank-body">
+        <div class="qbank-text">${escH(q.text)}</div>
+        <div class="qbank-meta">
+          <span class="q-type-badge">${typeLabels[q.type]||q.type}</span>
+          ${(q.tags||[]).map(t=>`<span class="qbank-tag">${escH(t)}</span>`).join('')}
+          <span style="font-size:0.72rem;color:var(--ink3)">Ans: <b>${escH(String(q.answer||'—'))}</b></span>
+        </div>
+      </div>
+      <div class="qbank-actions">
+        <button class="btn btn-blue" style="padding:4px 10px;font-size:0.75rem" onclick="insertBankQToTest(${bank.indexOf(q)})">+ Add to Test</button>
+        <button class="delete-btn" onclick="deleteFromBank(${bank.indexOf(q)})">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openAddToBank() {
+  document.getElementById('qbank-add-card').style.display = '';
+}
+
+function saveToBank(qObj) {
+  const bank = getQBank();
+  if (qObj) {
+    bank.push(qObj);
+  } else {
+    const type = document.getElementById('qbank-type').value;
+    const text = document.getElementById('qbank-qtext').value.trim();
+    const opts = document.getElementById('qbank-opts').value.trim().split('\n').filter(Boolean);
+    const ans  = document.getElementById('qbank-ans').value.trim();
+    const tags = document.getElementById('qbank-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+    if (!text) { alert('Please enter a question.'); return; }
+    bank.push({ id: 'qb_'+Date.now(), type, text, options: opts.map((o,i)=>({letter:String.fromCharCode(65+i),text:o})), answer: ans, tags, addedAt: new Date().toISOString() });
+    document.getElementById('qbank-add-card').style.display = 'none';
+    document.getElementById('qbank-qtext').value = '';
+    document.getElementById('qbank-opts').value = '';
+    document.getElementById('qbank-ans').value = '';
+    document.getElementById('qbank-tags').value = '';
+  }
+  saveQBank(bank);
+  renderQBank();
+  toast('🗄️ Saved to Question Bank!');
+}
+
+function deleteFromBank(idx) {
+  if (!confirm('Remove this question from the bank?')) return;
+  const bank = getQBank();
+  bank.splice(idx, 1);
+  saveQBank(bank);
+  renderQBank();
+  toast('🗑 Removed from bank');
+}
+
+function insertBankQToTest(idx) {
+  const bank = getQBank();
+  const q = bank[idx];
+  if (!q) return;
+  const section = prompt('Add to which section? (R = Reading, L = Listening)', 'R');
+  if (!section) return;
+  const part = parseInt(prompt('Which part/passage? (1, 2, or 3)', '1'))||1;
+  aiGenTarget = { section: section.toUpperCase(), part };
+  insertAIQuestionToTest([{ type: q.type, text: q.text, options: (q.options||[]).map(o=>o.text||o), answer: q.answer }]);
+}
+
+function saveSingleAIToBank(idx) {
+  const q = aiGeneratedQuestions[idx];
+  if (!q) return;
+  saveToBank({ id:'qb_'+Date.now(), type:q.type, text:q.text, options:(q.options||[]).map((o,i)=>({letter:String.fromCharCode(65+i),text:o})), answer:q.answer, tags:['ai-generated'], addedAt:new Date().toISOString() });
+}
+
+function saveAllAIToBank() {
+  const selected = getCheckedAIQuestions();
+  if (!selected.length) { alert('No questions selected.'); return; }
+  selected.forEach(q => {
+    saveToBank({ id:'qb_'+Date.now()+'_'+Math.random().toString(36).slice(2,4), type:q.type, text:q.text, options:(q.options||[]).map((o,i)=>({letter:String.fromCharCode(65+i),text:o})), answer:q.answer, tags:['ai-generated'], addedAt:new Date().toISOString() });
+  });
+  toast(`🗄️ ${selected.length} question(s) saved to Bank`);
+}
+
+
+// BULK CSV IMPORT
+// ═══════════════════════════════════════
+function openCSVImport() {
+  document.getElementById('csv-import-card').style.display = '';
+  document.getElementById('csv-import-card').scrollIntoView({ behavior:'smooth' });
+}
+
+function downloadCSVTemplate() {
+  const header = 'type,text,optionA,optionB,optionC,optionD,answer,section,part';
+  const rows = [
+    'mc,"The passage states that renewable energy is","cheap","expensive","dangerous","unreliable","A","R","1"',
+    'tfng,"The author believes solar power is the only solution","","","","","TRUE","R","1"',
+    'yntg,"The lecturer thinks wind turbines are too noisy for residential areas","","","","","NO","R","1"',
+    'short,"What year was the experiment conducted?","","","","","2019","R","2"',
+    'fc,"The river flows ___ km per hour","","","","","42","L","1"'
+  ];
+  const csv = [header, ...rows].join('\n');
+  const blob = new Blob([csv], { type:'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ielts_questions_template.csv';
+  a.click();
+}
+
+let csvParsedQuestions = [];
+
+function handleCSVUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    csvParsedQuestions = parseCSV(text);
+    renderCSVPreview(csvParsedQuestions);
+  };
+  reader.readAsText(file);
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',');
+  return lines.slice(1).map(line => {
+    const vals = [];
+    let inQ = false, cur = '';
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; continue; }
+      if (c === ',' && !inQ) { vals.push(cur); cur = ''; continue; }
+      cur += c;
+    }
+    vals.push(cur);
+    const obj = {};
+    headers.forEach((h,i) => obj[h.trim()] = (vals[i]||'').trim());
+    return obj;
+  }).filter(r => r.type && r.text);
+}
+
+function renderCSVPreview(rows) {
+  document.getElementById('csv-count').textContent = rows.length;
+  document.getElementById('csv-preview-wrap').style.display = '';
+  const tbody = document.getElementById('csv-preview-body');
+  tbody.innerHTML = rows.map((r,i) => `<tr>
+    <td>${i+1}</td>
+    <td><span class="q-type-badge">${escH(r.type)}</span></td>
+    <td style="max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(r.text)}</td>
+    <td><b>${escH(r.answer)}</b></td>
+    <td>${escH(r.section||'?')}</td>
+    <td>${escH(r.part||'?')}</td>
+  </tr>`).join('');
+}
+
+function importCSVQuestions() {
+  if (!csvParsedQuestions.length) return;
+  let added = 0;
+  csvParsedQuestions.forEach(r => {
+    const section = (r.section||'R').toUpperCase();
+    const part = parseInt(r.part)||1;
+    const key = `qstore_${section}_${part}`;
+    let store = JSON.parse(localStorage.getItem(key)||'[]');
+    const opts = ['optionA','optionB','optionC','optionD'].map((k,i)=>({letter:String.fromCharCode(65+i),text:r[k]||''})).filter(o=>o.text);
+    store.push({ id:'csv_'+Date.now()+'_'+added, type:r.type, part:'', instr:'', text:r.text, options:opts, answer:r.answer });
+    localStorage.setItem(key, JSON.stringify(store));
+    added++;
+  });
+  const statusEl = document.getElementById('csv-import-status');
+  statusEl.style.display = '';
+  statusEl.style.color = 'var(--green)';
+  statusEl.textContent = `✅ ${added} question(s) imported successfully!`;
+  toast(`📥 ${added} questions imported`);
+  setTimeout(() => { document.getElementById('csv-import-card').style.display = 'none'; }, 2000);
+}
+</script>
+
+</script>
+</body>
+</html>

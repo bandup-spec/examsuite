@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOEIC Simulation — BandUp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:100%}
+  :root{
+    --ink:#1a1a2e;--ink2:#4a4a6a;--ink3:#8888aa;
+    --paper:#faf9f7;--paper2:#f2f0ec;--paper3:#e8e5df;
+    --blue:#002f5f;--blue2:#1a5fa8;--gold:#c8a84b;
+    --green:#2e7d4f;--red:#c0392b;--border:rgba(0,0,0,0.1);
+  }
+  body{font-family:'DM Sans',sans-serif;background:var(--paper2);color:var(--ink);height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+  .hdr{background:var(--blue);color:#fff;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0;border-bottom:3px solid var(--gold)}
+  .hdr-logo{font-family:'Source Serif 4',serif;font-size:1.05rem;font-weight:600}
+  .hdr-logo span{color:var(--gold)}
+  .hdr-mid{display:flex;align-items:center;gap:16px;font-size:0.85rem}
+  .timer{background:rgba(255,255,255,0.12);padding:5px 14px;border-radius:6px;font-weight:600;letter-spacing:0.03em;font-variant-numeric:tabular-nums}
+  .timer.low{background:var(--red)}
+  .hdr-right{display:flex;align-items:center;gap:12px;font-size:0.82rem}
+  .btn{padding:8px 16px;border-radius:7px;border:none;font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:600;cursor:pointer}
+  .btn-submit{background:var(--gold);color:var(--blue)}
+  .btn-submit:hover{opacity:0.9}
+  .btn-submit:disabled{opacity:0.5;cursor:default}
+
+  .main{display:flex;flex:1;overflow:hidden}
+  .content{flex:1;overflow-y:auto;padding:26px 26px 100px}
+  .content::-webkit-scrollbar{width:6px}
+  .content::-webkit-scrollbar-thumb{background:var(--paper3);border-radius:3px}
+
+  .nav{width:230px;background:#fff;border-left:1px solid var(--border);flex-shrink:0;overflow-y:auto;padding:16px 12px}
+  .nav-title{font-size:0.7rem;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;margin:10px 4px 6px}
+  .nav-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:6px}
+  .nav-btn{aspect-ratio:1;border-radius:5px;border:1px solid var(--border);background:var(--paper2);color:var(--ink2);font-size:0.68rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .nav-btn.answered{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .nav-btn.current{outline:2px solid var(--gold)}
+
+  .stage-gate{max-width:640px;margin:60px auto;background:#fff;border-radius:14px;padding:36px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,0.08)}
+  .stage-gate h1{font-family:'Source Serif 4',serif;color:var(--blue);margin-bottom:10px}
+  .stage-gate p{color:var(--ink2);font-size:0.92rem;line-height:1.7;margin-bottom:10px;text-align:left}
+  .stage-gate .btn{margin-top:18px;padding:12px 28px;font-size:0.92rem;background:var(--blue);color:#fff}
+  .stage-gate .btn:disabled{opacity:0.4;cursor:not-allowed}
+  .ack-row{display:flex;gap:9px;align-items:flex-start;margin:16px 0 4px;font-size:0.85rem;color:var(--ink2);cursor:pointer;background:var(--paper2,#f2f0ec);padding:12px 14px;border-radius:8px;text-align:left}
+  .ack-row input{margin-top:3px;flex-shrink:0}
+
+  .part-block{background:#fff;border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:20px}
+  .part-head{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+  .part-num{font-family:'Source Serif 4',serif;font-size:1.15rem;font-weight:600;color:var(--blue)}
+  .part-name{font-size:0.8rem;color:var(--ink3)}
+  .part-instr{font-size:0.85rem;color:var(--ink2);margin-bottom:16px;line-height:1.6}
+
+  .item{border-top:1px solid var(--paper3);padding:14px 0}
+  .item:first-of-type{border-top:none;padding-top:4px}
+  .item-q{font-size:0.68rem;color:var(--ink3);font-weight:700;margin-bottom:4px}
+  .item-q-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+  .item-q-row .item-q{margin-bottom:0}
+  .flag-btn{background:none;border:none;cursor:pointer;font-size:0.9rem;opacity:0.25;filter:grayscale(1);padding:2px 4px;line-height:1}
+  .flag-btn:hover{opacity:0.6}
+  .flag-btn.flagged{opacity:1;filter:none}
+  .nav-btn.flagged{box-shadow:inset 0 0 0 2px var(--gold)}
+  .item-text{font-size:0.9rem;margin-bottom:10px;line-height:1.6}
+  .item-img{max-width:100%;max-height:280px;border-radius:8px;margin-bottom:10px;display:block}
+  audio{width:100%;max-width:420px;margin-bottom:10px;display:block}
+  .audio-lock-wrap{max-width:420px;margin-bottom:10px}
+  .audio-play-btn{width:100%;padding:10px;border:none;border-radius:8px;background:var(--blue);color:#fff;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;margin-top:6px}
+  .audio-play-btn:hover{background:var(--blue2)}
+  .audio-play-btn:disabled{opacity:0.7;cursor:default}
+  .audio-progress-track{width:100%;height:6px;background:var(--paper3);border-radius:3px;margin-top:8px;overflow:hidden}
+  .audio-progress-fill{height:100%;width:0%;background:var(--gold);transition:width 0.2s linear}
+  .audio-played-box{max-width:420px;margin-bottom:10px;padding:10px 14px;background:var(--paper2);border:1px solid var(--paper3);border-radius:8px;font-size:0.82rem;color:var(--ink3)}
+  .opts{display:flex;flex-direction:column;gap:7px}
+  .opt{display:flex;align-items:center;gap:9px;padding:8px 12px;border:1px solid var(--paper3);border-radius:8px;cursor:pointer;font-size:0.86rem}
+  .opt:hover{background:var(--paper2)}
+  .opt.selected{background:#e8f0ff;border-color:var(--blue2)}
+  .opt input{accent-color:var(--blue);width:15px;height:15px;flex-shrink:0}
+  .opt .lab{font-weight:700;color:var(--blue);width:16px;flex-shrink:0}
+
+  .passage{background:var(--paper2);border-radius:8px;padding:16px;font-size:0.86rem;line-height:1.75;margin-bottom:14px;white-space:pre-wrap}
+  .passage-sep{border-top:1px dashed var(--paper3);margin:12px 0}
+  .blank-tag{display:inline-block;background:var(--gold);color:var(--blue);font-weight:700;border-radius:4px;padding:0 5px;font-size:0.8em}
+
+  .results{max-width:560px;margin:50px auto;background:#fff;border-radius:14px;padding:36px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,0.08)}
+  .results h1{font-family:'Source Serif 4',serif;color:var(--blue);margin-bottom:16px}
+  .score-row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--paper3);font-size:0.92rem}
+  .score-total{font-size:1.4rem;font-weight:700;color:var(--blue);margin-top:14px}
+
+  #load-overlay{position:fixed;inset:0;background:rgba(0,47,95,0.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;gap:14px}
+  .spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,0.25);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  #toast-wrap{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+  .toast{pointer-events:auto;min-width:260px;max-width:min(90vw,420px);padding:12px 16px;border-radius:9px;font-size:0.85rem;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,0.2);display:flex;align-items:center;gap:10px;animation:toastIn 0.25s ease-out;color:#fff}
+  .toast.info{background:var(--blue2,#1a5fa8)}
+  .toast.warn{background:#b8860b}
+  .toast.danger{background:var(--red,#c0392b)}
+  @keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes toastOut{from{opacity:1}to{opacity:0}}
+</style>
+</head>
+<body>
+<div id="toast-wrap"></div>
+
+<div class="hdr">
+  <div class="hdr-logo">Band<span>Up</span> · TOEIC</div>
+  <div class="hdr-mid">
+    <div id="stage-label" style="opacity:0.8">Listening</div>
+    <div class="timer" id="timer-disp">--:--</div>
+  </div>
+  <div class="hdr-right">
+    <span id="disp-name">Guest</span>
+    <button class="btn btn-submit" id="finish-listening-btn" onclick="finishListening()" style="display:none">Finish Listening → Reading</button>
+    <button class="btn btn-submit" id="submit-btn" onclick="submitTest(false)" style="display:none">Submit</button>
+  </div>
+</div>
+
+<div class="main" id="main-app" style="display:none">
+  <div class="content" id="content"></div>
+  <div class="nav" id="nav"></div>
+</div>
+
+<div id="gate-wrap"></div>
+<div id="results-wrap"></div>
+
+<script src="bandup-api.js"></script>
+<script>
+// ═══════════════════════════════════════
+// SESSION / CANDIDATE
+// ═══════════════════════════════════════
+function initUser(){
+  let name = sessionStorage.getItem('candidateName') || '';
+  const raw = sessionStorage.getItem('candidateData');
+  if(raw){ try { const cd = JSON.parse(raw); name = cd.fullName || name; } catch(e){} }
+  document.getElementById('disp-name').innerText = name || 'Guest';
+}
+
+let activeTestSet = {setID:'', setName:''};
+let config = null;
+
+// ═══════════════════════════════════════
+// CONFIG LOADER — same pattern as simulation.html
+// ═══════════════════════════════════════
+async function loadConfig(){
+  const selected = sessionStorage.getItem('selectedTestSet');
+  let url = '';
+  if(selected){
+    try {
+      const sel = JSON.parse(selected);
+      url = sel.configURL || '';
+      activeTestSet = {setID: sel.setID || '', setName: sel.setName || ''};
+    } catch(e){}
+  }
+  if(!url){
+    document.getElementById('gate-wrap').innerHTML = `<div class="stage-gate"><h1>No test selected</h1><p>Go back to the test list and choose a TOEIC test set first.</p><button class="btn" style="background:var(--blue);color:#fff" onclick="location.href='tests.html'">← Back to test list</button></div>`;
+    return false;
+  }
+  showLoadingOverlay('Loading test configuration...');
+  try {
+    const res = await fetch(url, {cache:'no-cache'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    config = await res.json();
+  } catch(e){
+    document.getElementById('gate-wrap').innerHTML = `<div class="stage-gate"><h1>Could not load this test</h1><p>${escH(e.message)}</p></div>`;
+    hideLoadingOverlay();
+    return false;
+  }
+  hideLoadingOverlay();
+  return true;
+}
+
+function showLoadingOverlay(msg){
+  let ov = document.getElementById('load-overlay');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id='load-overlay';
+    ov.innerHTML = `<div class="spinner"></div><div style="font-family:'Source Serif 4',serif;font-size:1.2rem;color:var(--gold)">BandUp</div><div id="load-msg" style="font-size:0.85rem;opacity:0.75"></div>`;
+    document.body.appendChild(ov);
+  }
+  document.getElementById('load-msg').textContent = msg;
+  ov.style.display='flex';
+}
+function hideLoadingOverlay(){ const ov=document.getElementById('load-overlay'); if(ov) ov.style.display='none'; }
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let answers = {};      // absolute num (1-100 listening, 101-200 reading) -> 'A'/'B'/'C'/'D'
+let flagged = {};      // absolute num -> true if marked for review
+let stage = null;      // 'listening' | 'reading'
+let timerInterval = null;
+
+const STAGE_DURATIONS = { listening: 45*60, reading: 75*60 };
+
+function getCandidateID(){ return sessionStorage.getItem('candidateID') || 'guest'; }
+function timerKey(st){ return `toeic_timer_end_${getCandidateID()}_${activeTestSet.setID||'default'}_${st}`; }
+function autosaveKey(){ return `toeic_autosave_${getCandidateID()}_${activeTestSet.setID||'default'}`; }
+
+function saveAutosave(){
+  try { localStorage.setItem(autosaveKey(), JSON.stringify({answers, flagged, stage, savedAt: Date.now()})); } catch(e){}
+}
+function loadAutosave(){
+  try {
+    const raw = localStorage.getItem(autosaveKey());
+    if(raw){ const d = JSON.parse(raw); answers = d.answers || {}; flagged = d.flagged || {}; return d.savedAt || 0; }
+  } catch(e){}
+  return 0;
+}
+function clearAutosave(){ try{ localStorage.removeItem(autosaveKey()); }catch(e){} }
+
+// ═══════════════════════════════════════
+// GATE SCREENS
+// ═══════════════════════════════════════
+function showStartGate(){
+  const title = (config.meta && config.meta.title) || activeTestSet.setName || 'TOEIC Practice Test';
+  document.getElementById('gate-wrap').innerHTML = `
+    <div class="stage-gate">
+      <h1>${escH(title)}</h1>
+      <p><b>Format:</b> 100 Listening questions (Parts 1–4, ~45 min) + 100 Reading questions (Parts 5–7, 75 min). All multiple choice — no Writing or Speaking sections.</p>
+      <p>Once you start the Listening section, the timer begins automatically and cannot be paused. You may revisit and change any answer within a section before time runs out or before you move to the next section.</p>
+      <p>Make sure your audio is on and working before you begin.</p>
+      <label class="ack-row">
+        <input type="checkbox" id="ack-check" onchange="document.getElementById('start-listening-btn').disabled=!this.checked">
+        <span>I have read and understood the instructions above, and I'm ready to begin.</span>
+      </label>
+      <button class="btn" id="start-listening-btn" disabled onclick="startStage('listening')">Start Listening Section →</button>
+    </div>`;
+}
+
+function showStageTransition(){
+  document.getElementById('main-app').style.display='none';
+  document.getElementById('gate-wrap').innerHTML = `
+    <div class="stage-gate">
+      <h1>Listening section complete</h1>
+      <p>Next: the Reading section (Parts 5–7, 100 questions, 75 minutes). You can go straight in, or take a short breather first — the Reading timer only starts once you click below.</p>
+      <button class="btn" onclick="startStage('reading')">Start Reading Section →</button>
+    </div>`;
+}
+
+function startStage(which){
+  stage = which;
+  document.getElementById('gate-wrap').innerHTML = '';
+  document.getElementById('main-app').style.display = 'flex';
+  document.getElementById('stage-label').textContent = which === 'listening' ? 'Listening' : 'Reading';
+  document.getElementById('finish-listening-btn').style.display = which === 'listening' ? 'inline-block' : 'none';
+  document.getElementById('submit-btn').style.display = which === 'reading' ? 'inline-block' : 'none';
+  initTimer(which);
+  renderStage(which);
+}
+
+function finishListening(){
+  showReviewModal('Listening', [1,100], 'Yes, Move to Reading →', () => {
+    saveAutosave();
+    clearInterval(timerInterval);
+    clearStageTimer('listening');
+    showStageTransition();
+  });
+}
+
+// ═══════════════════════════════════════
+// TIMER — persists across refresh, same pattern as simulation.html
+// ═══════════════════════════════════════
+// ══════════════════════════════════════
+// TOASTS — non-blocking notifications (time reminders, etc.)
+// ══════════════════════════════════════
+function showToast(msg, variant, duration) {
+  const wrap = document.getElementById('toast-wrap');
+  if (!wrap) return;
+  const el = document.createElement('div');
+  el.className = 'toast ' + (variant || 'info');
+  el.innerHTML = msg;
+  wrap.appendChild(el);
+  setTimeout(() => {
+    el.style.animation = 'toastOut 0.3s ease-in forwards';
+    setTimeout(() => el.remove(), 300);
+  }, duration || 6000);
+}
+
+// Fires once per threshold per stage — re-armed each time initTimer(which) is
+// called for a new stage, since Listening and Reading have separate clocks.
+let _firedTimeWarnings = new Set();
+function checkTimeWarnings(which, remaining){
+  const total = STAGE_DURATIONS[which];
+  const elapsed = total - remaining;
+  for (let h = 1; h * 3600 <= total; h++) {
+    const mark = h * 3600;
+    if (elapsed >= mark && !_firedTimeWarnings.has(which+'_elapsed'+mark)) {
+      _firedTimeWarnings.add(which+'_elapsed'+mark);
+      showToast(`⏱️ ${h} hour${h>1?'s':''} have passed (${which}).`, 'info');
+    }
+  }
+  if (total > 1800 && remaining <= 1800 && !_firedTimeWarnings.has(which+'_remain1800')) {
+    _firedTimeWarnings.add(which+'_remain1800');
+    showToast(`⚠️ 30 minutes remaining (${which}).`, 'warn');
+  }
+  if (total > 300 && remaining <= 300 && !_firedTimeWarnings.has(which+'_remain300')) {
+    _firedTimeWarnings.add(which+'_remain300');
+    showToast(`🔴 Final 5 minutes (${which})! Please finish up.`, 'danger', 9000);
+  }
+}
+
+function initTimer(which){
+  const key = timerKey(which);
+  let endTime = localStorage.getItem(key);
+  if(!endTime){
+    endTime = Date.now() + STAGE_DURATIONS[which]*1000;
+    localStorage.setItem(key, String(endTime));
+  }
+  endTime = parseInt(endTime, 10);
+
+  clearInterval(timerInterval);
+  _firedTimeWarnings = new Set(); // fresh set of thresholds for this stage
+  let tickCount = 0;
+  // Staggered per-browser offset so many candidates starting around the same
+  // time don't all sync to Sheets on the exact same tick — same approach as
+  // the IELTS engine (simulation.html).
+  const syncJitter = getSyncJitter_();
+  timerInterval = setInterval(() => {
+    const remaining = Math.max(0, Math.round((endTime - Date.now())/1000));
+    renderTimer(remaining);
+    checkTimeWarnings(which, remaining);
+    tickCount++;
+    if (tickCount % 90 === syncJitter) syncDraftToSheets();
+    if(remaining <= 0){
+      clearInterval(timerInterval);
+      stageTimeUp(which);
+    }
+  }, 1000);
+  renderTimer(Math.max(0, Math.round((endTime-Date.now())/1000)));
+}
+function getSyncJitter_() {
+  const key = 'toeic_sync_jitter';
+  let j = localStorage.getItem(key);
+  if (j === null) {
+    j = Math.floor(Math.random() * 30);
+    localStorage.setItem(key, String(j));
+  }
+  return parseInt(j, 10);
+}
+let lastSyncedSnapshot = '';
+async function syncDraftToSheets(){
+  const snapshot = JSON.stringify(answers);
+  if (snapshot === lastSyncedSnapshot) return; // nothing changed — save the quota
+
+  // Split by absolute number so the admin monitor can show Listening/Reading
+  // progress separately instead of one combined count.
+  const listeningPart = {}, readingPart = {};
+  Object.keys(answers).forEach(k => {
+    const n = parseInt(k, 10);
+    if (n <= 100) listeningPart[k] = answers[k]; else readingPart[k] = answers[k];
+  });
+
+  const candidateData = JSON.parse(sessionStorage.getItem('candidateData')||'{}');
+  try {
+    const res = await callSheets({
+      action: 'saveDraft',
+      examType: 'TOEIC',
+      currentSection: stage || '',
+      candidateID: candidateData.candidateID || getCandidateID(),
+      sessionToken: candidateData.sessionToken || '',
+      fullName: candidateData.fullName || sessionStorage.getItem('candidateName') || '',
+      testSetID: activeTestSet.setID || '',
+      lAnswers: JSON.stringify(listeningPart),
+      rAnswers: JSON.stringify(readingPart),
+      writingVals: '{}'
+    });
+    if (res && res.sessionInvalid) {
+      if (!window._sessionKickedOut) {
+        window._sessionKickedOut = true;
+        clearInterval(timerInterval);
+        showToast('🚪 Signed out — your account was logged in on another device.', 'danger', 10000);
+        setTimeout(() => { window.location.href = 'index.html'; }, 3500);
+      }
+      return;
+    }
+    lastSyncedSnapshot = snapshot;
+  } catch(e) { /* best-effort — local autosave already covers the common case */ }
+}
+
+// Restore-on-login (Layer 2 for TOEIC): pulls the server-side draft if it's
+// newer than the local autosave copy — covers resuming on a different device
+// or a cleared-storage browser.
+async function restoreAnswersFromServer(localSavedAt){
+  const candidateData = JSON.parse(sessionStorage.getItem('candidateData')||'{}');
+  const candidateID = candidateData.candidateID || getCandidateID();
+  if (!candidateID || !activeTestSet.setID) return;
+  try {
+    const res = await callSheets({ action: 'getDraft', candidateID, testSetID: activeTestSet.setID });
+    if (!res || !res.success || !res.found) return;
+    const serverTime = res.updatedAt ? new Date(res.updatedAt).getTime() : 0;
+    if (serverTime <= (localSavedAt || 0)) return;
+    const l = JSON.parse(res.lAnswers || '{}');
+    const r = JSON.parse(res.rAnswers || '{}');
+    answers = Object.assign({}, l, r);
+  } catch(e) { /* offline/quota — local copy (if any) still stands */ }
+}
+
+function renderTimer(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  const disp = document.getElementById('timer-disp');
+  disp.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  disp.classList.toggle('low', sec <= 120);
+}
+
+function clearStageTimer(which){ try{ localStorage.removeItem(timerKey(which)); }catch(e){} }
+
+function stageTimeUp(which){
+  saveAutosave();
+  if(which === 'listening'){
+    clearStageTimer('listening');
+    showToast("⏰ Time's up for Listening. Moving on to Reading.", 'danger', 6000);
+    showStageTransition();
+  } else {
+    clearStageTimer('reading');
+    showToast("⏰ Time's up. Submitting your test now...", 'danger', 6000);
+    submitTest(true);
+  }
+}
+
+// ═══════════════════════════════════════
+// RENDERING
+// ═══════════════════════════════════════
+function renderStage(which){
+  const content = document.getElementById('content');
+  const nav = document.getElementById('nav');
+  content.innerHTML = '';
+  nav.innerHTML = '';
+
+  const parts = which === 'listening'
+    ? [[1, config.listening.parts[1]], [2, config.listening.parts[2]], [3, config.listening.parts[3]], [4, config.listening.parts[4]]]
+    : [[5, config.reading.parts[5]], [6, config.reading.parts[6]], [7, config.reading.parts[7]]];
+
+  const audioURL = which==='listening' ? (config.listening.audioURL||'') : '';
+  if(audioURL){
+    content.innerHTML += `<div class="part-block"><div class="part-head"><span class="part-num">Full Listening Audio</span></div>${renderAudioPlayer(audioURL)}<div style="font-size:0.8rem;color:var(--ink3)">This single track covers Parts 1–4. Use the navigator on the right to jump between questions as you listen.</div></div>`;
+  }
+
+  if(which === 'listening'){
+    content.innerHTML += `<div class="part-block" style="background:#e8f0ff;border-color:var(--blue2);text-align:center">
+      <div style="font-size:0.86rem;color:var(--ink2);margin-bottom:10px">Done with all 100 Listening questions? Click below to move on — you won't be able to come back to Listening after that.</div>
+      <button class="btn" style="background:var(--blue);color:#fff;padding:10px 24px;border:none;border-radius:7px;font-weight:600;cursor:pointer" onclick="finishListening()">Finish Listening → Reading</button>
+    </div>`;
+  }
+
+  parts.forEach(([pnum, pdata]) => {
+    if(!pdata) return;
+    content.appendChild(renderPart(pnum, pdata));
+  });
+
+  renderNav(which, parts);
+  saveAutosave();
+}
+
+function renderPart(pnum, pdata){
+  const block = document.createElement('div');
+  block.className = 'part-block';
+  const instr = PART_INSTRUCTIONS[pnum] || '';
+  let html = `<div class="part-head"><span class="part-num">Part ${pnum}</span><span class="part-name">${escH(pdata.name||'')}</span></div><div class="part-instr">${instr}</div>`;
+
+  if(pnum===1){
+    html += (pdata.items||[]).map(it => renderItemPhoto(it)).join('');
+  } else if(pnum===2){
+    html += (pdata.items||[]).map(it => renderItemAudioOnly(it)).join('');
+  } else if(pnum===3 || pnum===4){
+    html += (pdata.groups||[]).map(g => renderGroupAudio(g)).join('');
+  } else if(pnum===5){
+    html += (pdata.items||[]).map(it => renderItemMC(it, ['A','B','C','D'])).join('');
+  } else if(pnum===6){
+    html += (pdata.groups||[]).map(g => renderGroupTextCompletion(g)).join('');
+  } else if(pnum===7){
+    html += (pdata.groups||[]).map(g => renderGroupReading(g)).join('');
+  }
+  block.innerHTML = html;
+  return block;
+}
+
+const PART_INSTRUCTIONS = {
+  1: 'For each question, look at the picture and choose the statement (A, B, C, or D) that best describes it.',
+  2: 'Listen to the question and the three responses. Choose the best response (A, B, or C).',
+  3: 'Listen to each conversation and answer the three questions that follow, based on what is said.',
+  4: 'Listen to each talk and answer the three questions that follow, based on what is said.',
+  5: 'Choose the word or phrase that best completes the sentence.',
+  6: 'Read the passage and choose the best word, phrase, or sentence for each blank.',
+  7: 'Read the passage(s) and answer the questions that follow.'
+};
+
+function optLabel(i){ return ['A','B','C','D'][i]; }
+
+// ═══════════════════════════════════════
+// AUDIO — supports both direct file URLs (mp3/wav/ogg) and YouTube links
+// (youtu.be/... or youtube.com/watch?v=...), including unlisted videos —
+// unlisted just means "not searchable", it still embeds fine. A plain
+// <audio src="youtu.be/...">  does NOT work since YouTube isn't a raw media
+// file, so YouTube URLs get an <iframe> embed instead.
+//
+// PLAY-ONCE LOCK: matches the real TOEIC listening test — each clip plays
+// exactly once, with no seeking or replay. Once played, the player is
+// replaced with a "already played" placeholder, and that state is persisted
+// so refreshing the page doesn't grant a second listen.
+// ═══════════════════════════════════════
+function getYoutubeID(url){
+  if(!url) return null;
+  let m = url.match(/youtu\.be\/([A-Za-z0-9_-]{6,})/);
+  if(m) return m[1];
+  m = url.match(/[?&]v=([A-Za-z0-9_-]{6,})/);
+  if(m) return m[1];
+  m = url.match(/youtube\.com\/embed\/([A-Za-z0-9_-]{6,})/);
+  if(m) return m[1];
+  return null;
+}
+
+let playedAudioKeys = {};
+function audioStorageKey(){ return `toeic_played_audio_${getCandidateID()}_${activeTestSet.setID||'default'}`; }
+function loadPlayedAudio(){
+  try { const raw = localStorage.getItem(audioStorageKey()); if(raw) playedAudioKeys = JSON.parse(raw); } catch(e){}
+}
+function markAudioPlayed_(key){
+  playedAudioKeys[key] = true;
+  try { localStorage.setItem(audioStorageKey(), JSON.stringify(playedAudioKeys)); } catch(e){}
+}
+function audioKeyFor_(url){
+  let h = 0;
+  for (let i=0;i<url.length;i++){ h = ((h<<5)-h+url.charCodeAt(i))|0; }
+  return 'a'+Math.abs(h);
+}
+
+function renderAudioPlayer(url){
+  if(!url) return '';
+  const key = audioKeyFor_(url);
+  if(playedAudioKeys[key]){
+    return `<div class="audio-played-box">✓ Audio already played for this question — plays once only, as in the real test.</div>`;
+  }
+  const ytID = getYoutubeID(url);
+  if(ytID){
+    // controls=0 hides YouTube's native seek bar/controls entirely — the
+    // only way to play it is via our own one-time button below.
+    return `<div class="audio-lock-wrap" id="wrap-${key}">
+      <iframe id="yt-${key}" width="100%" height="70" src="https://www.youtube.com/embed/${ytID}?enablejsapi=1&controls=0&modestbranding=1&rel=0" frameborder="0" allow="autoplay; encrypted-media" style="border-radius:8px;pointer-events:none"></iframe>
+      <button type="button" class="audio-play-btn" onclick="playYoutubeOnce_('${key}', this)">▶ Play Audio (plays once)</button>
+    </div>`;
+  }
+  return `<div class="audio-lock-wrap" id="wrap-${key}">
+    <audio id="native-${key}" src="${escH(url)}" preload="none"></audio>
+    <button type="button" class="audio-play-btn" onclick="playNativeOnce_('${key}', this)">▶ Play Audio (plays once)</button>
+    <div class="audio-progress-track" id="prog-${key}" style="display:none"><div class="audio-progress-fill" id="progfill-${key}"></div></div>
+  </div>`;
+}
+
+function playNativeOnce_(key, btn){
+  if(playedAudioKeys[key]) return;
+  const audio = document.getElementById('native-'+key);
+  if(!audio) return;
+  btn.disabled = true;
+  btn.textContent = '🔊 Playing...';
+  const track = document.getElementById('prog-'+key);
+  const fill = document.getElementById('progfill-'+key);
+  track.style.display = 'block';
+  audio.addEventListener('timeupdate', () => {
+    if(audio.duration) fill.style.width = (audio.currentTime/audio.duration*100) + '%';
+  });
+  audio.addEventListener('ended', () => {
+    markAudioPlayed_(key);
+    const wrap = document.getElementById('wrap-'+key);
+    if(wrap) wrap.outerHTML = `<div class="audio-played-box">✓ Audio played — plays once only, as in the real test.</div>`;
+  });
+  audio.play().catch(()=>{
+    btn.disabled = false;
+    btn.textContent = '▶ Play Audio (plays once)';
+    alert('Could not play this audio file. Please check the file URL.');
+  });
+}
+
+function playYoutubeOnce_(key, btn){
+  if(playedAudioKeys[key]) return;
+  const iframe = document.getElementById('yt-'+key);
+  if(!iframe) return;
+  btn.disabled = true;
+  btn.textContent = '🔊 Playing (one-time)...';
+  iframe.contentWindow.postMessage(JSON.stringify({event:'command', func:'playVideo', args:[]}), '*');
+  // YouTube's postMessage API needs the full IFrame API script loaded to
+  // reliably report "ended" — to keep this lightweight we lock right after
+  // triggering play instead. Native controls are hidden (controls=0), so
+  // this one trigger is the only way the candidate can interact with it.
+  markAudioPlayed_(key);
+}
+
+function itemQHeader(num){
+  return `<div class="item-q-row">
+    <div class="item-q">Question ${num}</div>
+    <button type="button" class="flag-btn ${flagged[num]?'flagged':''}" id="flagbtn-${num}" onclick="toggleFlag(${num}, event)" title="Mark for review">🚩</button>
+  </div>`;
+}
+
+function toggleFlag(num, ev){
+  if(ev) ev.stopPropagation();
+  flagged[num] = !flagged[num];
+  const btn = document.getElementById('flagbtn-'+num);
+  if(btn) btn.classList.toggle('flagged', !!flagged[num]);
+  const navBtn = document.getElementById('nav-'+num);
+  if(navBtn) navBtn.classList.toggle('flagged', !!flagged[num]);
+  saveAutosave();
+}
+
+function renderOpts(num, options, letters){
+  const use = (options && options.length) ? options.map((o,i)=>({l:optLabel(i), t:o})) : letters.map(l=>({l, t:''}));
+  return `<div class="opts">` + use.map(o => `
+    <label class="opt ${answers[num]===o.l?'selected':''}" onclick="selectAnswer(${num},'${o.l}',this)">
+      <input type="radio" name="q${num}" ${answers[num]===o.l?'checked':''}>
+      <span class="lab">${o.l}</span><span>${escH(o.t)}</span>
+    </label>`).join('') + `</div>`;
+}
+
+function renderItemPhoto(it){
+  return `<div class="item" id="item-${it.num}">
+    ${itemQHeader(it.num)}
+    ${it.imgURL?`<img class="item-img" src="${escH(it.imgURL)}" alt="Question ${it.num} photo">`:''}
+    ${renderAudioPlayer(it.audioURL)}
+    ${renderOpts(it.num, null, ['A','B','C','D'])}
+  </div>`;
+}
+function renderItemAudioOnly(it){
+  return `<div class="item" id="item-${it.num}">
+    ${itemQHeader(it.num)}
+    ${renderAudioPlayer(it.audioURL)}
+    ${renderOpts(it.num, null, ['A','B','C'])}
+  </div>`;
+}
+function renderGroupAudio(g){
+  const audio = renderAudioPlayer(g.audioURL);
+  const img = g.imgURL ? `<img class="item-img" src="${escH(g.imgURL)}" alt="Supporting graphic">` : '';
+  const items = (g.items||[]).map(it => `
+    <div class="item" id="item-${it.num}">
+      ${itemQHeader(it.num)}
+      <div class="item-text">${escH(it.qText||'')}</div>
+      ${renderOpts(it.num, it.options, ['A','B','C','D'])}
+    </div>`).join('');
+  return `<div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--paper3)">${audio}${img}${items}</div>`;
+}
+function renderItemMC(it, letters){
+  return `<div class="item" id="item-${it.num}">
+    ${itemQHeader(it.num)}
+    <div class="item-text">${escH(it.qText||'')}</div>
+    ${renderOpts(it.num, it.options, letters)}
+  </div>`;
+}
+function renderGroupTextCompletion(g){
+  const img = g.imgURL ? `<img class="item-img" src="${escH(g.imgURL)}" alt="Supporting graphic">` : '';
+  const passageHtml = (g.passageText||'').replace(/\[\[(\d+)\]\]/g, (m,n) => `<span class="blank-tag">${n}</span>`);
+  const items = (g.items||[]).map(it => `
+    <div class="item" id="item-${it.num}">
+      ${itemQHeader(it.num)}
+      ${renderOpts(it.num, it.options, ['A','B','C','D'])}
+    </div>`).join('');
+  return `<div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--paper3)">
+    ${img}<div class="passage">${passageHtml}</div>${items}</div>`;
+}
+function renderGroupReading(g){
+  const img = g.imgURL ? `<img class="item-img" src="${escH(g.imgURL)}" alt="Supporting graphic">` : '';
+  const passages = (g.passageText||'').split('===PASSAGE===').filter(p => p.trim() !== '');
+  const passageHtml = passages.map(p => `<div class="passage">${escH(p.trim())}</div>`).join('<div class="passage-sep"></div>');
+  const items = (g.items||[]).map(it => `
+    <div class="item" id="item-${it.num}">
+      ${itemQHeader(it.num)}
+      <div class="item-text">${escH(it.qText||'')}</div>
+      ${renderOpts(it.num, it.options, ['A','B','C','D'])}
+    </div>`).join('');
+  return `<div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--paper3)">
+    ${img}${passageHtml}${items}</div>`;
+}
+
+function selectAnswer(num, letter, el){
+  answers[num] = letter;
+  const item = el.closest('.item');
+  item.querySelectorAll('.opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  saveAutosave();
+  refreshNav();
+}
+
+function renderNav(which, parts){
+  const nav = document.getElementById('nav');
+  const range = which==='listening' ? [1,100] : [101,200];
+  let html = `<div class="nav-title">${which==='listening'?'Listening 1–100':'Reading 101–200'}</div>`;
+  parts.forEach(([pnum, pdata]) => {
+    if(!pdata) return;
+    const nums = [];
+    if(pnum===1||pnum===2||pnum===5){ (pdata.items||[]).forEach(it=>nums.push(it.num)); }
+    else { (pdata.groups||[]).forEach(g=>(g.items||[]).forEach(it=>nums.push(it.num))); }
+    if(!nums.length) return;
+    html += `<div class="nav-title">Part ${pnum}</div><div class="nav-grid">` +
+      nums.map(n => `<button class="nav-btn ${answers[n]?'answered':''} ${flagged[n]?'flagged':''}" id="nav-${n}" onclick="jumpTo(${n})">${n}</button>`).join('') +
+      `</div>`;
+  });
+  nav.innerHTML = html;
+}
+function refreshNav(){
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    const n = b.id.replace('nav-','');
+    b.classList.toggle('answered', !!answers[n]);
+    b.classList.toggle('flagged', !!flagged[n]);
+  });
+}
+function jumpTo(num){
+  const el = document.getElementById('item-'+num);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+// ═══════════════════════════════════════
+// REVIEW SUMMARY — shown before moving from Listening → Reading, and before final submit
+// ═══════════════════════════════════════
+function getRangeStatus(range){
+  const [lo, hi] = range;
+  const unanswered = [];
+  const flaggedList = [];
+  for(let n=lo; n<=hi; n++){
+    if(!answers[n]) unanswered.push(n);
+    if(flagged[n]) flaggedList.push(n);
+  }
+  return { total: hi-lo+1, answeredCount: (hi-lo+1)-unanswered.length, unanswered, flaggedList };
+}
+
+function showReviewModal(stageLabel, range, confirmLabel, onConfirm){
+  const { total, answeredCount, unanswered, flaggedList } = getRangeStatus(range);
+  const overlay = document.createElement('div');
+  overlay.id = 'review-modal-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px';
+
+  const chip = (n, cls) => `<button class="nav-btn ${cls}" style="aspect-ratio:auto;padding:4px 8px;width:auto;height:auto" onclick="closeReviewModal();jumpTo(${n})">${n}</button>`;
+
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:14px;padding:26px;max-width:480px;width:100%;max-height:85vh;overflow-y:auto">
+      <h2 style="font-family:'Source Serif 4',serif;color:var(--blue);margin-bottom:14px">Review — ${stageLabel}</h2>
+      <div style="font-size:0.9rem;color:var(--ink2);margin-bottom:14px">
+        <b>${answeredCount} / ${total}</b> questions answered.
+        ${flaggedList.length ? `<br><b>${flaggedList.length}</b> flagged for review.` : ''}
+      </div>
+      ${unanswered.length ? `<div style="margin-bottom:14px"><div style="font-size:0.78rem;font-weight:700;color:var(--red);margin-bottom:6px">Unanswered (${unanswered.length}):</div><div style="display:flex;flex-wrap:wrap;gap:5px">${unanswered.slice(0,60).map(n=>chip(n,'')).join('')}${unanswered.length>60?`<span style="font-size:0.78rem;color:var(--ink3)">+${unanswered.length-60} more</span>`:''}</div></div>` : `<div class="msg" style="background:rgba(46,125,79,0.1);color:var(--green);border-radius:8px;padding:8px 12px;font-size:0.83rem;margin-bottom:14px">✅ All questions answered.</div>`}
+      ${flaggedList.length ? `<div style="margin-bottom:18px"><div style="font-size:0.78rem;font-weight:700;color:#c8a84b;margin-bottom:6px">Flagged (${flaggedList.length}):</div><div style="display:flex;flex-wrap:wrap;gap:5px">${flaggedList.map(n=>chip(n,'flagged')).join('')}</div></div>` : ''}
+      <div style="display:flex;gap:10px;margin-top:18px">
+        <button class="btn" style="flex:1;background:var(--paper2);color:var(--ink2);border:1px solid var(--border);padding:10px;border-radius:7px;cursor:pointer" onclick="closeReviewModal()">← Go Back &amp; Review</button>
+        <button class="btn" style="flex:1;background:var(--blue);color:#fff;border:none;padding:10px;border-radius:7px;cursor:pointer;font-weight:600" id="review-confirm-btn">${confirmLabel}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('review-confirm-btn').onclick = () => { closeReviewModal(); onConfirm(); };
+}
+function closeReviewModal(){
+  const ov = document.getElementById('review-modal-overlay');
+  if(ov) ov.remove();
+}
+
+// ═══════════════════════════════════════
+// SUBMIT — graded on the server against the private answer key
+// ═══════════════════════════════════════
+// callSheets() comes from bandup-api.js (Supabase): it adds the candidate session token automatically
+// and retries once on network trouble.
+
+async function submitTest(autoSubmit){
+  if(!autoSubmit){
+    showReviewModal('Reading', [101,200], 'Yes, Submit Test', () => doSubmitTest(false));
+    return;
+  }
+  doSubmitTest(true);
+}
+
+async function doSubmitTest(autoSubmit){
+  clearInterval(timerInterval);
+  const candidateData = JSON.parse(sessionStorage.getItem('candidateData')||'{}');
+
+  // Listening: keys 1-100 as-is. Reading: convert absolute (101-200) -> relative (1-100)
+  // to match the generic server-side scorer in Code.gs.
+  const listeningAnswers = {};
+  const readingAnswers = {};
+  Object.keys(answers).forEach(k => {
+    const n = parseInt(k,10);
+    if(n <= 100) listeningAnswers[n] = answers[k];
+    else readingAnswers[n-100] = answers[k];
+  });
+
+  const submitBtn = document.getElementById('submit-btn');
+  submitBtn.textContent = 'Saving...'; submitBtn.disabled = true;
+
+  let result = null;
+  let sheetsFailed = false;
+  let sessionKicked = false;
+  try {
+    result = await callSheets({
+      action: 'saveScore',
+      examType: 'TOEIC',
+      candidateID: candidateData.candidateID || '',
+      sessionToken: candidateData.sessionToken || '',
+      fullName: candidateData.fullName || sessionStorage.getItem('candidateName') || '',
+      testSetID: activeTestSet.setID || '',
+      testSetName: activeTestSet.setName || '',
+      listeningAnswers: JSON.stringify(listeningAnswers),
+      readingAnswers: JSON.stringify(readingAnswers)
+    });
+    if (result && result.sessionInvalid) sessionKicked = true;
+    else if (!result || !result.success) sheetsFailed = true;
+  } catch(e) { sheetsFailed = true; }
+
+  if (sessionKicked) {
+    showToast('🚪 Could not submit — your account was logged in on another device. Please log in again.', 'danger', 10000);
+    submitBtn.textContent = 'Not submitted';
+    setTimeout(() => { window.location.href = 'index.html'; }, 3500);
+    return;
+  }
+
+  // Only download a local JSON backup if the Sheets save didn't actually
+  // succeed — most submissions save fine, so there's no need to surprise
+  // every candidate with a download popup on every single submit.
+  if (sheetsFailed) {
+    try {
+      const blob = new Blob([JSON.stringify({...candidateData, examType:'TOEIC', testSetID:activeTestSet.setID, testSetName:activeTestSet.setName, answers}, null, 2)], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `toeic_response_${candidateData.candidateID||'unknown'}_${Date.now()}.json`;
+      a.click();
+    } catch(e){}
+  }
+
+  clearStageTimer('listening');
+  clearStageTimer('reading');
+  clearAutosave();
+
+  submitBtn.textContent = 'Submitted ✓';
+  showResults(result);
+}
+
+function showResults(result){
+  document.getElementById('main-app').style.display = 'none';
+  const wrap = document.getElementById('results-wrap');
+  if(result && result.success){
+    wrap.innerHTML = `
+      <div class="results">
+        <h1>Test submitted ✓</h1>
+        <div class="score-row"><span>Listening (raw)</span><span>${result.listeningScore}/100</span></div>
+        <div class="score-row"><span>Listening (scaled)</span><span>${result.listeningScaled}</span></div>
+        <div class="score-row"><span>Reading (raw)</span><span>${result.readingScore}/100</span></div>
+        <div class="score-row"><span>Reading (scaled)</span><span>${result.readingScaled}</span></div>
+        <div class="score-total">Total: ${result.toeicTotal} / 990</div>
+        <button class="btn" style="background:var(--blue);color:#fff;margin-top:22px" onclick="location.href='profile.html'">Go to Profile</button>
+      </div>`;
+  } else {
+    wrap.innerHTML = `
+      <div class="results">
+        <h1>Test submitted</h1>
+        <p style="color:var(--ink2);font-size:0.9rem">Your answers were recorded locally and a backup file was downloaded. We couldn't confirm the score from the server just now — check your profile shortly, or contact your administrator if it doesn't appear.</p>
+        <button class="btn" style="background:var(--blue);color:#fff;margin-top:22px" onclick="location.href='profile.html'">Go to Profile</button>
+      </div>`;
+  }
+}
+
+function escH(str){ return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ═══════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════
+(async function boot(){
+  initUser();
+  const localSavedAt = loadAutosave();
+  loadPlayedAudio();
+  const ok = await loadConfig();
+  if(!ok) return;
+  await restoreAnswersFromServer(localSavedAt);
+  showStartGate();
+})();
+</script>
+</body>
+</html>
