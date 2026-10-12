@@ -632,6 +632,8 @@
             <select id="set-exam-type" style="width:100%;padding:8px 11px;border:1px solid var(--paper3);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.87rem">
               <option value="IELTS">IELTS</option>
               <option value="TOEIC">TOEIC</option>
+              <option value="TOEFL">TOEFL</option>
+              <option value="ESL">ESL</option>
             </select>
           </div>
           <div class="field">
@@ -702,6 +704,8 @@
           <select id="pub-exam-type" onchange="onExamTypeChange()" style="width:100%;padding:8px 11px;border:1px solid var(--paper3);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.87rem">
             <option value="IELTS">IELTS</option>
             <option value="TOEIC">TOEIC</option>
+            <option value="TOEFL">TOEFL</option>
+            <option value="ESL">ESL</option>
           </select>
         </div>
         <div class="field">
@@ -952,7 +956,7 @@ function renderCandidateTable(rows, highlight) {
   let html = `<div style="overflow-x:auto"><table class="sheets-table">
     <thead><tr>
       <th>Candidate ID</th><th>Full Name</th><th>Date of Birth</th>
-      <th>Gender</th><th>Nationality</th><th>Status</th><th>Registered</th><th>Last Login</th><th>Actions</th>
+      <th>Gender</th><th>Nationality</th><th>Course</th><th>Status</th><th>Registered</th><th>Last Login</th><th>Actions</th>
     </tr></thead><tbody>`;
   rows.forEach(r => {
     const status = r[8] || 'Approved';
@@ -967,16 +971,22 @@ function renderCandidateTable(rows, highlight) {
       : status === 'Rejected'
       ? `<button class="btn btn-green" style="padding:3px 8px;font-size:0.75rem" data-id="${escH(r[0])}" onclick="approveCand(this.dataset.id)">✓ Approve</button>`
       : `<button class="btn btn-ghost" style="padding:3px 8px;font-size:0.75rem" data-id="${escH(r[0])}" onclick="rejectCand(this.dataset.id)">✕ Revoke</button>`;
+    const actionsAll = actions + ` <button class="btn btn-red" style="padding:3px 8px;font-size:0.75rem;margin-left:4px" data-id="${escH(r[0])}" data-name="${escH(r[1])}" onclick="deleteCand(this.dataset.id,this.dataset.name)">🗑️ Delete</button>`;
     html += `<tr>
       <td><b>${hl(r[0])}</b></td>
       <td>${hl(r[1])}</td>
       <td>${escH(r[2])}</td>
       <td>${escH(r[3])}</td>
       <td>${escH(r[4])}</td>
+      <td>
+        <select data-id="${escH(r[0])}" onchange="setCandCourse(this.dataset.id,this.value)" style="padding:3px 6px;border-radius:5px;border:1px solid var(--paper3);font-size:0.78rem">
+          ${['IELTS','TOEIC','TOEFL','ESL','ALL'].map(c => `<option value="${c}" ${((r[9]||'IELTS')===c)?'selected':''}>${c==='ALL'?'⭐ ALL (special)':c}</option>`).join('')}
+        </select>
+      </td>
       <td>${statusBadge}</td>
       <td style="font-size:0.78rem;color:var(--ink3)">${formatDate(r[6])}</td>
       <td style="font-size:0.78rem;color:var(--ink3)">${formatDate(r[7])}</td>
-      <td style="white-space:nowrap">${actions}</td>
+      <td style="white-space:nowrap">${actionsAll}</td>
     </tr>`;
   });
   html += '</tbody></table></div>';
@@ -989,6 +999,23 @@ async function approveCand(candidateID) {
     const data = await callSheets({ action:'approveCandidate', candidateID });
     if (data.success) { toast('✅ Approved.'); loadCandidates(); }
     else alert(data.message || 'Failed to approve.');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function setCandCourse(candidateID, course) {
+  try {
+    const data = await callSheets({ action:'setCandidateCourse', candidateID, course });
+    if (data.success) toast(`✅ ${candidateID} set to ${course}.`);
+    else { alert(data.message || 'Failed to update course.'); loadCandidates(); }
+  } catch(e) { alert('Error: ' + e.message); loadCandidates(); }
+}
+
+async function deleteCand(candidateID, name) {
+  if (!confirm(`DELETE ${candidateID} (${name})?\n\nThis removes their account entirely so they can register again with the same ID. Their past scores are NOT deleted. This cannot be undone.`)) return;
+  try {
+    const data = await callSheets({ action:'deleteCandidate', candidateID });
+    if (data.success) { toast('🗑️ Deleted — they can register again.'); loadCandidates(); }
+    else alert(data.message || 'Failed to delete.');
   } catch(e) { alert('Error: ' + e.message); }
 }
 
@@ -1058,7 +1085,7 @@ function renderScoresTable(rows, highlight) {
       <th>Date</th><th>Candidate ID</th><th>Full Name</th>
       <th>L Score</th><th>L Band</th>
       <th>R Score</th><th>R Band</th>
-      <th>Writing</th><th>Speaking</th><th>Overall</th>
+      <th>Writing</th><th>Speaking</th><th>Overall</th><th>Answers</th>
     </tr></thead><tbody>`;
   rows.forEach(r => {
     // [1]=Timestamp [2]=CandidateID [3]=FullName
@@ -1078,6 +1105,7 @@ function renderScoresTable(rows, highlight) {
         <td><span class="band-badge">${escH(String(r[26]||'—'))}</span></td>
         <td colspan="2" style="text-align:center;color:var(--ink3);font-size:0.78rem">— (TOEIC has no Writing/Speaking) —</td>
         <td><span class="band-badge band-high">${escH(String(r[27]||'—'))} / 990</span></td>
+        <td><button class="btn btn-ghost" style="padding:3px 8px;font-size:0.72rem" data-id="${escH(r[0])}" onclick="viewCandidateAnswers(this.dataset.id)">👁 Answers</button></td>
       </tr>`;
       return;
     }
@@ -1096,6 +1124,7 @@ function renderScoresTable(rows, highlight) {
       <td><span class="band-badge">${escH(String(r[12]||'—'))}</span></td>
       <td><span class="band-badge">${escH(String(r[13]||'—'))}</span></td>
       <td><span class="band-badge ${bandClass(overall)}">${overall||'—'}</span></td>
+      <td><button class="btn btn-ghost" style="padding:3px 8px;font-size:0.72rem" data-id="${escH(r[0])}" onclick="viewCandidateAnswers(this.dataset.id)">👁 Answers</button></td>
     </tr>`;
   });
   html += '</tbody></table></div>';
@@ -1467,10 +1496,10 @@ async function loadTestSets() {
   let html = '<div style="overflow-x:auto"><table class="sheets-table"><thead><tr><th>Set Name</th><th>Type</th><th>Status</th><th>Answer Key</th><th>Config URL</th><th>Created</th><th>Actions</th></tr></thead><tbody>';
   sets.forEach(s => {
     const isActive = s.setID === activeID || s.status === 'Active';
-    const examType = (s.examType||'IELTS').toUpperCase() === 'TOEIC' ? 'TOEIC' : 'IELTS';
+    const examType = ['IELTS','TOEIC','TOEFL','ESL'].includes((s.examType||'IELTS').toUpperCase()) ? (s.examType||'IELTS').toUpperCase() : 'IELTS';
     html += `<tr>
       <td><b>${escH(s.setName)}</b>${s.description?`<br><span style="font-size:0.75rem;color:var(--ink3)">${escH(s.description)}</span>`:''}</td>
-      <td>${examType==='TOEIC'?'<span class="band-badge" style="background:rgba(200,168,75,0.15);color:#7a5f1a;border:1px solid rgba(200,168,75,0.4)">💼 TOEIC</span>':'<span class="band-badge">🎓 IELTS</span>'}</td>
+      <td>${examType==='TOEIC'?'<span class="band-badge" style="background:rgba(200,168,75,0.15);color:#7a5f1a;border:1px solid rgba(200,168,75,0.4)">💼 TOEIC</span>':(examType==='IELTS'?'<span class="band-badge">🎓 IELTS</span>':'<span class="band-badge">📘 '+escH(examType)+'</span>')}</td>
       <td>${isActive?'<span class="band-badge band-high">⚡ ACTIVE</span>':`<span class="band-badge">${escH(s.status||'')}</span>`}</td>
       <td id="ak-status-${escH(s.setID)}" style="font-size:0.75rem">⏳ checking...</td>
       <td style="font-size:0.75rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.configURL?`<a href="${escH(s.configURL)}" target="_blank" style="color:var(--blue2)">View ↗</a>`:'—'}</td>
@@ -1550,7 +1579,7 @@ function editSet(s) {
   document.getElementById('set-desc').value=s.description||'';
   document.getElementById('set-url').value=s.configURL||'';
   document.getElementById('set-status').value=s.status||'Active';
-  document.getElementById('set-exam-type').value=(s.examType||'IELTS').toUpperCase()==='TOEIC'?'TOEIC':'IELTS';
+  document.getElementById('set-exam-type').value=['IELTS','TOEIC','TOEFL','ESL'].includes((s.examType||'IELTS').toUpperCase())?(s.examType||'IELTS').toUpperCase():'IELTS';
   document.getElementById('set-form-title').textContent='Edit: '+s.setName;
   document.getElementById('activate-btn').style.display='inline-flex';
   document.getElementById('set-form-card').style.display='block';
@@ -2119,7 +2148,9 @@ function loadTRFAttempts() {
 }
 
 // Build the TRF HTML string (standalone, self-contained)
-function buildTRFHtml(row, candidateRows) {
+function buildTRFHtml(row, candidateRows, photoBase64) {
+  // only ever inject a real image data-URL (never arbitrary text) into the report
+  photoBase64 = (typeof photoBase64 === 'string' && /^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(photoBase64)) ? photoBase64 : '';
   // Scores columns per Code.gs:
   // [0]=SubmissionID [1]=Timestamp  [2]=CandidateID [3]=FullName
   // [4]=TestSetID    [5]=TestSetName
@@ -2266,7 +2297,9 @@ function buildTRFHtml(row, candidateRows) {
       <td class="lbl-col">Family Name</td>
       <td class="val-col" colspan="2" style="text-transform:uppercase;font-weight:700;font-size:10pt">${(fname.split(' ').pop()||fname).toUpperCase()}</td>
       <td class="photo-cell" rowspan="4">
-        <div style="width:68px;height:80px;border:1px solid #ccc;display:flex;align-items:center;justify-content:center;margin:0 auto;color:#bbb;font-size:7pt">Photo</div>
+        ${photoBase64
+          ? `<img src="${photoBase64}" style="width:68px;height:80px;object-fit:cover;border:1px solid #ccc;display:block;margin:0 auto">`
+          : `<div style="width:68px;height:80px;border:1px solid #ccc;display:flex;align-items:center;justify-content:center;margin:0 auto;color:#bbb;font-size:7pt">No Photo</div>`}
       </td>
     </tr>
     <tr>
@@ -2446,20 +2479,47 @@ function renderAdminTRF() {
       <button class="btn btn-blue" onclick="openTRFPopup()" style="padding:10px 20px;font-size:0.88rem;display:flex;align-items:center;gap:7px">
         <span style="font-size:1rem">🖨</span> Open &amp; Print TRF
       </button>
+      <button class="btn btn-ghost" onclick="openAnswerSheetPopup()" style="padding:10px 20px;font-size:0.88rem;display:flex;align-items:center;gap:7px">
+        <span style="font-size:1rem">📝</span> Print Answers
+      </button>
       <div style="font-size:0.72rem;color:var(--ink3);text-align:center;margin-top:6px">Opens in new window</div>
     </div>`;
   wrap.appendChild(preview);
 }
 
-function openTRFPopup() {
+// The popup is opened FIRST (inside the click) so browsers don't block it, then filled in once the data is ready.
+async function openTRFPopup() {
   const idx = document.getElementById('trf-attempt-sel').value;
   if (idx === '') { toast('⚠️ Please select an attempt first.'); return; }
   const candScores = getMatchedCandScores();
   const row = candScores[parseInt(idx)];
   if (!row) { toast('❌ Row not found.'); return; }
-  const html = buildTRFHtml(row, _candidateRows.length ? _candidateRows : []);
   const popup = window.open('', '_blank', 'width=820,height=1080,scrollbars=yes,resizable=yes');
   if (!popup) { alert('Popup blocked! Please allow popups for this site.'); return; }
+  popup.document.write('<p style="font-family:sans-serif;padding:24px;color:#555">⏳ Preparing report…</p>');
+  let photo = '';
+  try { const d = await callSheets({ action:'getCandidatePhoto', candidateID: row[2] }); if (d.success) photo = d.photoBase64 || ''; } catch (e) { /* prints without a photo */ }
+  const html = buildTRFHtml(row, _candidateRows.length ? _candidateRows : [], photo);
+  popup.document.open();
+  popup.document.write(html);
+  popup.document.close();
+}
+
+async function openAnswerSheetPopup() {
+  const idx = document.getElementById('trf-attempt-sel').value;
+  if (idx === '') { toast('⚠️ Please select an attempt first.'); return; }
+  const candScores = getMatchedCandScores();
+  const row = candScores[parseInt(idx)];
+  if (!row) { toast('❌ Row not found.'); return; }
+  const popup = window.open('', '_blank', 'width=820,height=1080,scrollbars=yes,resizable=yes');
+  if (!popup) { alert('Popup blocked! Please allow popups for this site.'); return; }
+  popup.document.write('<p style="font-family:sans-serif;padding:24px;color:#555">⏳ Building answer sheet…</p>');
+  let listeningKey = {}, readingKey = {};
+  try {
+    const data = await callSheets({ action:'getAnswerKey', testSetID: row[4] || '' });
+    if (data.success) { listeningKey = data.listeningKey || {}; readingKey = data.readingKey || {}; }
+  } catch (e) { /* prints with the candidate's answers only if the key can't be reached */ }
+  const html = buildAnswerSheetHtml(row, listeningKey, readingKey);
   popup.document.open();
   popup.document.write(html);
   popup.document.close();
@@ -2480,6 +2540,167 @@ function toast(msg) {
 }
 
 // ═══════════════════════════════════════
+
+
+function buildAnswerSheetHtml(row, listeningKey, readingKey) {
+  const cid       = row[2]  || '—';
+  const fname     = row[3]  || '—';
+  const testSet   = row[5]  || '—';
+  const dateStr   = formatDate(row[1]);
+  const examType  = row[24] || 'IELTS';
+  let lAnswers = {}, rAnswers = {};
+  try { lAnswers = JSON.parse(row[22] || '{}'); } catch(e) {}
+  try { rAnswers = JSON.parse(row[23] || '{}'); } catch(e) {}
+  const w1Text = row[17] || '';
+  const w2Text = row[18] || '';
+  const w1WC   = row[15] || 0;
+  const w2WC   = row[16] || 0;
+
+  const answerTable = (given, key, label) => {
+    const allQ = new Set([...Object.keys(given||{}), ...Object.keys(key||{})]);
+    const nums = Array.from(allQ).map(Number).filter(n=>!isNaN(n)).sort((a,b)=>a-b);
+    if (!nums.length) return `<p style="color:#999;font-size:9pt">No ${label} answers submitted.</p>`;
+    let correctCount = 0;
+    let rows = nums.map(n => {
+      const a = String(given[n]||'—');
+      const rawKey = key[n];
+      const k = rawKey !== undefined ? rawKey : null;
+      const alternates = Array.isArray(k) ? k : (k===null?[]:[k]);
+      const correct = k !== null && alternates.some(alt => String(alt||'').trim().toLowerCase() === a.trim().toLowerCase());
+      if (correct) correctCount++;
+      const kDisplay = k===null ? '—' : (Array.isArray(k) ? k.join(' / ') : String(k));
+      const markColor = k === null ? '#999' : (correct ? '#2e7d4f' : '#c0392b');
+      const mark = k === null ? '' : (correct ? '✓' : '✗');
+      return `<td class="as-q">${n}</td><td class="as-a">${escH(a)}</td><td class="as-k">${escH(kDisplay)}</td><td class="as-m" style="color:${markColor}">${mark}</td>`;
+    });
+    // 2 questions per printed row, side by side, to keep this compact on paper
+    let out = `<div class="as-section-head">${label} <span class="as-score">${key && Object.keys(key).length ? correctCount + ' / ' + nums.length + ' correct' : ''}</span></div><table class="as-table"><thead><tr><th colspan="4">Q#</th><th colspan="4">Q#</th></tr></thead><tbody>`;
+    for (let i = 0; i < rows.length; i += 2) {
+      out += `<tr>${rows[i]}${rows[i+1] || '<td></td><td></td><td></td><td></td>'}</tr>`;
+    }
+    out += '</tbody></table>';
+    return out;
+  };
+
+  const writingBlock = (text, wc, label) => `
+    <div class="as-section-head">${label} <span class="as-score">${wc ? wc + ' words' : ''}</span></div>
+    <div class="as-writing-box">${text ? escH(text).replace(/\n/g,'<br>') : '<span style="color:#999">No response submitted.</span>'}</div>`;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Answer Sheet — ${fname}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',Arial,sans-serif;background:#fff;color:#111;font-size:10pt}
+  @page{size:A4 portrait;margin:14mm}
+  @media print{.no-print{display:none!important}}
+  .page{max-width:720px;margin:0 auto}
+  .hdr{border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-end}
+  .hdr h1{font-size:15pt}
+  .hdr .meta{font-size:8.5pt;color:#555;text-align:right;line-height:1.5}
+  .as-section-head{font-weight:700;font-size:10pt;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1.5px solid #000;padding-bottom:4px;margin:16px 0 8px;display:flex;justify-content:space-between;align-items:baseline}
+  .as-score{font-weight:600;font-size:9pt;color:#002f5f}
+  .as-table{width:100%;border-collapse:collapse;font-size:8.5pt}
+  .as-table th{font-size:7pt;color:#888;text-transform:uppercase;text-align:left;padding:3px 6px;border-bottom:1px solid #ccc}
+  .as-table td{padding:4px 6px;border-bottom:1px solid #eee}
+  .as-q{font-weight:700;width:26px;color:#555}
+  .as-a{width:70px}
+  .as-k{width:70px;color:#555}
+  .as-m{width:22px;font-weight:700;text-align:center}
+  .as-writing-box{border:1px solid #ccc;border-radius:4px;padding:10px 12px;font-size:9pt;line-height:1.6;min-height:60px;white-space:pre-wrap}
+  .print-btn{position:fixed;top:14px;right:14px;padding:9px 16px;background:#002f5f;color:#fff;border:none;border-radius:7px;font-size:0.85rem;cursor:pointer}
+</style>
+</head>
+<body>
+<button class="print-btn no-print" onclick="window.print()">🖨 Print</button>
+<div class="page">
+  <div class="hdr">
+    <h1>Answer Sheet</h1>
+    <div class="meta">
+      <div><b>${escH(fname)}</b> (${escH(cid)})</div>
+      <div>${escH(testSet)} · ${examType} · ${dateStr}</div>
+    </div>
+  </div>
+  ${answerTable(lAnswers, listeningKey, 'Listening')}
+  ${answerTable(rAnswers, readingKey, 'Reading')}
+  ${examType === 'IELTS' ? writingBlock(w1Text, w1WC, 'Writing — Task 1') + writingBlock(w2Text, w2WC, 'Writing — Task 2') : ''}
+</div>
+</body>
+</html>`;
+}
+
+// ═══════════════════════════════════════
+// ANSWER REVIEW (👁 Answers on the Scores table)
+// ═══════════════════════════════════════
+function ensureAnswerModal() {
+  if (document.getElementById('answer-modal')) return;
+  const div = document.createElement('div');
+  div.id = 'answer-modal';
+  div.style.cssText = 'display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:99999;align-items:center;justify-content:center;padding:24px';
+  div.innerHTML = `<div style="background:var(--paper,#fff);color:var(--ink,#111);border-radius:12px;padding:22px 24px;max-width:720px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h3 id="answer-modal-title" style="margin:0;font-size:1.05rem"></h3>
+      <button class="btn btn-ghost" onclick="document.getElementById('answer-modal').style.display='none'">✕ Close</button>
+    </div>
+    <div id="answer-modal-body" style="font-size:0.85rem;line-height:1.7"></div>
+  </div>`;
+  document.body.appendChild(div);
+}
+function showAnswerModal(title, bodyHtml) {
+  ensureAnswerModal();
+  document.getElementById('answer-modal-title').textContent = title;
+  document.getElementById('answer-modal-body').innerHTML = bodyHtml;
+  document.getElementById('answer-modal').style.display = 'flex';
+}
+
+// Compares one candidate's submitted answers with the saved key, question by question (same rules as the server's grader).
+async function viewCandidateAnswers(submissionID) {
+  const row = _scoreRows.find(r => r[0] === submissionID);
+  if (!row) { toast('❌ Submission not found.'); return; }
+  const candidateName = row[3] || row[2] || 'Candidate';
+  showAnswerModal('Answers — ' + candidateName, '⏳ Loading...');
+  let lAnswers = {}, rAnswers = {};
+  try { lAnswers = JSON.parse(row[22] || '{}'); } catch(e) {}
+  try { rAnswers = JSON.parse(row[23] || '{}'); } catch(e) {}
+
+  let listeningKey = {}, readingKey = {}, keyMsg = '';
+  try {
+    const data = await callSheets({ action:'getAnswerKey', testSetID: row[4] || '' });
+    if (data.success) { listeningKey = data.listeningKey || {}; readingKey = data.readingKey || {}; }
+    else keyMsg = '<p style="color:var(--ink3)">No saved answer key to compare against — showing submitted answers only.</p>';
+  } catch (e) {
+    keyMsg = '<p style="color:var(--red)">Could not load the answer key to compare: ' + escH(e.message) + '</p>';
+  }
+
+  const cell = 'padding:4px 8px;border:1px solid var(--paper3)';
+  const compareTable = (given, key, label) => {
+    const allQ = new Set([...Object.keys(given||{}), ...Object.keys(key||{})]);
+    const nums = Array.from(allQ).map(Number).filter(n=>!isNaN(n)).sort((a,b)=>a-b);
+    if (!nums.length) return `<p style="color:var(--ink3)">No ${label} answers submitted.</p>`;
+    let correctCount = 0;
+    const body = nums.map(n => {
+      const a = String(given[n]||'—');
+      const k = key[n] !== undefined ? key[n] : null;
+      const alternates = Array.isArray(k) ? k : (k===null?[]:[k]);
+      const correct = k !== null && a.trim() !== '' && alternates.some(alt => String(alt||'').trim().toLowerCase() === a.trim().toLowerCase());
+      if (correct) correctCount++;
+      const kDisplay = k===null ? '—' : (Array.isArray(k) ? k.join(' / ') : String(k));
+      const color = k === null ? 'var(--ink3)' : (correct ? '#1a7a4c' : 'var(--red)');
+      const mark = k === null ? '' : (correct ? '✓' : '✗');
+      return `<tr><td style="${cell}">${n}</td><td style="${cell}">${escH(a)}</td><td style="${cell}">${escH(kDisplay)}</td><td style="${cell};color:${color};font-weight:700;text-align:center">${mark}</td></tr>`;
+    }).join('');
+    const hasKey = key && Object.keys(key).length;
+    return `<h4 style="margin:14px 0 6px">${label}${hasKey ? ` <span style="font-weight:600;color:var(--blue2)">— ${correctCount} / ${nums.length} correct</span>` : ''}</h4>
+      <table style="border-collapse:collapse;width:100%"><thead><tr>
+        <th style="${cell}">Q#</th><th style="${cell}">Candidate's Answer</th><th style="${cell}">Correct Answer</th><th style="${cell}"></th>
+      </tr></thead><tbody>${body}</tbody></table>`;
+  };
+
+  showAnswerModal('Answers — ' + candidateName,
+    keyMsg + `<div style="overflow-x:auto">${compareTable(lAnswers, listeningKey, 'Listening')}${compareTable(rAnswers, readingKey, 'Reading')}</div>`);
+}
 
 </script>
 </body>
