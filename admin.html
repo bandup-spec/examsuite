@@ -337,6 +337,7 @@
     <div class="sb-section">Config</div>
     <button class="sb-btn" onclick="showPanel('p-settings')"  id="sb-p-settings" data-owner-only><span class="sb-icon">⚙️</span> Settings</button>
     <button class="sb-btn" onclick="showPanel('p-drive')"     id="sb-p-drive" data-owner-only><span class="sb-icon">☁️</span> Drive Config</button>
+    <button class="sb-btn" onclick="showPanel('p-account')"   id="sb-p-account" data-sub-only><span class="sb-icon">🔑</span> My Account</button>
     <button class="sb-btn" onclick="showPanel('p-admins')"    id="sb-p-admins" data-owner-only><span class="sb-icon">🛡️</span> Admins <span id="admin-pending-badge" style="display:none;background:var(--gold);color:var(--blue);border-radius:10px;padding:1px 7px;font-size:0.7rem;font-weight:700;margin-left:auto"></span></button>
   </div>
 
@@ -771,6 +772,23 @@
       </div>
     </div>
 
+
+    <!-- MY ACCOUNT PANEL (sub-admins only) -->
+    <div id="p-account" class="panel">
+      <div class="panel-title">🔑 My Account</div>
+      <div class="panel-desc">Change the password you use to sign in to the admin panel.</div>
+      <div class="card">
+        <div class="card-title">Change Password</div>
+        <div class="field" style="max-width:380px"><label>Current Password</label><input type="password" id="my-cur-pass" autocomplete="current-password"></div>
+        <div class="row2" style="max-width:780px">
+          <div class="field"><label>New Password <span style="font-weight:400;color:var(--ink3)">(min. 8 characters)</span></label><input type="password" id="my-new-pass" autocomplete="new-password"></div>
+          <div class="field"><label>Confirm New Password</label><input type="password" id="my-conf-pass" autocomplete="new-password"></div>
+        </div>
+        <div class="btn-row"><button class="btn btn-blue" onclick="changeMyPassword()">🔑 Change Password</button></div>
+        <div id="my-pw-status" style="margin-top:8px;font-size:0.82rem;display:none"></div>
+        <div style="font-size:0.78rem;color:var(--ink3);margin-top:12px;line-height:1.6">Changing it signs you out on your other devices. Forgot your password? Ask the Owner to reset it from the Admins page.</div>
+      </div>
+    </div>
 
     <!-- ADMIN ACCOUNTS PANEL (Owner only) -->
     <div id="p-admins" class="panel">
@@ -1273,7 +1291,8 @@ const PANEL_PERM = {
   'p-grading':'grading', 'p-testsets':'testsets', 'p-answerkey':'answerkey', 'p-publish':'publish'
 };
 const OWNER_ONLY_PANELS = ['p-settings','p-drive','p-admins'];
-const PANEL_ORDER = ['p-monitor','p-candidates','p-scores','p-trf','p-grading','p-testsets','p-answerkey','p-publish','p-settings','p-drive','p-admins'];
+const SUB_ONLY_PANELS = ['p-account'];
+const PANEL_ORDER = ['p-monitor','p-candidates','p-scores','p-trf','p-grading','p-testsets','p-answerkey','p-publish','p-settings','p-drive','p-admins','p-account'];
 
 let ME = { role:'Owner', name:'', perms:[] };
 
@@ -1281,6 +1300,7 @@ function isOwner() { return ME.role === 'Owner'; }
 function can(perm) { return isOwner() || (ME.perms || []).includes(perm); }
 function canOpenPanel(id) {
   if (OWNER_ONLY_PANELS.includes(id)) return isOwner();
+  if (SUB_ONLY_PANELS.includes(id)) return !isOwner();
   const p = PANEL_PERM[id];
   return !p || can(p);
 }
@@ -1314,6 +1334,7 @@ async function refreshMeFromServer() {
 
 function applyRoleUI() {
   document.querySelectorAll('[data-owner-only]').forEach(el => el.classList.toggle('hidden', !isOwner()));
+  document.querySelectorAll('[data-sub-only]').forEach(el => el.classList.toggle('hidden', isOwner()));
   document.querySelectorAll('[data-perm]').forEach(el => el.classList.toggle('hidden', !can(el.dataset.perm)));
   // hide sidebar section titles that have nothing left under them
   document.querySelectorAll('.sidebar .sb-section').forEach(sec => {
@@ -2670,6 +2691,28 @@ async function openAnswerSheetPopup() {
 
 // ═══════════════════════════════════════
 
+// MY ACCOUNT (sub-admins)
+// ═══════════════════════════════════════
+async function changeMyPassword() {
+  const cur = document.getElementById('my-cur-pass').value;
+  const neu = document.getElementById('my-new-pass').value;
+  const cf  = document.getElementById('my-conf-pass').value;
+  const st  = document.getElementById('my-pw-status');
+  const say = (msg, color) => { st.style.display = 'block'; st.style.color = color; st.textContent = msg; };
+  if (!cur || !neu) return say('Please fill in all fields.', 'var(--red)');
+  if (neu.length < 8) return say('New password must be at least 8 characters.', 'var(--red)');
+  if (neu !== cf) return say('New passwords do not match.', 'var(--red)');
+  try {
+    const d = await callSheets({ action:'changeMyAdminPassword', currentPassword:cur, newPassword:neu });
+    if (d.success) {
+      say('✅ Password changed.', 'var(--green)');
+      ['my-cur-pass','my-new-pass','my-conf-pass'].forEach(id => document.getElementById(id).value = '');
+      toast('🔑 Password changed');
+    } else say('❌ ' + (d.message || 'Could not change password.'), 'var(--red)');
+  } catch(e) { say('❌ ' + e.message, 'var(--red)'); }
+}
+
+// ═══════════════════════════════════════
 // ADMIN ACCOUNTS (Owner only)
 // ═══════════════════════════════════════
 let _admins = [];
