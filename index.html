@@ -180,6 +180,11 @@
         <div class="spinner" id="spin1"></div>
       </button>
       <div class="sheets-note">*Note: Your details are securely stored.</div>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="goTo('step1','step-admin-request')" style="background:none;border:none;color:var(--ink3);font-size:0.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
+          Teacher or staff? Request admin access
+        </button>
+      </div>
     </div>
 
     <!-- STEP ADMIN -->
@@ -187,13 +192,58 @@
       <button class="back-link" onclick="goTo('step-admin','step1')">Back</button>
       <div class="admin-badge">Admin Access</div>
       <div class="step-title">Administrator Login</div>
-      <div class="step-desc">Enter admin password to access the control panel.</div>
+      <div class="step-desc" id="adminStepDesc">Enter admin password to access the control panel.</div>
+      <div class="field hidden" id="adminEmailWrap">
+        <label for="adminEmail">Admin Email</label>
+        <input type="email" id="adminEmail" placeholder="name@email.com" autocomplete="username">
+      </div>
       <div class="field">
         <label for="adminPass">Password</label>
         <input type="password" id="adminPass" placeholder="Enter password">
       </div>
       <div class="error-msg" id="err-admin"></div>
       <button class="btn-primary" onclick="verifyAdmin()">Sign In →</button>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="goTo('step-admin','step-admin-request')" style="background:none;border:none;color:var(--blue2);font-size:0.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
+          No account yet? Request admin access
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP: REQUEST ADMIN ACCESS (needs the Owner's approval) -->
+    <div id="step-admin-request" class="step hidden">
+      <button class="back-link" onclick="goTo('step-admin-request','step1')">Back</button>
+      <div class="admin-badge">Admin Access</div>
+      <div class="step-title">Request Admin Access</div>
+      <div class="step-desc">Send a request to the Owner. You can sign in once it is approved, and you will only see the sections the Owner gives you.</div>
+      <div class="field">
+        <label for="adminReqName">Full Name</label>
+        <input type="text" id="adminReqName" placeholder="e.g. Maria Santos" autocomplete="name">
+      </div>
+      <div class="field">
+        <label for="adminReqEmail">Email Address</label>
+        <input type="email" id="adminReqEmail" placeholder="name@email.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="adminReqPass">Create Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="adminReqPass" placeholder="At least 8 characters" autocomplete="new-password">
+          <button class="pw-toggle" onclick="togglePw('adminReqPass',this)" type="button">Show</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="adminReqConfirm">Confirm Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="adminReqConfirm" placeholder="Re-enter password" autocomplete="new-password">
+          <button class="pw-toggle" onclick="togglePw('adminReqConfirm',this)" type="button">Show</button>
+        </div>
+      </div>
+      <div class="error-msg" id="err-adminreq"></div>
+      <div class="success-msg" id="suc-adminreq"></div>
+      <button class="btn-primary" id="btn-adminreq" onclick="handleAdminRequest()">
+        <span id="btn-adminreq-txt">Send Request →</span>
+        <div class="spinner" id="spin-adminreq"></div>
+      </button>
     </div>
 
     <!-- STEP 2a: RETURNING candidate — password login -->
@@ -484,11 +534,8 @@ async function handleStep1() {
   hideErr('err1');
   if (!id) { showErr('err1','Please enter your candidate number.'); return; }
 
-  if (id.toLowerCase() === 'superadmin') {
-    goTo('step1','step-admin');
-    setTimeout(()=>document.getElementById('adminPass').focus(),50);
-    return;
-  }
+  if (id.toLowerCase() === 'superadmin') { openAdminStep('owner'); return; }
+  if (id.includes('@'))                  { openAdminStep('sub', id.toLowerCase()); return; }   // sub-admins type their email
 
   if (!/^[A-Z]{3}-\d{5}$/.test(id)) {
     showErr('err1','Candidate ID is not valid. Please contact administrator for further assistance.');
@@ -546,20 +593,77 @@ function switchToLogin() {
 // ══════════════════════════════════════════════
 //  ADMIN LOGIN
 // ══════════════════════════════════════════════
+let adminMode = 'owner';   // 'owner' = the original superadmin login, 'sub' = email + password sub-admin
+
+function openAdminStep(mode, email) {
+  adminMode = mode;
+  const sub = mode === 'sub';
+  document.getElementById('adminEmailWrap').classList.toggle('hidden', !sub);
+  document.getElementById('adminStepDesc').textContent = sub
+    ? 'Sign in with your admin email and password.'
+    : 'Enter admin password to access the control panel.';
+  if (sub) document.getElementById('adminEmail').value = email || '';
+  hideErr('err-admin');
+  goTo('step1','step-admin');
+  setTimeout(()=>document.getElementById('adminPass').focus(),50);
+}
+
+async function handleAdminRequest() {
+  const name    = document.getElementById('adminReqName').value.trim();
+  const email   = document.getElementById('adminReqEmail').value.trim().toLowerCase();
+  const pass    = document.getElementById('adminReqPass').value;
+  const confirm = document.getElementById('adminReqConfirm').value;
+  hideErr('err-adminreq');
+  if (!name)                                   { showErr('err-adminreq','Please enter your full name.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('err-adminreq','Please enter a valid email address.'); return; }
+  if (pass.length < 8)                         { showErr('err-adminreq','Password must be at least 8 characters.'); return; }
+  if (pass !== confirm)                        { showErr('err-adminreq','Passwords do not match.'); return; }
+
+  setLoading('btn-adminreq','spin-adminreq','btn-adminreq-txt',true,'Send Request →');
+  try {
+    const data = await callSheets({ action:'registerAdmin', fullName:name, email, password:pass });
+    if (data.success) {
+      showSuc('suc-adminreq', '✅ ' + (data.message || 'Request sent!'));
+      document.getElementById('btn-adminreq').style.display = 'none';
+      ['adminReqName','adminReqEmail','adminReqPass','adminReqConfirm'].forEach(id => document.getElementById(id).value = '');
+      setTimeout(()=>{
+        goTo('step-admin-request','step1');
+        document.getElementById('btn-adminreq').style.display = '';
+        document.getElementById('suc-adminreq').classList.remove('show');
+        document.getElementById('candidateNum').value = '';
+      }, 4500);
+    } else {
+      showErr('err-adminreq', data.message || 'Could not send the request. Please try again.');
+    }
+  } catch(e) {
+    showErr('err-adminreq','Cannot connect to server.');
+  } finally {
+    setLoading('btn-adminreq','spin-adminreq','btn-adminreq-txt',false,'Send Request →');
+  }
+}
+
 async function verifyAdmin() {
   const pass = document.getElementById('adminPass').value;
+  const subEmail = document.getElementById('adminEmail').value.trim().toLowerCase();
   hideErr('err-admin');
+  if (adminMode === 'sub' && !subEmail) { showErr('err-admin','Please enter your admin email.'); return; }
   if (!pass) { showErr('err-admin','Please enter a password.'); return; }
 
   const btn = document.querySelector('#step-admin .btn-primary');
   if (btn) { btn.disabled = true; btn.textContent = 'Verifying...'; }
 
   try {
-    const data = await callSheets({ action:'verifyAdmin', password: pass });
+    const data = adminMode === 'sub'
+      ? await callSheets({ action:'adminLogin', email: subEmail, password: pass })
+      : await callSheets({ action:'verifyAdmin', password: pass });
     if (data.success) {
+      const sub = adminMode === 'sub' && data.admin;
       sessionStorage.setItem('adminToken', data.adminToken || '');
       sessionStorage.setItem('userRole','Admin');
-      sessionStorage.setItem('candidateName','SYSTEM ADMIN');
+      sessionStorage.setItem('adminRole', sub ? 'SubAdmin' : 'Owner');
+      sessionStorage.setItem('adminName', sub ? (data.admin.fullName || '') : 'Owner');
+      sessionStorage.setItem('adminPerms', JSON.stringify(sub ? (data.admin.permissions || []) : []));
+      sessionStorage.setItem('candidateName', sub ? (data.admin.fullName || 'ADMIN') : 'SYSTEM ADMIN');
       sessionStorage.setItem('candidateID','000000');
       window.location.href = 'admin.html';
     } else {
@@ -669,6 +773,7 @@ document.addEventListener('keydown', e => {
   else if (!document.getElementById('step-otp-reg').classList.contains('hidden'))  handleVerifyOTPReg();
   else if (!document.getElementById('step-forgot').classList.contains('hidden'))   handleForgotPassword();
   else if (!document.getElementById('step-reset').classList.contains('hidden'))    handleResetPassword();
+  else if (!document.getElementById('step-admin-request').classList.contains('hidden')) handleAdminRequest();
   else if (!document.getElementById('step-admin').classList.contains('hidden'))    verifyAdmin();
 });
 
