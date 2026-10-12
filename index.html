@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In — BandUp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@300;400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:100%;transition:font-size 0.08s linear}
+  :root{
+    --ink:#1a1a2e;--ink2:#4a4a6a;--ink3:#8888aa;
+    --paper:#faf9f7;--paper2:#f2f0ec;--paper3:#e8e5df;
+    --blue:#002f5f;--blue2:#1a5fa8;--gold:#c8a84b;
+    --green:#2e7d4f;--red:#c0392b;--border:rgba(0,0,0,0.12);
+    --input-bg:#fff;--input-bg-focus:#f5f9ff;
+  }
+  body.dark-mode{
+    --ink:#e8e8f0;--ink2:#b8b8d0;--ink3:#8888aa;
+    --paper:#1c1d2b;--paper2:#23243a;--paper3:#33344a;
+    --blue:#1a5fa8;--blue2:#3a7fd8;--gold:#d8b85f;
+    --green:#4caf6e;--red:#e05858;--border:rgba(255,255,255,0.12);
+    --input-bg:#23243a;--input-bg-focus:#2a2c46;
+  }
+  body.dark-mode{background:#15161f}
+  .a11y-bar{position:fixed;top:16px;right:16px;z-index:5;display:flex;gap:6px;align-items:center}
+  .a11y-bar .fs-btn,.a11y-bar #dark-mode-toggle{background:var(--paper);border:1px solid var(--border);color:var(--ink2)}
+  .a11y-bar .fs-btn:hover,.a11y-bar #dark-mode-toggle:hover{background:var(--paper2)}
+  .font-size-ctrl{display:flex;gap:8px;align-items:center;background:var(--paper);border:1px solid var(--border);border-radius:5px;padding:6px 10px}
+  .fs-icon{font-family:'DM Sans',sans-serif;font-weight:700;color:var(--ink2);line-height:1;user-select:none}
+  .fs-icon-sm{font-size:0.68rem}
+  .fs-icon-lg{font-size:1rem}
+  .fs-slider{width:80px;height:4px;-webkit-appearance:none;appearance:none;background:var(--paper3);border-radius:2px;outline:none;cursor:pointer}
+  .fs-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:var(--blue);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+  .fs-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--blue);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.3);border:none}
+  .fs-btn{padding:6px 12px;border-radius:5px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;line-height:1}
+  body{font-family:'DM Sans',sans-serif;background:var(--paper2);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ink)}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--paper3) 1px,transparent 1px),linear-gradient(90deg,var(--paper3) 1px,transparent 1px);background-size:32px 32px;opacity:0.5;pointer-events:none;z-index:0}
+  .card{position:relative;z-index:1;width:420px;background:var(--paper);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,0.08)}
+  .card-header{background:var(--blue);padding:28px 32px 24px;text-align:center;border-bottom:3px solid var(--gold)}
+  .card-logo{font-family:'Source Serif 4',serif;font-size:1.5rem;font-weight:600;color:#fff;letter-spacing:0.02em;margin-bottom:4px}
+  .card-logo span{color:var(--gold)}
+  .card-sub{font-size:0.75rem;color:rgba(255,255,255,0.55);letter-spacing:0.1em;text-transform:uppercase;font-weight:600}
+  .card-body{padding:28px 32px}
+  .step{animation:fadeIn 0.2s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .step-label{font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}
+  .step-title{font-family:'Source Serif 4',serif;font-size:1.15rem;font-weight:600;color:var(--blue);margin-bottom:4px}
+  .step-desc{font-size:0.83rem;color:var(--ink3);margin-bottom:20px;line-height:1.5}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:0.78rem;font-weight:600;color:var(--ink2);margin-bottom:5px}
+  .field input,.field select{width:100%;padding:9px 13px;border:1px solid var(--paper3);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.9rem;color:var(--ink);background:var(--input-bg,#fff);transition:all 0.15s}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--blue2);background:var(--input-bg-focus,#f5f9ff);box-shadow:0 0 0 3px rgba(26,95,168,0.08)}
+  .field input:disabled{background:var(--paper2);color:var(--ink3)}
+  .field select{cursor:pointer}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .error-msg{font-size:0.78rem;color:var(--red);font-weight:600;margin-bottom:10px;display:none;padding:8px 12px;background:#fff5f5;border:1px solid #f5b8b8;border-radius:6px}
+  .error-msg.show{display:block}
+  .success-msg{font-size:0.78rem;color:var(--green);font-weight:600;margin-bottom:10px;display:none;padding:8px 12px;background:#f5fbf7;border:1px solid #a8dbb8;border-radius:6px}
+  .success-msg.show{display:block}
+  .btn-primary{width:100%;padding:11px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.15s;letter-spacing:0.02em;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn-primary:hover{background:var(--blue2)}
+  .btn-primary:active{transform:scale(0.98)}
+  .btn-primary:disabled{background:var(--ink3);cursor:not-allowed;transform:none}
+  .back-link{display:inline-flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--ink3);cursor:pointer;margin-bottom:14px;background:none;border:none;font-family:'DM Sans',sans-serif;padding:0}
+  .back-link:hover{color:var(--blue)}
+  .back-link::before{content:'←'}
+  .admin-badge{display:inline-block;margin-bottom:12px;background:rgba(200,168,75,0.12);border:1px solid rgba(200,168,75,0.35);color:#7a5f1a;border-radius:6px;padding:4px 12px;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase}
+  .welcome-badge{background:#f0f5ff;border:1px solid #c0d0f0;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:0.85rem;color:var(--blue)}
+  .welcome-badge b{display:block;font-size:1rem;margin-bottom:2px}
+  .footer-note{text-align:center;font-size:0.75rem;color:var(--ink3);padding:14px 32px;border-top:1px solid var(--border);background:var(--paper2)}
+  .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.6s linear infinite;display:none}
+  .spinner.show{display:block}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .pw-wrap{position:relative}
+  .pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink3);font-size:0.8rem;padding:0}
+  .pw-toggle:hover{color:var(--blue)}
+  .pw-strength{height:3px;border-radius:2px;margin-top:5px;transition:all 0.3s;background:var(--paper3)}
+  .pw-strength.weak{background:var(--red);width:33%}
+  .pw-strength.fair{background:var(--gold);width:66%}
+  .pw-strength.strong{background:var(--green);width:100%}
+  .sheets-note{font-size:0.75rem;font-style:italic;color:var(--ink3);text-align:center;margin-top:10px;padding:8px;background:var(--paper2);border-radius:6px;line-height:1.5}
+  .hidden{display:none!important}
+
+  /* CONFIG WARNING */
+  .config-warn{background:#fff9e6;border:1px solid #f5d87a;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:0.82rem;color:#7a5f1a;line-height:1.6;display:none}
+  .config-warn.show{display:block}
+</style>
+</head>
+<body>
+
+<div class="a11y-bar">
+  <div class="font-size-ctrl" title="Adjust text size">
+    <span class="fs-icon fs-icon-sm">A</span>
+    <input type="range" class="fs-slider" id="fs-slider" min="85" max="145" step="1" value="100"
+           oninput="setFontSize(this.value)" aria-label="Text size">
+    <span class="fs-icon fs-icon-lg">A</span>
+  </div>
+  <button class="fs-btn" id="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</button>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-logo"><svg width="40" height="40" viewBox="0 0 290 270" role="img" aria-label="BandUp"><rect x="10" y="140" width="70" height="120" rx="10" fill="#c8a84b"/><rect x="110" y="90" width="70" height="170" rx="10" fill="#d8b85f"/><rect x="210" y="40" width="70" height="220" rx="10" fill="#c8a84b"/><path d="M27 110 L127 60 L227 10" fill="none" stroke="#f2e2b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M189 10 L227 10 L227 48" fill="none" stroke="#f2e2b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="card-sub">Simulation Test Platform</div>
+  </div>
+  <div class="card-body">
+
+    <!-- STEP 0: Setup warning if Supabase is not configured -->
+    <div id="setup-warn" class="config-warn">
+      ⚠️ <b>Supabase not configured.</b> Open <code>bandup-api.js</code> in a text editor and set <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code>. See <code>README_SUPABASE.md</code>.
+    </div>
+
+    <!-- STEP 1: Candidate Number -->
+    <div id="step1" class="step">
+      <div class="step-label">Step 1</div>
+      <div class="step-title">Welcome</div>
+      <div class="step-desc">Enter your candidate number to continue.</div>
+      <div class="field">
+        <label for="candidateNum">Candidate Number</label>
+        <input type="text" id="candidateNum" placeholder="schoolcode-IDnumber" autofocus oninput="this.value=this.value.toUpperCase()">
+        <div style="font-size:0.75rem;color:var(--ink3);margin-top:5px">Enter the school code and ID number.</div>
+      </div>
+      <div class="error-msg" id="err1"></div>
+      <button class="btn-primary" id="btn1" onclick="handleStep1()">
+        <span id="btn1-txt">Continue →</span>
+        <div class="spinner" id="spin1"></div>
+      </button>
+      <div class="sheets-note">*Note: Your details are securely stored.</div>
+    </div>
+
+    <!-- STEP ADMIN -->
+    <div id="step-admin" class="step hidden">
+      <button class="back-link" onclick="goTo('step-admin','step1')">Back</button>
+      <div class="admin-badge">Admin Access</div>
+      <div class="step-title">Administrator Login</div>
+      <div class="step-desc">Enter admin password to access the control panel.</div>
+      <div class="field">
+        <label for="adminPass">Password</label>
+        <input type="password" id="adminPass" placeholder="Enter password">
+      </div>
+      <div class="error-msg" id="err-admin"></div>
+      <button class="btn-primary" onclick="verifyAdmin()">Sign In →</button>
+    </div>
+
+    <!-- STEP 2a: RETURNING candidate — password login -->
+    <div id="step-login" class="step hidden">
+      <button class="back-link" onclick="goTo('step-login','step1')">Back</button>
+      <div class="step-label">Welcome Back</div>
+      <div class="welcome-badge" id="welcome-badge">
+        <b id="welcome-name">Loading...</b>
+        <span id="welcome-id" style="color:var(--ink3);font-size:0.78rem"></span>
+      </div>
+      <div class="step-desc">Enter your password to continue.</div>
+      <div class="field">
+        <label for="loginPass">Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="loginPass" placeholder="Enter your password">
+          <button class="pw-toggle" onclick="togglePw('loginPass',this)" type="button">Show</button>
+        </div>
+      </div>
+      <div class="error-msg" id="err-login"></div>
+      <button class="btn-primary" id="btn-login" onclick="handleLogin()">
+        <span id="btn-login-txt">Sign In →</span>
+        <div class="spinner" id="spin-login"></div>
+      </button>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="goForgotPassword()" style="background:none;border:none;color:var(--blue2);font-size:0.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
+          Forgot password?
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2b: NEW candidate — fill details + create password -->
+    <div id="step-register" class="step hidden">
+      <button class="back-link" onclick="goTo('step-register','step1')">Back</button>
+      <div class="step-label">New Candidate — Registration</div>
+      <div class="step-title">Personal Details</div>
+      <div class="step-desc">Fill in your details and create a password. You'll use these to log in next time.</div>
+      <div class="field">
+        <label>Candidate Number</label>
+        <input type="text" id="disp-id" disabled>
+      </div>
+      <div class="field">
+        <label for="fullName">Full Name</label>
+        <input type="text" id="fullName" placeholder="e.g. Santos, Maria">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="dob">Date of Birth</label>
+          <input type="date" id="dob">
+        </div>
+        <div class="field">
+          <label for="gender">Gender</label>
+          <select id="gender">
+            <option value="">Select...</option>
+            <option>Male</option><option>Female</option>
+            <option>Prefer not to say</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="nationality">Nationality</label>
+        <select id="nationality"><option value="">Select country...</option></select>
+      </div>
+      <div class="field">
+        <label for="regEmail">Email Address</label>
+        <input type="email" id="regEmail" placeholder="e.g. maria@gmail.com">
+      </div>
+      <div class="field">
+        <label for="newPass">Create Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="newPass" placeholder="At least 6 characters" oninput="checkStrength(this)">
+          <button class="pw-toggle" onclick="togglePw('newPass',this)" type="button">Show</button>
+        </div>
+        <div class="pw-strength" id="pw-strength"></div>
+      </div>
+      <div class="field">
+        <label for="confirmPass">Confirm Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="confirmPass" placeholder="Re-enter password">
+          <button class="pw-toggle" onclick="togglePw('confirmPass',this)" type="button">Show</button>
+        </div>
+      </div>
+      <div class="error-msg" id="err-register"></div>
+      <div class="success-msg" id="suc-register"></div>
+      <button class="btn-primary" id="btn-register" onclick="handleRegisterSendOTP()">
+        <span id="btn-register-txt">Proceed →</span>
+        <div class="spinner" id="spin-register"></div>
+      </button>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="switchToLogin()" style="background:none;border:none;color:var(--blue2);font-size:0.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
+          Already registered? Enter password instead
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP OTP VERIFY (Registration) -->
+    <div id="step-otp-reg" class="step hidden">
+      <button class="back-link" onclick="goTo('step-otp-reg','step-register')">Back</button>
+      <div class="step-label">Step 3 — Email Verification</div>
+      <div class="step-title">Check Your Email</div>
+      <div class="step-desc" id="otp-reg-desc">We sent a 6-digit code to your email. Enter it below to complete registration.</div>
+      <div class="field">
+        <label for="otpRegInput">Verification Code</label>
+        <input type="text" id="otpRegInput" placeholder="e.g. 847291" maxlength="6" autocomplete="one-time-code" style="letter-spacing:0.18em;font-size:1.1rem;text-align:center">
+      </div>
+      <div class="error-msg" id="err-otp-reg"></div>
+      <div class="success-msg" id="suc-otp-reg"></div>
+      <button class="btn-primary" id="btn-otp-reg" onclick="handleVerifyOTPReg()">
+        <span id="btn-otp-reg-txt">Verify & Register →</span>
+        <div class="spinner" id="spin-otp-reg"></div>
+      </button>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="resendOTPReg()" id="btn-resend-reg" style="background:none;border:none;color:var(--blue2);font-size:0.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
+          Resend code
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP: FORGOT PASSWORD — enter email -->
+    <div id="step-forgot" class="step hidden">
+      <button class="back-link" onclick="goTo('step-forgot','step-login')">Back</button>
+      <div class="step-label">Password Reset</div>
+      <div class="step-title">Forgot Password?</div>
+      <div class="step-desc">Enter the email address linked to your account. We'll send a reset code.</div>
+      <div class="field">
+        <label for="forgotEmail">Email Address</label>
+        <input type="email" id="forgotEmail" placeholder="e.g. maria@gmail.com">
+      </div>
+      <div class="error-msg" id="err-forgot"></div>
+      <div class="success-msg" id="suc-forgot"></div>
+      <button class="btn-primary" id="btn-forgot" onclick="handleForgotPassword()">
+        <span id="btn-forgot-txt">Send Reset Code →</span>
+        <div class="spinner" id="spin-forgot"></div>
+      </button>
+    </div>
+
+    <!-- STEP: FORGOT PASSWORD — enter OTP + new password -->
+    <div id="step-reset" class="step hidden">
+      <button class="back-link" onclick="goTo('step-reset','step-forgot')">Back</button>
+      <div class="step-label">Password Reset — Step 2</div>
+      <div class="step-title">Reset Password</div>
+      <div class="step-desc" id="reset-desc">Enter the 6-digit code sent to your email, then set a new password.</div>
+      <div class="field">
+        <label for="resetOTPInput">Verification Code</label>
+        <input type="text" id="resetOTPInput" placeholder="e.g. 847291" maxlength="6" autocomplete="one-time-code" style="letter-spacing:0.18em;font-size:1.1rem;text-align:center">
+      </div>
+      <div class="field">
+        <label for="resetNewPass">New Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="resetNewPass" placeholder="At least 6 characters" oninput="checkStrengthById('resetNewPass','pw-strength-reset')">
+          <button class="pw-toggle" onclick="togglePw('resetNewPass',this)" type="button">Show</button>
+        </div>
+        <div class="pw-strength" id="pw-strength-reset"></div>
+      </div>
+      <div class="field">
+        <label for="resetConfirmPass">Confirm New Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="resetConfirmPass" placeholder="Re-enter new password">
+          <button class="pw-toggle" onclick="togglePw('resetConfirmPass',this)" type="button">Show</button>
+        </div>
+      </div>
+      <div class="error-msg" id="err-reset"></div>
+      <div class="success-msg" id="suc-reset"></div>
+      <button class="btn-primary" id="btn-reset" onclick="handleResetPassword()">
+        <span id="btn-reset-txt">Reset Password →</span>
+        <div class="spinner" id="spin-reset"></div>
+      </button>
+    </div>
+
+  </div>
+  <div class="footer-note">Do not close or refresh this window during the test.</div>
+</div>
+
+<script src="bandup-api.js"></script>
+<script>
+const COUNTRIES = ["Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cabo Verde","Cambodia","Cameroon","Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo","Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"];
+
+// ══════════════════════════════════════
+// ACCESSIBILITY — FONT SIZE & DARK MODE
+// Shared preference keys across the whole site.
+// ══════════════════════════════════════
+const FONT_SCALE_MIN = 85, FONT_SCALE_MAX = 145; // percent — shared with simulation.html/profile.html/tests.html
+let fontScalePct = 100;
+
+function initAccessibilityPrefs() {
+  const savedScale = parseInt(localStorage.getItem('ielts_font_scale'));
+  if (!isNaN(savedScale) && savedScale >= FONT_SCALE_MIN && savedScale <= FONT_SCALE_MAX) {
+    fontScalePct = savedScale;
+  }
+  applyFontScale();
+  const slider = document.getElementById('fs-slider');
+  if (slider) slider.value = fontScalePct;
+  const darkOn = localStorage.getItem('ielts_dark_mode') === '1';
+  if (darkOn) {
+    document.body.classList.add('dark-mode');
+    const btn = document.getElementById('dark-mode-toggle');
+    if (btn) btn.textContent = '☀️';
+  }
+}
+function applyFontScale() {
+  document.documentElement.style.fontSize = fontScalePct + '%';
+  localStorage.setItem('ielts_font_scale', fontScalePct);
+}
+function setFontSize(pct) {
+  const val = parseInt(pct, 10);
+  if (isNaN(val) || val < FONT_SCALE_MIN || val > FONT_SCALE_MAX) return;
+  fontScalePct = val;
+  applyFontScale();
+}
+function toggleDarkMode() {
+  const isDark = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('ielts_dark_mode', isDark ? '1' : '0');
+  const btn = document.getElementById('dark-mode-toggle');
+  if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+}
+
+window.onload = () => {
+  initAccessibilityPrefs();
+  // Populate countries
+  const sel = document.getElementById('nationality');
+  COUNTRIES.forEach(c => { const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); });
+  // Warn if URL not configured
+  if (typeof SUPABASE_URL === 'undefined' || /YOUR-PROJECT-REF/.test(SUPABASE_URL)) {
+    document.getElementById('setup-warn').classList.add('show');
+  }
+};
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+function goTo(hideId, showId) {
+  document.getElementById(hideId).classList.add('hidden');
+  document.getElementById(showId).classList.remove('hidden');
+}
+function showErr(id, msg) { const el=document.getElementById(id); el.textContent=msg; el.classList.add('show'); }
+function hideErr(id) { document.getElementById(id).classList.remove('show'); }
+function showSuc(id, msg) { const el=document.getElementById(id); el.textContent=msg; el.classList.add('show'); }
+function setLoading(btnId, spinId, txtId, loading, label='Continue →') {
+  document.getElementById(btnId).disabled = loading;
+  document.getElementById(spinId).classList.toggle('show', loading);
+  document.getElementById(txtId).textContent = loading ? 'Please wait...' : label;
+}
+function togglePw(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.textContent = show ? 'Hide' : 'Show';
+}
+function checkStrength(inp) {
+  const v = inp.value;
+  const bar = document.getElementById('pw-strength');
+  if (!v) { bar.className='pw-strength'; return; }
+  if (v.length < 6) bar.className='pw-strength weak';
+  else if (v.length < 10 || !/[0-9]/.test(v)) bar.className='pw-strength fair';
+  else bar.className='pw-strength strong';
+}
+
+// ══════════════════════════════════════════════
+//  STEP 1 — Check candidate ID
+// ══════════════════════════════════════════════
+async function handleStep1() {
+  let id = document.getElementById('candidateNum').value.trim().toUpperCase();
+  hideErr('err1');
+  if (!id) { showErr('err1','Please enter your candidate number.'); return; }
+
+  if (id.toLowerCase() === 'superadmin') {
+    goTo('step1','step-admin');
+    setTimeout(()=>document.getElementById('adminPass').focus(),50);
+    return;
+  }
+
+  if (!/^[A-Z]{3}-\d{5}$/.test(id)) {
+    showErr('err1','Candidate ID is not valid. Please contact administrator for further assistance.');
+    return;
+  }
+  document.getElementById('candidateNum').value = id;
+
+  setLoading('btn1','spin1','btn1-txt',true);
+
+  try {
+    const data = await callSheets({ action:'checkCandidate', candidateID: id });
+
+    if (data.exists) {
+      // Returning candidate — go to password screen
+      document.getElementById('welcome-name').textContent = data.name;
+      document.getElementById('welcome-id').textContent = 'ID: ' + id;
+      sessionStorage.setItem('pendingID', id);
+      sessionStorage.setItem('pendingName', data.name);
+      goTo('step1','step-login');
+      setTimeout(()=>document.getElementById('loginPass').focus(),50);
+    } else {
+      // New candidate — go to register
+      sessionStorage.setItem('pendingID', id);
+      document.getElementById('disp-id').value = id;
+      goTo('step1','step-register');
+      setTimeout(()=>document.getElementById('fullName').focus(),50);
+    }
+
+  } catch(e) {
+    // Connection failed — still let them proceed to register
+    // handleRegister will catch "already registered" and redirect to login
+    sessionStorage.setItem('pendingID', id);
+    document.getElementById('disp-id').value = id;
+    showErr('err1','⚠️ Could not verify ID — proceeding to registration. If you already registered, your password will be requested.');
+    setTimeout(()=>{
+      hideErr('err1');
+      goTo('step1','step-register');
+      setTimeout(()=>document.getElementById('fullName').focus(),50);
+    }, 2000);
+
+  } finally {
+    setLoading('btn1','spin1','btn1-txt',false,'Continue →');
+  }
+}
+
+function switchToLogin() {
+  const id = sessionStorage.getItem('pendingID') || '';
+  const name = document.getElementById('fullName').value.trim() || id;
+  document.getElementById('welcome-name').textContent = name;
+  document.getElementById('welcome-id').textContent = 'ID: ' + id;
+  goTo('step-register', 'step-login');
+  setTimeout(()=>document.getElementById('loginPass').focus(), 50);
+}
+
+// ══════════════════════════════════════════════
+//  ADMIN LOGIN
+// ══════════════════════════════════════════════
+async function verifyAdmin() {
+  const pass = document.getElementById('adminPass').value;
+  hideErr('err-admin');
+  if (!pass) { showErr('err-admin','Please enter a password.'); return; }
+
+  const btn = document.querySelector('#step-admin .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Verifying...'; }
+
+  try {
+    const data = await callSheets({ action:'verifyAdmin', password: pass });
+    if (data.success) {
+      sessionStorage.setItem('adminToken', data.adminToken || '');
+      sessionStorage.setItem('userRole','Admin');
+      sessionStorage.setItem('candidateName','SYSTEM ADMIN');
+      sessionStorage.setItem('candidateID','000000');
+      window.location.href = 'admin.html';
+    } else {
+      showErr('err-admin', data.message || 'Incorrect password.');
+      document.getElementById('adminPass').value='';
+      document.getElementById('adminPass').focus();
+    }
+  } catch(e) {
+    showErr('err-admin','Cannot connect to server. Check your internet connection.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Sign In →'; }
+  }
+}
+
+// ══════════════════════════════════════════════
+//  RETURNING CANDIDATE LOGIN
+// ══════════════════════════════════════════════
+async function handleLogin() {
+  const id   = sessionStorage.getItem('pendingID');
+  const pass = document.getElementById('loginPass').value;
+  hideErr('err-login');
+  if (!pass) { showErr('err-login','Please enter your password.'); return; }
+
+  setLoading('btn-login','spin-login','btn-login-txt',true,'Sign In →');
+
+  try {
+    const data = await callSheets({ action:'loginCandidate', candidateID:id, password:pass });
+    if (data.success) {
+      sessionStorage.removeItem('adminToken');
+      sessionStorage.setItem('userRole','Candidate');
+      sessionStorage.setItem('candidateName', data.fullName);
+      sessionStorage.setItem('candidateID',   data.candidateID);
+      sessionStorage.setItem('candidateData', JSON.stringify(data));
+      window.location.href = 'profile.html';
+    } else {
+      showErr('err-login', data.message || 'Login failed.');
+    }
+  } catch(e) {
+    showErr('err-login','Cannot connect to server.');
+  } finally {
+    setLoading('btn-login','spin-login','btn-login-txt',false,'Sign In →');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  NEW CANDIDATE REGISTER
+// ══════════════════════════════════════════════
+async function handleRegister() {
+  const id      = sessionStorage.getItem('pendingID');
+  const name    = document.getElementById('fullName').value.trim();
+  const dob     = document.getElementById('dob').value;
+  const gender  = document.getElementById('gender').value;
+  const nat     = document.getElementById('nationality').value;
+  const pass    = document.getElementById('newPass').value;
+  const confirm = document.getElementById('confirmPass').value;
+
+  hideErr('err-register');
+
+  if (!name||!dob||!gender||!nat) { showErr('err-register','Please fill in all fields.'); return; }
+  if (pass.length < 6)            { showErr('err-register','Password must be at least 6 characters.'); return; }
+  if (pass !== confirm)           { showErr('err-register','Passwords do not match.'); return; }
+
+  setLoading('btn-register','spin-register','btn-register-txt',true,'Register & Start Test →');
+
+  try {
+    const data = await callSheets({
+      action: 'registerCandidate',
+      candidateID: id, fullName: name,
+      dob, gender, nationality: nat, password: pass
+    });
+
+    if (data.success) {
+      showSuc('suc-register','✅ Registered! Redirecting to your profile...');
+      sessionStorage.setItem('userRole','Candidate');
+      sessionStorage.setItem('candidateName', name);
+      sessionStorage.setItem('candidateID',   id);
+      sessionStorage.setItem('candidateData', JSON.stringify({ candidateID:id, fullName:name, dob, gender, nationality:nat }));
+      setTimeout(()=>{ window.location.href='profile.html'; }, 1200);
+
+    } else if (data.message && data.message.toLowerCase().includes('already registered')) {
+      // ID already exists — switch to login screen instead
+      document.getElementById('welcome-name').textContent = name || id;
+      document.getElementById('welcome-id').textContent = 'ID: ' + id;
+      sessionStorage.setItem('pendingName', name);
+      hideErr('err-register');
+      goTo('step-register','step-login');
+      document.getElementById('err-login').textContent = '⚠️ This ID is already registered. Please enter your password.';
+      document.getElementById('err-login').classList.add('show');
+      setTimeout(()=>document.getElementById('loginPass').focus(),50);
+
+    } else {
+      showErr('err-register', data.message || 'Registration failed.');
+    }
+  } catch(e) {
+    showErr('err-register','Cannot connect to server.');
+  } finally {
+    setLoading('btn-register','spin-register','btn-register-txt',false,'Register & Start Test →');
+  }
+}
+
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (!document.getElementById('step1').classList.contains('hidden'))              handleStep1();
+  else if (!document.getElementById('step-login').classList.contains('hidden'))    handleLogin();
+  else if (!document.getElementById('step-register').classList.contains('hidden')) handleRegisterSendOTP();
+  else if (!document.getElementById('step-otp-reg').classList.contains('hidden'))  handleVerifyOTPReg();
+  else if (!document.getElementById('step-forgot').classList.contains('hidden'))   handleForgotPassword();
+  else if (!document.getElementById('step-reset').classList.contains('hidden'))    handleResetPassword();
+  else if (!document.getElementById('step-admin').classList.contains('hidden'))    verifyAdmin();
+});
+
+// ══════════════════════════════════════════════
+//  PASSWORD STRENGTH (generic by ID)
+// ══════════════════════════════════════════════
+function checkStrengthById(inputId, barId) {
+  const v = document.getElementById(inputId).value;
+  const bar = document.getElementById(barId);
+  if (!v) { bar.className='pw-strength'; return; }
+  if (v.length < 6) bar.className='pw-strength weak';
+  else if (v.length < 10 || !/[0-9]/.test(v)) bar.className='pw-strength fair';
+  else bar.className='pw-strength strong';
+}
+
+// ══════════════════════════════════════════════
+//  REGISTRATION: SEND OTP
+// ══════════════════════════════════════════════
+async function handleRegisterSendOTP() {
+  const id      = sessionStorage.getItem('pendingID');
+  const name    = document.getElementById('fullName').value.trim();
+  const dob     = document.getElementById('dob').value;
+  const gender  = document.getElementById('gender').value;
+  const nat     = document.getElementById('nationality').value;
+  const email   = document.getElementById('regEmail').value.trim();
+  const pass    = document.getElementById('newPass').value;
+  const confirm = document.getElementById('confirmPass').value;
+
+  hideErr('err-register');
+
+  if (!name||!dob||!gender||!nat)      { showErr('err-register','Please fill in all fields.'); return; }
+  if (!email || !email.includes('@'))  { showErr('err-register','Please enter a valid email address.'); return; }
+  if (pass.length < 6)                 { showErr('err-register','Password must be at least 6 characters.'); return; }
+  if (pass !== confirm)                { showErr('err-register','Passwords do not match.'); return; }
+
+  setLoading('btn-register','spin-register','btn-register-txt',true,'Send Verification Code →');
+
+  try {
+    const data = await callSheets({
+      action: 'sendOTP',
+      email,
+      purpose: 'register',
+      candidateID: id
+    });
+
+    if (data.success) {
+      // Store form data temporarily in sessionStorage
+      sessionStorage.setItem('pendingEmail', email);
+      sessionStorage.setItem('pendingName', name);
+      sessionStorage.setItem('pendingDOB', dob);
+      sessionStorage.setItem('pendingGender', gender);
+      sessionStorage.setItem('pendingNat', nat);
+      sessionStorage.setItem('pendingPass', pass);
+
+      document.getElementById('otp-reg-desc').textContent =
+        'We sent a 6-digit code to ' + email + '. Enter it below to complete registration.';
+      goTo('step-register','step-otp-reg');
+      setTimeout(()=>document.getElementById('otpRegInput').focus(),50);
+    } else if (data.message && data.message.toLowerCase().includes('already registered')) {
+      document.getElementById('welcome-name').textContent = name || id;
+      document.getElementById('welcome-id').textContent = 'ID: ' + id;
+      goTo('step-register','step-login');
+      document.getElementById('err-login').textContent = '⚠️ This ID is already registered. Please enter your password.';
+      document.getElementById('err-login').classList.add('show');
+      setTimeout(()=>document.getElementById('loginPass').focus(),50);
+    } else {
+      showErr('err-register', data.message || 'Could not send verification code. Please try again.');
+    }
+  } catch(e) {
+    showErr('err-register','Cannot connect to server. Please check your internet connection.');
+  } finally {
+    setLoading('btn-register','spin-register','btn-register-txt',false,'Send Verification Code →');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  REGISTRATION: VERIFY OTP → COMPLETE REGISTER
+// ══════════════════════════════════════════════
+async function handleVerifyOTPReg() {
+  const otp     = document.getElementById('otpRegInput').value.trim();
+  const id      = sessionStorage.getItem('pendingID');
+  const name    = sessionStorage.getItem('pendingName');
+  const email   = sessionStorage.getItem('pendingEmail');
+  const dob     = sessionStorage.getItem('pendingDOB');
+  const gender  = sessionStorage.getItem('pendingGender');
+  const nat     = sessionStorage.getItem('pendingNat');
+  const pass    = sessionStorage.getItem('pendingPass');
+
+  hideErr('err-otp-reg');
+  if (!otp || otp.length !== 6) { showErr('err-otp-reg','Please enter the 6-digit code.'); return; }
+
+  setLoading('btn-otp-reg','spin-otp-reg','btn-otp-reg-txt',true,'Verify & Register →');
+
+  try {
+    const data = await callSheets({
+      action: 'verifyOTPAndRegister',
+      otp, candidateID: id, fullName: name,
+      email, dob, gender, nationality: nat, password: pass
+    });
+
+    if (data.success) {
+      showSuc('suc-otp-reg','✅ Registration submitted! Your account is now awaiting admin approval — you\'ll be able to log in once approved.');
+      // Clean up temp storage
+      ['pendingEmail','pendingName','pendingDOB','pendingGender','pendingNat','pendingPass'].forEach(k=>sessionStorage.removeItem(k));
+      document.getElementById('btn-otp-reg').style.display = 'none';
+      setTimeout(()=>{
+        goTo('step-otp-reg','step1');
+        document.getElementById('candidateNum').value = '';
+        document.getElementById('btn-otp-reg').style.display = '';
+      }, 3500);
+    } else {
+      showErr('err-otp-reg', data.message || 'Incorrect or expired code. Please try again.');
+    }
+  } catch(e) {
+    showErr('err-otp-reg','Cannot connect to server.');
+  } finally {
+    setLoading('btn-otp-reg','spin-otp-reg','btn-otp-reg-txt',false,'Verify & Register →');
+  }
+}
+
+async function resendOTPReg() {
+  const email = sessionStorage.getItem('pendingEmail');
+  const id    = sessionStorage.getItem('pendingID');
+  if (!email) { showErr('err-otp-reg','Cannot resend — email not found. Go back and try again.'); return; }
+  document.getElementById('btn-resend-reg').disabled = true;
+  document.getElementById('btn-resend-reg').textContent = 'Sending...';
+  try {
+    await callSheets({ action:'sendOTP', email, purpose:'register', candidateID: id });
+    hideErr('err-otp-reg');
+    showSuc('suc-otp-reg','✅ New code sent! Check your email.');
+  } catch(e) {
+    showErr('err-otp-reg','Could not resend. Please check your connection.');
+  } finally {
+    document.getElementById('btn-resend-reg').disabled = false;
+    document.getElementById('btn-resend-reg').textContent = 'Resend code';
+  }
+}
+
+// ══════════════════════════════════════════════
+//  FORGOT PASSWORD — STEP 1: SEND OTP
+// ══════════════════════════════════════════════
+function goForgotPassword() {
+  const id = sessionStorage.getItem('pendingID') || '';
+  // Pre-fill candidate ID context if available
+  sessionStorage.setItem('resetCandidateID', id);
+  goTo('step-login','step-forgot');
+  setTimeout(()=>document.getElementById('forgotEmail').focus(),50);
+}
+
+async function handleForgotPassword() {
+  const email = document.getElementById('forgotEmail').value.trim();
+  hideErr('err-forgot');
+  if (!email || !email.includes('@')) { showErr('err-forgot','Please enter a valid email address.'); return; }
+
+  setLoading('btn-forgot','spin-forgot','btn-forgot-txt',true,'Send Reset Code →');
+
+  try {
+    const data = await callSheets({ action:'sendOTP', email, purpose:'reset' });
+
+    if (data.success) {
+      sessionStorage.setItem('resetEmail', email);
+      document.getElementById('reset-desc').textContent =
+        'We sent a 6-digit code to ' + email + '. Enter it below and set your new password.';
+      goTo('step-forgot','step-reset');
+      setTimeout(()=>document.getElementById('resetOTPInput').focus(),50);
+    } else {
+      showErr('err-forgot', data.message || 'Email not found. Make sure you use the email you registered with.');
+    }
+  } catch(e) {
+    showErr('err-forgot','Cannot connect to server.');
+  } finally {
+    setLoading('btn-forgot','spin-forgot','btn-forgot-txt',false,'Send Reset Code →');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  FORGOT PASSWORD — STEP 2: VERIFY OTP + SET PASSWORD
+// ══════════════════════════════════════════════
+async function handleResetPassword() {
+  const otp     = document.getElementById('resetOTPInput').value.trim();
+  const newPass = document.getElementById('resetNewPass').value;
+  const confirm = document.getElementById('resetConfirmPass').value;
+  const email   = sessionStorage.getItem('resetEmail');
+
+  hideErr('err-reset');
+  if (!otp || otp.length !== 6) { showErr('err-reset','Please enter the 6-digit code.'); return; }
+  if (newPass.length < 6)       { showErr('err-reset','Password must be at least 6 characters.'); return; }
+  if (newPass !== confirm)      { showErr('err-reset','Passwords do not match.'); return; }
+
+  setLoading('btn-reset','spin-reset','btn-reset-txt',true,'Reset Password →');
+
+  try {
+    const data = await callSheets({ action:'verifyOTPAndResetPassword', otp, email, newPassword: newPass });
+
+    if (data.success) {
+      showSuc('suc-reset','✅ Password reset! Redirecting to login...');
+      sessionStorage.removeItem('resetEmail');
+      setTimeout(()=>{
+        goTo('step-reset','step-login');
+        // If we know the candidate ID, pre-fill the welcome badge
+        const name = data.fullName || '';
+        const id   = data.candidateID || sessionStorage.getItem('pendingID') || '';
+        if (name) document.getElementById('welcome-name').textContent = name;
+        if (id)   document.getElementById('welcome-id').textContent = 'ID: ' + id;
+        document.getElementById('loginPass').value = '';
+        setTimeout(()=>document.getElementById('loginPass').focus(),50);
+      }, 1500);
+    } else {
+      showErr('err-reset', data.message || 'Incorrect or expired code. Please try again.');
+    }
+  } catch(e) {
+    showErr('err-reset','Cannot connect to server.');
+  } finally {
+    setLoading('btn-reset','spin-reset','btn-reset-txt',false,'Reset Password →');
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Candidate Profile — BandUp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:100%}
+  :root{
+    --ink:#1a1a2e;--ink2:#4a4a6a;--ink3:#8888aa;
+    --paper:#faf9f7;--paper2:#f2f0ec;--paper3:#e8e5df;
+    --blue:#002f5f;--blue2:#1a5fa8;--gold:#c8a84b;
+    --green:#2e7d4f;--red:#c0392b;--border:rgba(0,0,0,0.1);
+  }
+  body.dark-mode{
+    --ink:#e8e8f0;--ink2:#b8b8d0;--ink3:#8888aa;
+    --paper:#1c1d2b;--paper2:#23243a;--paper3:#33344a;
+    --blue:#1a5fa8;--blue2:#3a7fd8;--gold:#d8b85f;
+    --green:#4caf6e;--red:#e05858;--border:rgba(255,255,255,0.1);
+  }
+  body.dark-mode{background:#15161f}
+  body.dark-mode .card{background:var(--paper)}
+  body.dark-mode input,body.dark-mode select,body.dark-mode textarea{background:#23243a;color:var(--ink);border-color:var(--paper3)}
+  body.dark-mode .trf-doc{background:#1c1d2b}
+
+  .font-size-ctrl{display:flex;gap:2px;align-items:center}
+  .fs-btn{padding:6px 12px;border:1px solid rgba(255,255,255,0.25);border-radius:5px;color:rgba(255,255,255,0.85);background:transparent;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;line-height:1}
+  .fs-btn:hover{background:rgba(255,255,255,0.12)}
+  .fs-btn:first-child{border-radius:5px 0 0 5px}
+  .fs-btn:last-child{border-radius:0 5px 5px 0;border-left:none}
+
+  /* ─── SETTINGS POPOVER ─── */
+  .settings-wrap{position:relative}
+  .icon-btn{display:flex;align-items:center;gap:6px}
+  .settings-panel{display:none;position:absolute;top:calc(100% + 10px);right:0;background:var(--paper);color:var(--ink);border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.25);width:340px;max-height:75vh;overflow-y:auto;z-index:200}
+  .settings-panel.open{display:block}
+  .settings-acc-item{border-bottom:1px solid var(--border)}
+  .settings-acc-item:last-child{border-bottom:none}
+  .settings-acc-header{width:100%;display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:700;color:var(--ink2);cursor:pointer;text-align:left;transition:background 0.15s}
+  .settings-acc-header:hover{background:var(--paper2)}
+  .settings-acc-header.active{color:var(--blue)}
+  .settings-acc-chevron{font-size:0.65rem;color:var(--ink3);transition:transform 0.2s;flex-shrink:0}
+  .settings-acc-header.active .settings-acc-chevron{transform:rotate(180deg)}
+  .settings-acc-body{max-height:0;overflow:hidden;transition:max-height 0.25s ease}
+  .settings-acc-body.active{max-height:600px}
+  .settings-acc-body-inner{padding:4px 16px 16px}
+  .settings-row{display:flex;align-items:center;justify-content:space-between;font-size:0.85rem;margin-bottom:14px}
+  .settings-row:last-child{margin-bottom:0}
+  .settings-label{font-weight:600;color:var(--ink2)}
+  .switch{position:relative;width:38px;height:21px;flex-shrink:0}
+  .switch input{opacity:0;width:0;height:0;position:absolute}
+  .slider-track{position:absolute;inset:0;background:var(--paper3);border-radius:20px;cursor:pointer;transition:0.2s}
+  .slider-track:before{content:'';position:absolute;width:17px;height:17px;left:2px;top:2px;background:#fff;border-radius:50%;transition:0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+  .switch input:checked + .slider-track{background:var(--blue2)}
+  .switch input:checked + .slider-track:before{transform:translateX(17px)}
+  .fs-slider-wrap{display:flex;flex-direction:column;gap:8px}
+  .fs-slider-wrap input[type=range]{width:100%;accent-color:var(--blue2)}
+  .fs-labels{display:flex;justify-content:space-between;font-size:0.7rem;color:var(--ink3);padding:0 2px}
+  @media(max-width:680px){
+    .settings-panel{right:auto;left:50%;transform:translateX(-50%);width:min(340px,calc(100vw - 24px))}
+  }
+  body{font-family:'DM Sans',sans-serif;background:var(--paper2);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+
+  .hdr{background:var(--blue);color:#fff;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;border-bottom:3px solid var(--gold);position:relative}
+  .hdr-burger{display:block;background:transparent;border:none;color:#fff;font-size:1.4rem;cursor:pointer;padding:4px 8px;line-height:1}
+  /* Dropdown for Settings/Logout — opened by the burger button, on every screen size */
+  .hdr-menu-dropdown{display:none;position:absolute;top:56px;right:24px;flex-direction:column;gap:8px;background:var(--blue);padding:12px;border-radius:0 0 8px 8px;box-shadow:0 8px 20px rgba(0,0,0,0.25);z-index:80;min-width:170px}
+  .hdr-menu-dropdown.open{display:flex}
+  .hdr-menu-dropdown .btn-hdr{width:100%;justify-content:flex-start}
+  .hdr-menu-dropdown .settings-wrap{width:100%}
+  .hdr-menu-dropdown .settings-wrap .btn-hdr{width:100%}
+  .hdr-left{display:flex;align-items:center;gap:14px}
+  .hdr-logo{font-family:'Source Serif 4',serif;font-size:1.1rem;font-weight:600}.hdr-logo span{color:var(--gold)}
+  .hdr-badge{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:4px;padding:3px 10px;font-size:0.75rem;color:rgba(255,255,255,0.8)}
+  .btn-hdr{padding:7px 16px;border-radius:6px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:all 0.15s}
+  .btn-start{background:var(--gold);color:var(--blue)}
+  .btn-start:hover{opacity:0.9}
+  .btn-logout{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.8)}
+  .btn-logout:hover{background:rgba(255,255,255,0.2)}
+
+  .page{max-width:980px;margin:0 auto;padding:24px 20px;width:100%}
+  .grid{display:grid;grid-template-columns:290px 1fr;gap:20px;align-items:start}
+  @media(max-width:680px){.grid{grid-template-columns:1fr}}
+
+  .card{background:var(--paper);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:0}
+
+  /* PROFILE CARD */
+  .photo-wrap{text-align:center;padding:24px 20px 16px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--blue) 0%,var(--blue2) 100%)}
+  .photo-circle{width:100px;height:100px;border-radius:50%;margin:0 auto 12px;border:3px solid var(--gold);overflow:hidden;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}
+  .photo-circle img{width:100%;height:100%;object-fit:cover}
+  .photo-ph{font-size:2.5rem}
+  .photo-ov{position:absolute;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;opacity:0;transition:0.2s;border-radius:50%}
+  .photo-circle:hover .photo-ov{opacity:1}
+  .photo-ov span{color:#fff;font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase}
+  .photo-crop-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;padding:20px}
+  .photo-crop-overlay.open{display:flex}
+  .photo-crop-box{background:var(--paper);border-radius:12px;padding:22px;width:320px;max-width:100%;text-align:center;box-shadow:0 12px 32px rgba(0,0,0,0.3)}
+  .photo-crop-title{font-family:'Source Serif 4',serif;font-size:1.05rem;font-weight:600;color:var(--ink);margin-bottom:14px}
+  .photo-crop-view{width:250px;height:250px;margin:0 auto 16px;border-radius:50%;overflow:hidden;position:relative;background:var(--paper3);cursor:grab;touch-action:none;border:3px solid var(--gold)}
+  .photo-crop-view:active{cursor:grabbing}
+  .photo-crop-view img{position:absolute;top:0;left:0;user-select:none;-webkit-user-drag:none;pointer-events:none;max-width:none}
+  .photo-crop-zoom{width:100%;margin-bottom:6px;accent-color:var(--blue)}
+  .photo-crop-hint{font-size:0.72rem;color:var(--ink3);margin-bottom:16px}
+  .photo-crop-actions{display:flex;gap:10px;justify-content:center}
+  .photo-crop-btn{padding:8px 20px;border-radius:6px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:all 0.15s}
+  .photo-crop-btn.cancel{background:var(--paper3);color:var(--ink2)}
+  .photo-crop-btn.cancel:hover{background:var(--border)}
+  .photo-crop-btn.save{background:var(--gold);color:var(--blue)}
+  .photo-crop-btn.save:hover{opacity:0.88}
+  .p-name{font-family:'Source Serif 4',serif;font-size:1.15rem;font-weight:600;color:#fff;margin-bottom:3px}
+  .p-id{font-size:0.75rem;color:rgba(255,255,255,0.6);font-weight:600;letter-spacing:0.05em}
+  .p-details{padding:14px 18px}
+  .d-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--paper3);font-size:0.83rem}
+  .d-row:last-child{border-bottom:none}
+  .d-label{color:var(--ink3);font-weight:600;font-size:0.75rem}
+  .d-val{color:var(--ink);font-weight:500;text-align:right;font-size:0.83rem}
+
+  /* TABS */
+  .tabs{display:flex;background:var(--paper2);border-bottom:1px solid var(--border)}
+  .tab-btn{padding:11px 18px;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.15s;white-space:nowrap}
+  .tab-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
+  .tab-content{padding:20px;display:none}
+  .tab-content.active{display:block}
+
+  /* PROGRESS */
+  .attempt-card{background:var(--paper2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+  .att-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .att-date{font-size:0.78rem;color:var(--ink3);font-weight:600}
+  .att-num{font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue);background:rgba(0,47,95,0.08);padding:2px 8px;border-radius:4px}
+  .att-set{font-size:0.72rem;color:var(--ink3);background:var(--paper3);padding:2px 8px;border-radius:4px}
+  .score-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .score-box{background:#fff;border-radius:8px;padding:10px 8px;text-align:center;border:1px solid var(--border)}
+  .score-sec{font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
+  .score-val{font-family:'Source Serif 4',serif;font-size:1.4rem;font-weight:600;color:var(--blue)}
+  .score-band{font-size:0.72rem;font-weight:600;padding:2px 6px;border-radius:4px;display:inline-block;margin-top:2px}
+  .band-high{background:#e8f5e9;color:#2e7d4f}
+  .band-mid{background:#fff9e6;color:#7a5f1a}
+  .band-low{background:#fff0f0;color:#c0392b}
+  .band-na{background:var(--paper3);color:var(--ink3)}
+  .overall-banner{background:var(--blue);border-radius:8px;padding:10px 14px;margin-top:10px;display:flex;align-items:center;justify-content:space-between}
+  .overall-label{font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.6)}
+  .overall-score{font-family:'Source Serif 4',serif;font-size:1.8rem;font-weight:600;color:var(--gold)}
+  .wc-row{display:flex;gap:6px;margin-top:8px}
+  .wc-chip{flex:1;background:#fff;border:1px solid var(--border);border-radius:6px;padding:6px 8px;text-align:center;font-size:0.72rem}
+  .instructor-note{margin-top:10px;padding:10px 12px;background:#fff9e6;border:1px solid #f5d87a;border-radius:6px;font-size:0.78rem;color:var(--ink2);line-height:1.5}
+  .instructor-note b{display:block;font-size:0.66rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:3px}
+  .wc-chip b{display:block;font-size:0.92rem;color:var(--blue)}
+  .empty-state{text-align:center;padding:40px 20px;color:var(--ink3);font-size:0.88rem}
+  /* ANNOUNCEMENTS */
+  .announcement-card{border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px;background:var(--paper2)}
+  .announcement-card:last-child{margin-bottom:0}
+  .announcement-hdr{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+  .announcement-title{font-family:'Source Serif 4',serif;font-weight:600;font-size:0.95rem;color:var(--blue)}
+  .announcement-date{font-size:0.72rem;color:var(--ink3);white-space:nowrap}
+  .announcement-body{font-size:0.85rem;color:var(--ink2);line-height:1.6;white-space:pre-wrap}
+  .empty-icon{font-size:2.5rem;margin-bottom:10px}
+  .grading-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:0.72rem;font-weight:700;background:#fff9e6;color:#7a5f1a;border:1px solid #f5d87a}
+
+  /* TREND CHART */
+  .trend-wrap{margin-bottom:20px}
+  .trend-title{font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px}
+  .trend-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:0.8rem}
+  .trend-label{width:70px;color:var(--ink3);font-weight:600;font-size:0.72rem;flex-shrink:0}
+  .trend-bar-wrap{flex:1;height:18px;background:var(--paper3);border-radius:3px;overflow:hidden}
+  .trend-bar{height:100%;border-radius:3px;transition:width 0.6s ease;display:flex;align-items:center;padding-left:6px;font-size:0.68rem;font-weight:700;color:#fff;min-width:2px}
+  .trend-val{width:36px;text-align:right;font-weight:700;color:var(--ink);font-size:0.8rem}
+
+  /* BADGES / ACHIEVEMENTS */
+  .badges-wrap{margin-bottom:18px;padding:14px 16px;background:var(--paper2);border:1px solid var(--border);border-radius:10px}
+  .badges-hdr{display:flex;align-items:center;justify-content:space-between;font-size:0.8rem;font-weight:700;color:var(--ink2);margin-bottom:10px}
+  .badges-count{font-size:0.7rem;color:var(--ink3);background:var(--paper3);border-radius:10px;padding:1px 8px}
+  .badges-grid{display:flex;flex-wrap:wrap;gap:8px}
+  .badge-pill{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;font-size:0.72rem;font-weight:600;border:1px solid var(--border)}
+  .badge-pill.earned{background:rgba(200,168,75,0.15);border-color:var(--gold);color:var(--blue)}
+  .badge-pill.locked{background:var(--paper3);color:var(--ink3);opacity:0.55;filter:grayscale(1)}
+  .badge-icon{font-size:0.95rem}
+
+  /* GOAL / TARGET BAND */
+  .goal-wrap{margin-bottom:18px;padding:14px 16px;background:var(--paper2);border:1px solid var(--border);border-radius:10px}
+  .goal-hdr{display:flex;align-items:center;justify-content:space-between;font-size:0.82rem;font-weight:700;color:var(--ink2);margin-bottom:8px}
+  .goal-clear-btn{background:transparent;border:none;color:var(--ink3);cursor:pointer;font-size:0.85rem;padding:2px 6px}
+  .goal-clear-btn:hover{color:var(--red)}
+  .goal-bar-wrap{height:14px;background:var(--paper3);border-radius:8px;overflow:hidden;margin-bottom:6px}
+  .goal-bar{height:100%;border-radius:8px;transition:width 0.6s ease}
+  .goal-status{font-size:0.76rem;color:var(--ink3)}
+  .goal-set-row{display:flex;gap:8px}
+  .goal-set-row input{flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.82rem}
+
+  /* SKILL BREAKDOWN */
+  .skill-wrap{margin-bottom:20px;padding:14px 16px;background:var(--paper2);border:1px solid var(--border);border-radius:10px}
+  .skill-title{font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px}
+  .skill-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:0.8rem}
+  .skill-label{width:70px;color:var(--ink3);font-weight:600;font-size:0.72rem;flex-shrink:0}
+  .skill-bar-wrap{flex:1;height:14px;background:var(--paper3);border-radius:3px;overflow:hidden}
+  .skill-bar{height:100%;border-radius:3px;transition:width 0.6s ease}
+  .skill-val{width:36px;text-align:right;font-weight:700;color:var(--ink);font-size:0.78rem}
+
+  /* TRF */
+  .trf-sel{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+  .trf-sel label{font-size:0.82rem;font-weight:600;color:var(--ink2)}
+  .trf-sel select{padding:7px 12px;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.85rem;color:var(--ink);background:#fff;cursor:pointer}
+  .btn{padding:8px 16px;border-radius:7px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px}
+  .btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:var(--blue2)}
+  .btn-gold{background:var(--gold);color:var(--blue)}.btn-gold:hover{opacity:0.9}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--ink2)}.btn-ghost:hover{background:var(--paper2)}
+  .no-trf{text-align:center;padding:32px;color:var(--ink3);font-size:0.85rem}
+
+  /* SETTINGS TAB */
+  .settings-desc{font-size:0.85rem;color:var(--ink3);margin-bottom:18px;line-height:1.6}
+  .settings-field{margin-bottom:16px}
+  .settings-field label{display:block;font-size:0.78rem;font-weight:600;color:var(--ink2);margin-bottom:6px}
+  .settings-field input,.settings-field select{width:100%;padding:9px 13px;border:1px solid var(--paper3);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.9rem;color:var(--ink);background:#fff;transition:all 0.15s}
+  .settings-field input:focus,.settings-field select:focus{outline:none;border-color:var(--blue2);background:#f5f9ff;box-shadow:0 0 0 3px rgba(26,95,168,0.08)}
+  .settings-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .settings-section-title{font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink3);margin:20px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+  .email-verify-row{display:flex;gap:8px;align-items:flex-end}
+  .email-verify-row .settings-field{flex:1;margin-bottom:0}
+  .btn-sm{padding:9px 14px;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:all 0.15s;white-space:nowrap}
+  .btn-sm-blue{background:var(--blue);color:#fff}.btn-sm-blue:hover{background:var(--blue2)}
+  .btn-sm-ghost{background:transparent;border:1px solid var(--border);color:var(--ink2)}.btn-sm-ghost:hover{background:var(--paper2)}
+  .otp-row{display:flex;gap:8px;align-items:flex-end;margin-top:10px}
+  .otp-row .settings-field{flex:1;margin-bottom:0}
+  .otp-row input{letter-spacing:0.18em;font-size:1rem;text-align:center}
+  .referral-code-row{display:flex;gap:8px}
+  .referral-code-row input{flex:1;padding:9px 13px;border:1px solid var(--paper3);border-radius:8px;font-family:monospace;font-size:0.95rem;letter-spacing:0.08em;color:var(--blue);font-weight:700;background:var(--paper2);text-align:center}
+  .pw-wrap-s{position:relative}
+  .pw-wrap-s input{padding-right:52px}
+  .pw-toggle-s{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink3);font-size:0.8rem;padding:0}
+  .pw-toggle-s:hover{color:var(--blue)}
+  .pw-strength-s{height:3px;border-radius:2px;margin-top:5px;transition:all 0.3s;background:var(--paper3)}
+  .pw-strength-s.weak{background:var(--red);width:33%}
+  .pw-strength-s.fair{background:var(--gold);width:66%}
+  .pw-strength-s.strong{background:var(--green);width:100%}
+  .inline-msg{font-size:0.8rem;margin-top:8px;display:none;padding:7px 11px;border-radius:6px}
+  .inline-msg.ok{display:block;color:var(--green);background:#f5fbf7;border:1px solid #a8dbb8}
+  .inline-msg.err{display:block;color:var(--red);background:#fff5f5;border:1px solid #f5b8b8}
+
+  /* OFFICIAL TRF STYLES */
+  .trf-doc{background:#fff;border:1px solid #ccc;border-radius:4px;padding:0;overflow:hidden;font-family:'DM Sans',sans-serif}
+  .trf-top-bar{background:var(--blue);height:8px}
+  .trf-inner{padding:28px 32px}
+  .trf-hdr{display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:18px;border-bottom:2px solid var(--blue);margin-bottom:20px}
+  .trf-hdr-left{}
+  .trf-logo-main{font-family:'Source Serif 4',serif;font-size:1.8rem;font-weight:600;color:var(--blue);line-height:1;margin-bottom:3px}
+  .trf-logo-main span{color:var(--gold)}
+  .trf-logo-sub{font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}
+  .trf-inst{font-size:0.8rem;color:var(--ink2);font-weight:600}
+  .trf-inst-addr{font-size:0.75rem;color:var(--ink3)}
+  .trf-form-no{font-size:0.68rem;color:var(--ink3);margin-top:8px;font-family:monospace;letter-spacing:0.03em}
+  .trf-hdr-right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+  .trf-doc-title{font-size:0.7rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--ink3);border:1px solid var(--border);padding:3px 10px;border-radius:3px}
+  .trf-photo{width:90px;height:108px;border-radius:2px;overflow:hidden;border:2px solid var(--blue);background:var(--paper2);display:flex;align-items:center;justify-content:center;font-size:2.2rem;box-shadow:0 1px 4px rgba(0,0,0,0.12)}
+  .trf-photo img{width:100%;height:100%;object-fit:cover}
+
+  .trf-section-title{font-size:0.68rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--blue);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--paper3)}
+  .trf-fields{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #ddd;border-radius:4px;overflow:hidden;margin-bottom:18px}
+  .trf-field{padding:9px 14px;border-right:1px solid #ddd;border-bottom:1px solid #ddd}
+  .trf-field:nth-child(even){border-right:none}
+  .trf-field:nth-last-child(-n+2){border-bottom:none}
+  .trf-field-label{font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:3px}
+  .trf-field-val{font-size:0.9rem;color:var(--ink);font-weight:500}
+  .trf-field-val.large{font-family:'Source Serif 4',serif;font-size:1rem;font-weight:600;color:var(--blue)}
+
+  .trf-bands{display:grid;grid-template-columns:repeat(5,1fr);gap:0;border:1px solid #ddd;border-radius:4px;overflow:hidden;margin-bottom:18px;text-align:center}
+  .trf-band-cell{padding:14px 8px;border-right:1px solid #ddd}
+  .trf-band-cell:last-child{border-right:none;background:var(--blue);color:#fff}
+  .trf-band-label{font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}
+  .trf-band-cell:last-child .trf-band-label{color:rgba(255,255,255,0.6)}
+  .trf-band-score{font-family:'Source Serif 4',serif;font-size:2.2rem;font-weight:600;color:var(--blue);line-height:1}
+  .trf-band-cell:last-child .trf-band-score{color:var(--gold);font-size:2.6rem}
+  .trf-band-raw{font-size:0.72rem;color:var(--ink3);margin-top:4px}
+  .trf-band-cell:last-child .trf-band-raw{color:rgba(255,255,255,0.5)}
+  .trf-band-pending{font-size:0.8rem;color:var(--ink3);font-style:italic}
+
+  .trf-writing-row{background:var(--paper2);border-radius:4px;padding:10px 14px;margin-bottom:18px;font-size:0.82rem;color:var(--ink2);display:flex;gap:20px;flex-wrap:wrap}
+  .trf-writing-item b{display:block;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:2px}
+
+  .trf-sig-row{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-bottom:14px;margin-top:24px}
+  .trf-sig-box{border-top:1px solid var(--ink);padding-top:6px;font-size:0.7rem;color:var(--ink3);text-align:center;letter-spacing:0.05em}
+
+  .trf-footer-doc{text-align:center;font-size:0.68rem;color:var(--ink3);border-top:1px solid var(--border);padding-top:12px;line-height:1.6}
+  .trf-stamp{display:inline-block;border:2px solid var(--gold);border-radius:50%;width:60px;height:60px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;opacity:0.3}
+
+  #photo-file{display:none}
+  .hidden{display:none!important}
+
+  @media print{
+    @page{size:A4;margin:10mm}
+    .hdr,.hdr-menu-dropdown,.tabs,.trf-sel,.no-print,.card>.photo-wrap,.card>.p-details{display:none!important}
+    body{background:#fff}
+    .page{padding:0;max-width:100%}
+    .grid{grid-template-columns:1fr!important}
+    .grid>div:first-child{display:none!important}
+    .card{border:none;border-radius:0}
+    .trf-doc{border:1px solid #ddd;box-shadow:none!important}
+    .trf-inner{padding:18px 22px!important}
+    .trf-hdr{padding-bottom:10px!important;margin-bottom:12px!important}
+    .trf-photo{width:70px!important;height:84px!important}
+    .trf-bands{margin-bottom:12px!important}
+    .trf-band-cell{padding:10px 6px!important}
+    .trf-band-score{font-size:1.7rem!important}
+    #tab-trf{display:block!important}
+  }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-logo"><svg width="30" height="30" viewBox="0 0 290 270" role="img" aria-label="BandUp"><rect x="10" y="140" width="70" height="120" rx="10" fill="#c8a84b"/><rect x="110" y="90" width="70" height="170" rx="10" fill="#d8b85f"/><rect x="210" y="40" width="70" height="220" rx="10" fill="#c8a84b"/><path d="M27 110 L127 60 L227 10" fill="none" stroke="#f2e2b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M189 10 L227 10 L227 48" fill="none" stroke="#f2e2b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="hdr-badge">Candidate Profile</div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <button class="btn-hdr btn-start icon-btn" onclick="proceedToTest()" title="Start Test">🚀<span class="btn-label"> Start Test</span></button>
+    <button class="hdr-burger" onclick="toggleHdrMenu()" aria-label="Menu">☰</button>
+  </div>
+  <div class="hdr-menu-dropdown" id="hdr-menu-dropdown">
+    <div class="settings-wrap">
+      <button class="btn-hdr icon-btn" onclick="toggleSettingsPanel(event)" title="Settings">⚙️<span class="btn-label"> Settings</span></button>
+      <div class="settings-panel" id="settings-panel">
+
+        <!-- DISPLAY -->
+        <div class="settings-acc-item">
+          <button class="settings-acc-header active" onclick="toggleSettingsAcc('display',this)">
+            <span>🌙 Display</span><span class="settings-acc-chevron">▾</span>
+          </button>
+          <div id="settings-cat-display" class="settings-acc-body active">
+            <div class="settings-acc-body-inner">
+              <div class="settings-row">
+                <span class="settings-label">🌙 Dark Mode</span>
+                <label class="switch">
+                  <input type="checkbox" id="dark-mode-switch" onchange="toggleDarkMode()">
+                  <span class="slider-track"></span>
+                </label>
+              </div>
+              <div class="settings-row" style="flex-direction:column;align-items:stretch">
+                <span class="settings-label" style="margin-bottom:8px">🔤 Font Size</span>
+                <div class="fs-slider-wrap">
+                  <input type="range" min="85" max="145" step="1" id="font-size-slider" oninput="setFontSize(this.value)">
+                  <div class="fs-labels"><span>A</span><span style="font-size:1.3em">A</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROFILE (Personal Details) -->
+        <div class="settings-acc-item">
+          <button class="settings-acc-header" onclick="toggleSettingsAcc('profile',this)">
+            <span>👤 Profile</span><span class="settings-acc-chevron">▾</span>
+          </button>
+          <div id="settings-cat-profile" class="settings-acc-body">
+            <div class="settings-acc-body-inner">
+              <div class="settings-field">
+                <label>Full Name</label>
+                <input type="text" id="set-fullname" placeholder="e.g. Santos, Maria">
+              </div>
+              <div class="settings-row">
+                <div class="settings-field">
+                  <label>Date of Birth</label>
+                  <input type="date" id="set-dob">
+                </div>
+                <div class="settings-field">
+                  <label>Gender</label>
+                  <select id="set-gender">
+                    <option value="">Select...</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Prefer not to say</option>
+                  </select>
+                </div>
+              </div>
+              <div class="settings-field">
+                <label>Nationality</label>
+                <select id="set-nationality"><option value="">Select country...</option></select>
+              </div>
+              <button class="btn btn-blue" onclick="saveProfileSettings()">💾 Save Changes</button>
+              <div id="settings-save-status" class="inline-msg"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EMAIL -->
+        <div class="settings-acc-item">
+          <button class="settings-acc-header" onclick="toggleSettingsAcc('email',this)">
+            <span>✉️ Email</span><span class="settings-acc-chevron">▾</span>
+          </button>
+          <div id="settings-cat-email" class="settings-acc-body">
+            <div class="settings-acc-body-inner">
+              <div style="font-size:0.82rem;color:var(--ink3);margin-bottom:12px;line-height:1.5">
+                Your email is used for password recovery. A verification code will be sent before any change takes effect.
+              </div>
+
+              <!-- Current email display -->
+              <div id="email-current-wrap">
+                <div class="settings-field" style="margin-bottom:10px">
+                  <label>Current Email</label>
+                  <input type="text" id="email-current-display" disabled style="background:var(--paper2);color:var(--ink3)">
+                </div>
+                <button class="btn-sm btn-sm-blue" onclick="startEmailChange()">✏️ Change Email</button>
+              </div>
+
+              <!-- Email change form (hidden initially) -->
+              <div id="email-change-wrap" style="display:none">
+                <div class="email-verify-row">
+                  <div class="settings-field">
+                    <label>New Email Address</label>
+                    <input type="email" id="set-new-email" placeholder="e.g. maria@gmail.com">
+                  </div>
+                  <button class="btn-sm btn-sm-blue" id="btn-send-email-otp" onclick="sendEmailChangeOTP()">Send Code</button>
+                </div>
+                <div id="email-otp-wrap" style="display:none">
+                  <div class="otp-row">
+                    <div class="settings-field">
+                      <label>Verification Code (sent to new email)</label>
+                      <input type="text" id="set-email-otp" placeholder="6-digit code" maxlength="6" autocomplete="one-time-code">
+                    </div>
+                    <button class="btn-sm btn-sm-blue" onclick="verifyEmailChange()">Confirm</button>
+                  </div>
+                </div>
+                <div style="margin-top:8px">
+                  <button class="btn-sm btn-sm-ghost" onclick="cancelEmailChange()">Cancel</button>
+                </div>
+                <div id="email-change-status" class="inline-msg"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PASSWORD -->
+        <div class="settings-acc-item">
+          <button class="settings-acc-header" onclick="toggleSettingsAcc('password',this)">
+            <span>🔑 Password</span><span class="settings-acc-chevron">▾</span>
+          </button>
+          <div id="settings-cat-password" class="settings-acc-body">
+            <div class="settings-acc-body-inner">
+              <div class="settings-field">
+                <label>Current Password</label>
+                <div class="pw-wrap-s">
+                  <input type="password" id="set-cur-pass" placeholder="Enter current password">
+                  <button class="pw-toggle-s" onclick="togglePwS('set-cur-pass',this)" type="button">Show</button>
+                </div>
+              </div>
+              <div class="settings-field">
+                <label>New Password</label>
+                <div class="pw-wrap-s">
+                  <input type="password" id="set-new-pass" placeholder="At least 6 characters" oninput="checkPwStrengthS(this)">
+                  <button class="pw-toggle-s" onclick="togglePwS('set-new-pass',this)" type="button">Show</button>
+                </div>
+                <div class="pw-strength-s" id="pw-strength-s"></div>
+              </div>
+              <div class="settings-field">
+                <label>Confirm New Password</label>
+                <div class="pw-wrap-s">
+                  <input type="password" id="set-confirm-pass" placeholder="Re-enter new password">
+                  <button class="pw-toggle-s" onclick="togglePwS('set-confirm-pass',this)" type="button">Show</button>
+                </div>
+              </div>
+              <button class="btn btn-blue" onclick="changePassword()">🔑 Change Password</button>
+              <div id="pw-change-status" class="inline-msg"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOTIFICATIONS -->
+        <div class="settings-acc-item">
+          <button class="settings-acc-header" onclick="toggleSettingsAcc('notif',this)">
+            <span>🔔 Notifications</span><span class="settings-acc-chevron">▾</span>
+          </button>
+          <div id="settings-cat-notif" class="settings-acc-body">
+            <div class="settings-acc-body-inner">
+              <div class="settings-row">
+                <span class="settings-label">📧 Email me when results are graded</span>
+                <label class="switch">
+                  <input type="checkbox" id="notif-graded" onchange="saveNotifPrefs()">
+                  <span class="slider-track"></span>
+                </label>
+              </div>
+              <div class="settings-row">
+                <span class="settings-label">📅 Remind me of upcoming tests</span>
+                <label class="switch">
+                  <input type="checkbox" id="notif-reminder" onchange="saveNotifPrefs()">
+                  <span class="slider-track"></span>
+                </label>
+              </div>
+              <div class="settings-row">
+                <span class="settings-label">📢 New announcements</span>
+                <label class="switch">
+                  <input type="checkbox" id="notif-announce" onchange="saveNotifPrefs()">
+                  <span class="slider-track"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REFERRAL -->
+        <div class="settings-acc-item">
+          <button class="settings-acc-header" onclick="toggleSettingsAcc('referral',this)">
+            <span>🎁 Refer a Friend</span><span class="settings-acc-chevron">▾</span>
+          </button>
+          <div id="settings-cat-referral" class="settings-acc-body">
+            <div class="settings-acc-body-inner">
+              <div style="font-size:0.8rem;color:var(--ink3);margin-bottom:10px;line-height:1.5">
+                Share your code with friends. They enter it when they sign up.
+              </div>
+              <div class="referral-code-row">
+                <input type="text" id="referral-code-display" readonly>
+                <button class="btn-sm btn-sm-blue" onclick="copyReferralCode()">📋 Copy</button>
+              </div>
+              <div id="referral-copy-status" class="inline-msg"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <button class="btn-hdr btn-logout icon-btn" onclick="sessionStorage.clear();window.location.href='index.html'" title="Logout">🚪<span class="btn-label"> Logout</span></button>
+  </div>
+</div>
+
+<div class="page">
+  <div class="grid">
+
+    <!-- LEFT: Profile Card -->
+    <div>
+      <div class="card">
+        <div class="photo-wrap">
+          <div class="photo-circle" onclick="document.getElementById('photo-file').click()" title="Click to change photo">
+            <img id="profile-photo-img" src="" alt="" style="display:none">
+            <div class="photo-ph" id="photo-placeholder">👤</div>
+            <div class="photo-ov"><span>Change Photo</span></div>
+          </div>
+          <input type="file" id="photo-file" accept="image/*" onchange="handlePhotoUpload(this)">
+          <div class="photo-crop-overlay" id="photo-crop-overlay">
+            <div class="photo-crop-box">
+              <div class="photo-crop-title">Adjust photo</div>
+              <div class="photo-crop-view" id="photo-crop-view">
+                <img id="photo-crop-img" src="" alt="">
+              </div>
+              <input type="range" class="photo-crop-zoom" id="photo-crop-zoom" min="100" max="300" value="100" oninput="onCropZoom()">
+              <div class="photo-crop-hint">Drag to reposition · slide to zoom</div>
+              <div class="photo-crop-actions">
+                <button class="photo-crop-btn cancel" onclick="cancelPhotoCrop()">Cancel</button>
+                <button class="photo-crop-btn save" onclick="confirmPhotoCrop()">Save photo</button>
+              </div>
+            </div>
+          </div>
+          <div class="p-name" id="p-name">—</div>
+          <div class="p-id" id="p-id">Loading...</div>
+        </div>
+        <div class="p-details">
+          <div class="d-row"><span class="d-label">Date of Birth</span><span class="d-val" id="p-dob">—</span></div>
+          <div class="d-row"><span class="d-label">Gender</span><span class="d-val" id="p-gender">—</span></div>
+          <div class="d-row"><span class="d-label">Nationality</span><span class="d-val" id="p-nationality">—</span></div>
+          <div class="d-row"><span class="d-label">Tests Taken</span><span class="d-val" id="p-tests">—</span></div>
+          <div class="d-row"><span class="d-label">Best Band</span><span class="d-val" id="p-best">—</span></div>
+          <div class="d-row" id="p-best-toeic-row" style="display:none"><span class="d-label">Best TOEIC</span><span class="d-val" id="p-best-toeic">—</span></div>
+          <div class="d-row"><span class="d-label">Last Test</span><span class="d-val" id="p-last">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Tabs -->
+    <div>
+      <div class="card">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('progress',this)">📊 Progress</button>
+          <button class="tab-btn" onclick="switchTab('announcements',this)">📢 Announcements</button>
+        </div>
+
+        <!-- PROGRESS -->
+        <div id="tab-progress" class="tab-content active">
+          <div id="progress-content">
+            <div class="empty-state"><div class="empty-icon">📊</div>Loading your scores...</div>
+          </div>
+        </div>
+
+        <!-- ANNOUNCEMENTS -->
+        <div id="tab-announcements" class="tab-content">
+          <div id="announcements-content">
+            <div class="empty-state"><div class="empty-icon">📢</div>Loading announcements...</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="bandup-api.js"></script>
+<script>
+let candidateData = {};
+let myScores      = [];
+let settings      = {};
+let announcements = [];
+
+// ══════════════════════════════════════
+// ACCESSIBILITY — FONT SIZE & DARK MODE
+// Shared preference keys with simulation.html/tests.html/index.html
+// so the setting carries over across the whole site.
+// ══════════════════════════════════════
+const FONT_SCALE_MIN = 85, FONT_SCALE_MAX = 145; // percent — shared with simulation.html/tests.html/index.html
+let fontScalePct = 100;
+
+function initAccessibilityPrefs() {
+  const savedScale = parseInt(localStorage.getItem('ielts_font_scale'));
+  if (!isNaN(savedScale) && savedScale >= FONT_SCALE_MIN && savedScale <= FONT_SCALE_MAX) {
+    fontScalePct = savedScale;
+  }
+  applyFontScale();
+  const fsSlider = document.getElementById('font-size-slider');
+  if (fsSlider) fsSlider.value = fontScalePct;
+
+  const darkOn = localStorage.getItem('ielts_dark_mode') === '1';
+  if (darkOn) document.body.classList.add('dark-mode');
+  const darkSwitch = document.getElementById('dark-mode-switch');
+  if (darkSwitch) darkSwitch.checked = darkOn;
+}
+function applyFontScale() {
+  document.documentElement.style.fontSize = fontScalePct + '%';
+  localStorage.setItem('ielts_font_scale', fontScalePct);
+}
+function toggleHdrMenu(){
+  document.getElementById('hdr-menu-dropdown').classList.toggle('open');
+}
+function setFontSize(pct) {
+  const val = parseInt(pct, 10);
+  if (isNaN(val) || val < FONT_SCALE_MIN || val > FONT_SCALE_MAX) return;
+  fontScalePct = val;
+  applyFontScale();
+}
+function toggleDarkMode() {
+  const isDark = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('ielts_dark_mode', isDark ? '1' : '0');
+  const darkSwitch = document.getElementById('dark-mode-switch');
+  if (darkSwitch) darkSwitch.checked = isDark;
+}
+function toggleSettingsAcc(id, btn) {
+  const body = document.getElementById('settings-cat-'+id);
+  const wasOpen = btn.classList.contains('active');
+  // single-open accordion — collapse whatever else is open, then open (or just collapse) the clicked one
+  document.querySelectorAll('.settings-acc-header').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.settings-acc-body').forEach(c=>c.classList.remove('active'));
+  if (!wasOpen) {
+    btn.classList.add('active');
+    body.classList.add('active');
+  }
+}
+function toggleSettingsPanel(ev) {
+  if (ev) ev.stopPropagation();
+  const panel = document.getElementById('settings-panel');
+  const willOpen = !panel.classList.contains('open');
+  panel.classList.toggle('open');
+  if (willOpen) populateSettingsForm(); // fill in profile/email fields fresh each time the panel opens
+}
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('settings-panel');
+  if (panel && panel.classList.contains('open') && !e.target.closest('.settings-wrap')) {
+    panel.classList.remove('open');
+  }
+  const menu = document.getElementById('hdr-menu-dropdown');
+  const burger = document.querySelector('.hdr-burger');
+  if (menu && menu.classList.contains('open') && !menu.contains(e.target) && e.target !== burger) {
+    menu.classList.remove('open');
+  }
+});
+
+// ─── INIT ───
+window.onload = async () => {
+  initAccessibilityPrefs();
+  const raw = sessionStorage.getItem('candidateData');
+  if (!raw) { window.location.href='index.html'; return; }
+  candidateData = JSON.parse(raw);
+  sessionStorage.setItem('candidateName', candidateData.fullName   || '');
+  sessionStorage.setItem('candidateID',   candidateData.candidateID|| '');
+  sessionStorage.setItem('userRole',      'Candidate');
+
+  // Prefer photo synced from the server (works across devices), fall back to local cache
+  const syncedPhoto = candidateData.photoBase64 || '';
+  const savedPhoto  = syncedPhoto || localStorage.getItem('photo_'+candidateData.candidateID) || '';
+  if (savedPhoto) {
+    document.getElementById('profile-photo-img').src=savedPhoto;
+    document.getElementById('profile-photo-img').style.display='block';
+    document.getElementById('photo-placeholder').style.display='none';
+    localStorage.setItem('photo_'+candidateData.candidateID, savedPhoto); // keep local cache fresh
+  }
+  renderProfile();
+
+  // Load settings, scores, and announcements in parallel
+  try {
+    const [scoresData, settingsData, announcementsData] = await Promise.all([
+      callSheets({ action:'getCandidateScores', candidateID: candidateData.candidateID }),
+      callSheets({ action:'getSettings' }),
+      callSheets({ action:'getAnnouncements' }).catch(() => ({ success:false })) // don't let a missing/failing endpoint block the rest
+    ]);
+    if (scoresData.success) myScores = scoresData.rows || [];
+    if (settingsData.success) settings = settingsData.settings || {};
+    if (announcementsData.success) announcements = announcementsData.announcements || [];
+  } catch(e) {
+    const local = localStorage.getItem('scores_'+candidateData.candidateID);
+    if (local) myScores = JSON.parse(local);
+  }
+  renderProgress();
+  renderAnnouncements();
+  renderTRFSelect();
+};
+
+function proceedToTest() {
+  sessionStorage.setItem('candidateName', candidateData.fullName    || '');
+  sessionStorage.setItem('candidateID',   candidateData.candidateID || '');
+  sessionStorage.setItem('userRole',      'Candidate');
+  sessionStorage.setItem('candidateData', JSON.stringify(candidateData));
+  window.location.href = 'tests.html';
+}
+
+function renderProfile() {
+  document.getElementById('p-name').textContent        = candidateData.fullName    || '—';
+  document.getElementById('p-id').textContent          = 'ID: '+(candidateData.candidateID||'—');
+  document.getElementById('p-dob').textContent         = formatDate(candidateData.dob)       || '—';
+  document.getElementById('p-gender').textContent      = candidateData.gender      || '—';
+  document.getElementById('p-nationality').textContent = candidateData.nationality || '—';
+}
+
+// ─── PROGRESS ───
+function isTOEIC(r){ return String(r[24]||'IELTS').toUpperCase() === 'TOEIC'; }
+
+function renderProgress() {
+  const wrap = document.getElementById('progress-content');
+  document.getElementById('p-tests').textContent = myScores.length;
+
+  if (!myScores.length) {
+    wrap.innerHTML='<div class="empty-state"><div class="empty-icon">📊</div>No test attempts yet.<br>Complete a test to see your progress.</div>';
+    document.getElementById('p-best').textContent='—';
+    document.getElementById('p-last').textContent='—';
+    document.getElementById('p-best-toeic-row').style.display='none';
+    return;
+  }
+
+  // Last test
+  const last = myScores[myScores.length-1];
+  document.getElementById('p-last').textContent = formatDate(last[1]) || '—';
+
+  const ieltsScores = myScores.filter(r=>!isTOEIC(r));
+  const toeicScores = myScores.filter(isTOEIC);
+
+  // Best overall (IELTS band)
+  const overalls = ieltsScores.map(r=>parseFloat(r[14])||0).filter(n=>n>0);
+  const best = overalls.length ? Math.max(...overalls) : 0;
+  document.getElementById('p-best').textContent = best ? 'Band '+best : '—';
+
+  // Best TOEIC total (only shown if the candidate has TOEIC attempts)
+  const toeicTotals = toeicScores.map(r=>parseInt(r[27])||0).filter(n=>n>0);
+  if (toeicTotals.length) {
+    document.getElementById('p-best-toeic-row').style.display = '';
+    document.getElementById('p-best-toeic').textContent = Math.max(...toeicTotals) + ' / 990';
+  } else {
+    document.getElementById('p-best-toeic-row').style.display = 'none';
+  }
+
+  let html = '';
+
+  // Badges / achievements
+  html += renderBadgesStrip(ieltsScores, toeicScores);
+
+  // Goal progress (only meaningful if candidate set an IELTS target band)
+  html += renderGoalProgress(best);
+
+  // Skill breakdown — latest attempt only, side-by-side comparison
+  html += renderSkillBreakdown(last);
+
+  // Download all results — DISABLED for now (uncomment to re-enable)
+  // html += `<div style="text-align:right;margin-bottom:16px">
+  //   <button class="btn-sm btn-sm-blue" onclick="downloadAllTRFs()">⬇️ Download All Results</button>
+  // </div>`;
+
+  // Trend chart (IELTS band trend — only meaningful across IELTS attempts)
+  if (ieltsScores.length > 1) {
+    html += `<div class="trend-wrap"><div class="trend-title">Band Score Trend</div>`;
+    ieltsScores.forEach((r,i) => {
+      const overall = parseFloat(r[14]) || parseFloat(r[7]) || 0;
+      const pct     = (overall/9)*100;
+      const color   = overall>=7?'#2e7d4f':overall>=5.5?'#c8a84b':'#c0392b';
+      html += `<div class="trend-row">
+        <div class="trend-label">Attempt ${i+1}</div>
+        <div class="trend-bar-wrap"><div class="trend-bar" style="width:${pct}%;background:${color}">${overall||''}</div></div>
+        <div class="trend-val">${overall||'—'}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // TOEIC total-score trend (separate chart, different scale — 10-990)
+  if (toeicScores.length > 1) {
+    html += `<div class="trend-wrap"><div class="trend-title">TOEIC Total Score Trend</div>`;
+    toeicScores.forEach((r,i) => {
+      const total = parseInt(r[27]) || 0;
+      const pct   = (total/990)*100;
+      const color = total>=785?'#2e7d4f':total>=550?'#c8a84b':'#c0392b';
+      html += `<div class="trend-row">
+        <div class="trend-label">Attempt ${i+1}</div>
+        <div class="trend-bar-wrap"><div class="trend-bar" style="width:${pct}%;background:${color}">${total||''}</div></div>
+        <div class="trend-val">${total||'—'}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Attempt cards — newest first
+  myScores.slice().reverse().forEach((r,i) => {
+    const idx = myScores.length - i;
+    html += isTOEIC(r) ? renderTOEICAttemptCard(r, idx) : renderIELTSAttemptCard(r, idx);
+  });
+
+  wrap.innerHTML = html;
+}
+
+// ─── BADGES / ACHIEVEMENTS ───
+function computeBadges(ieltsScores, toeicScores) {
+  const all = myScores;
+  const badges = [];
+
+  badges.push({ icon:'🎉', label:'First Test', earned: all.length >= 1 });
+  badges.push({ icon:'🔥', label:'3 Attempts', earned: all.length >= 3 });
+  badges.push({ icon:'💪', label:'5 Attempts', earned: all.length >= 5 });
+
+  const ieltsOveralls = ieltsScores.map(r=>parseFloat(r[14])||0).filter(n=>n>0);
+  badges.push({ icon:'🏅', label:'Band 7+', earned: ieltsOveralls.some(n=>n>=7) });
+  badges.push({ icon:'⭐', label:'Band 8+', earned: ieltsOveralls.some(n=>n>=8) });
+
+  if (ieltsOveralls.length >= 2) {
+    badges.push({ icon:'📈', label:'Most Improved', earned: ieltsOveralls[ieltsOveralls.length-1] > ieltsOveralls[0] });
+  }
+
+  const toeicTotals = toeicScores.map(r=>parseInt(r[27])||0).filter(n=>n>0);
+  badges.push({ icon:'💯', label:'TOEIC 900+', earned: toeicTotals.some(n=>n>=900) });
+
+  return badges;
+}
+
+function renderBadgesStrip(ieltsScores, toeicScores) {
+  const badges = computeBadges(ieltsScores, toeicScores);
+  const earnedCount = badges.filter(b=>b.earned).length;
+  return `<div class="badges-wrap">
+    <div class="badges-hdr"><span>🏆 Achievements</span><span class="badges-count">${earnedCount}/${badges.length}</span></div>
+    <div class="badges-grid">
+      ${badges.map(b => `<div class="badge-pill ${b.earned?'earned':'locked'}" title="${b.earned?'Earned!':'Not yet earned'}">
+        <span class="badge-icon">${b.icon}</span><span class="badge-label">${escH(b.label)}</span>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ─── GOAL / TARGET BAND ───
+function getGoalKey() { return 'target_band_'+(candidateData.candidateID||'guest'); }
+function loadGoal() {
+  const v = parseFloat(localStorage.getItem(getGoalKey()));
+  return isNaN(v) ? null : v;
+}
+function saveGoalFromWidget() {
+  const input = document.getElementById('goal-input-inline');
+  const v = parseFloat(input.value);
+  if (isNaN(v) || v < 1 || v > 9) { alert('Enter a target band between 1.0 and 9.0'); return; }
+  localStorage.setItem(getGoalKey(), v);
+  renderProgress();
+}
+function clearGoal() {
+  localStorage.removeItem(getGoalKey());
+  renderProgress();
+}
+function renderGoalProgress(bestBand) {
+  const goal = loadGoal();
+  if (goal === null) {
+    return `<div class="goal-wrap">
+      <div class="goal-hdr"><span>🎯 Set a Target Band</span></div>
+      <div class="goal-set-row">
+        <input type="number" id="goal-input-inline" min="1" max="9" step="0.5" placeholder="e.g. 7.0">
+        <button class="btn-sm btn-sm-blue" onclick="saveGoalFromWidget()">Set Goal</button>
+      </div>
+    </div>`;
+  }
+  const pct = Math.min(100, (bestBand/goal)*100);
+  const reached = bestBand >= goal;
+  return `<div class="goal-wrap">
+    <div class="goal-hdr">
+      <span>🎯 Target: Band ${goal}</span>
+      <button class="goal-clear-btn" onclick="clearGoal()" title="Remove goal">✕</button>
+    </div>
+    <div class="goal-bar-wrap"><div class="goal-bar" style="width:${pct}%;background:${reached?'#2e7d4f':'var(--gold)'}"></div></div>
+    <div class="goal-status">${reached ? '🎉 Goal reached! Best band: '+bestBand : `Best so far: Band ${bestBand||'—'} · ${(goal-bestBand).toFixed(1)} to go`}</div>
+  </div>`;
+}
+
+// ─── SKILL BREAKDOWN (latest attempt) ───
+function renderSkillBreakdown(last) {
+  if (isTOEIC(last)) {
+    const lScaled = parseInt(last[25])||0, rdScaled = parseInt(last[26])||0;
+    return `<div class="skill-wrap">
+      <div class="skill-title">Skill Breakdown — Latest Attempt</div>
+      ${skillBar('Listening', lScaled, 495)}
+      ${skillBar('Reading', rdScaled, 495)}
+    </div>`;
+  }
+  const l = parseFloat(last[7])||0, r = parseFloat(last[9])||0, w = parseFloat(last[12])||0, s = parseFloat(last[13])||0;
+  return `<div class="skill-wrap">
+    <div class="skill-title">Skill Breakdown — Latest Attempt</div>
+    ${skillBar('Listening', l, 9)}
+    ${skillBar('Reading', r, 9)}
+    ${w ? skillBar('Writing', w, 9) : skillBarPending('Writing')}
+    ${s ? skillBar('Speaking', s, 9) : skillBarPending('Speaking')}
+  </div>`;
+}
+function skillBar(label, val, max) {
+  const pct = Math.min(100, (val/max)*100);
+  const color = pct>=77?'#2e7d4f':pct>=55?'#c8a84b':'#c0392b';
+  return `<div class="skill-row">
+    <div class="skill-label">${label}</div>
+    <div class="skill-bar-wrap"><div class="skill-bar" style="width:${pct}%;background:${color}"></div></div>
+    <div class="skill-val">${val||'—'}</div>
+  </div>`;
+}
+function skillBarPending(label) {
+  return `<div class="skill-row">
+    <div class="skill-label">${label}</div>
+    <div class="skill-bar-wrap"><div class="skill-bar" style="width:0%"></div></div>
+    <div class="skill-val" style="color:var(--ink3);font-size:0.7rem">Pending</div>
+  </div>`;
+}
+
+// ─── ANNOUNCEMENTS ───
+function renderAnnouncements() {
+  const wrap = document.getElementById('announcements-content');
+  if (!announcements.length) {
+    wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">📢</div>No announcements right now.<br>Check back later for updates.</div>';
+    return;
+  }
+  // Newest first
+  const sorted = announcements.slice().sort((a,b) => new Date(b.date||0) - new Date(a.date||0));
+  wrap.innerHTML = sorted.map(a => `
+    <div class="announcement-card">
+      <div class="announcement-hdr">
+        <div class="announcement-title">${escH(a.title||'Announcement')}</div>
+        ${a.date ? `<div class="announcement-date">${formatDate(a.date)}</div>` : ''}
+      </div>
+      <div class="announcement-body">${escH(a.body||'')}</div>
+    </div>
+  `).join('');
+}
+
+function renderIELTSAttemptCard(r, idx) {
+  const date     = r[1] ? new Date(r[1]).toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}) : '—';
+  const setName  = r[5] || '—';
+  const lScore   = r[6]||0,  lBand  = r[7]||'—';
+  const rdScore  = r[8]||0,  rdBand = r[9]||'—';
+  const wBand    = r[12]||'';
+  const sBand    = r[13]||'';
+  const overall  = r[14]||'';
+  const w1wc     = r[15]||0, w2wc   = r[16]||0;
+  const graded   = !!overall;
+  const notes    = r[19]||'';
+  const bClass   = b => { const n=parseFloat(b); return n>=7?'band-high':n>=5.5?'band-mid':n>0?'band-low':'band-na'; };
+
+  return `<div class="attempt-card">
+    <div class="att-hdr">
+      <div style="display:flex;gap:6px;align-items:center">
+        <span class="att-num">Attempt ${idx}</span>
+        <span class="att-set">${escH(setName)}</span>
+      </div>
+      <span class="att-date">${date}</span>
+    </div>
+    <div class="score-grid">
+      <div class="score-box">
+        <div class="score-sec">Listening</div>
+        <div class="score-val">${lScore}<span style="font-size:0.9rem;color:var(--ink3)">/40</span></div>
+        <div class="score-band ${bClass(lBand)}">${lBand}</div>
+      </div>
+      <div class="score-box">
+        <div class="score-sec">Reading</div>
+        <div class="score-val">${rdScore}<span style="font-size:0.9rem;color:var(--ink3)">/40</span></div>
+        <div class="score-band ${bClass(rdBand)}">${rdBand}</div>
+      </div>
+      <div class="score-box">
+        <div class="score-sec">Writing</div>
+        <div class="score-val" style="font-size:1.4rem">${wBand||'—'}</div>
+        ${wBand ? `<div class="score-band ${bClass(wBand)}">${wBand}</div>` : `<div class="grading-badge">⏳ Pending</div>`}
+      </div>
+      <div class="score-box">
+        <div class="score-sec">Speaking</div>
+        <div class="score-val" style="font-size:1.4rem">${sBand||'—'}</div>
+        ${sBand ? `<div class="score-band ${bClass(sBand)}">${sBand}</div>` : `<div class="score-band band-na">N/A</div>`}
+      </div>
+    </div>
+    ${graded ? `<div class="overall-banner"><div><div class="overall-label">Overall Band Score</div></div><div class="overall-score">${overall}</div></div>` :
+      `<div style="background:var(--paper3);border-radius:8px;padding:8px 14px;margin-top:8px;font-size:0.8rem;color:var(--ink3);text-align:center">⏳ Overall band pending writing grade</div>`}
+    <div class="wc-row">
+      <div class="wc-chip"><b>${w1wc}</b>Task 1 words</div>
+      <div class="wc-chip"><b>${w2wc}</b>Task 2 words</div>
+    </div>
+    ${notes ? `<div class="instructor-note"><b>💬 Instructor Feedback</b><br>${escH(notes)}</div>` : ''}
+  </div>`;
+}
+
+function renderTOEICAttemptCard(r, idx) {
+  const date    = r[1] ? new Date(r[1]).toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}) : '—';
+  const setName = r[5] || '—';
+  const lScore  = r[6]||0, lScaled = r[25]||'—';
+  const rdScore = r[8]||0, rdScaled = r[26]||'—';
+  const total   = r[27]||'—';
+  const tClass  = n => { n=parseInt(n)||0; return n>=785?'band-high':n>=550?'band-mid':n>0?'band-low':'band-na'; };
+
+  return `<div class="attempt-card">
+    <div class="att-hdr">
+      <div style="display:flex;gap:6px;align-items:center">
+        <span class="att-num">Attempt ${idx}</span>
+        <span class="att-set">${escH(setName)} <span style="font-size:0.68rem;color:var(--ink3);border:1px solid var(--paper3);border-radius:4px;padding:1px 5px;margin-left:4px">TOEIC</span></span>
+      </div>
+      <span class="att-date">${date}</span>
+    </div>
+    <div class="score-grid" style="grid-template-columns:repeat(2,1fr)">
+      <div class="score-box">
+        <div class="score-sec">Listening</div>
+        <div class="score-val">${lScore}<span style="font-size:0.9rem;color:var(--ink3)">/100</span></div>
+        <div class="score-band ${tClass(lScaled)}">${lScaled} scaled</div>
+      </div>
+      <div class="score-box">
+        <div class="score-sec">Reading</div>
+        <div class="score-val">${rdScore}<span style="font-size:0.9rem;color:var(--ink3)">/100</span></div>
+        <div class="score-band ${tClass(rdScaled)}">${rdScaled} scaled</div>
+      </div>
+    </div>
+    <div class="overall-banner"><div><div class="overall-label">Total Score</div></div><div class="overall-score">${total} <span style="font-size:0.9rem;opacity:0.7">/ 990</span></div></div>
+  </div>`;
+}
+
+// ─── TRF ───
+function renderTRFSelect() {
+  const sel = document.getElementById('trf-attempt-sel');
+  sel.innerHTML = '<option value="">— Select attempt —</option>';
+  myScores.forEach((r,i) => {
+    const date = r[1] ? new Date(r[1]).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}) : 'Attempt '+(i+1);
+    const o    = document.createElement('option');
+    o.value    = i;
+    o.textContent = `Attempt ${i+1} — ${date}${r[5]?' ('+r[5]+')':''}`;
+    sel.appendChild(o);
+  });
+  if (myScores.length) { sel.value=myScores.length-1; renderTRF(); }
+}
+
+function renderTRF() {
+  const idx  = document.getElementById('trf-attempt-sel').value;
+  const wrap = document.getElementById('trf-wrap');
+  if (idx===''||!myScores[idx]) { wrap.innerHTML='<div class="no-trf">Select an attempt to view the report.</div>'; return; }
+  const r = myScores[idx];
+  if (isTOEIC(r)) { renderTOEICReport(r); return; }
+  renderIELTSTRF(r);
+}
+
+function buildTOEICTRFHtml(r, idx) {
+  const cd = candidateData;
+  const date = r[1] ? new Date(r[1]).toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}) : '—';
+  const setName = r[5] || 'TOEIC Simulation Test';
+  const lScore = r[6]||0, lScaled = r[25]||'—';
+  const rdScore = r[8]||0, rdScaled = r[26]||'—';
+  const total = r[27]||'—';
+  const instName = settings.institution_name || 'BandUp Center';
+  const footerNote = settings.trf_footer_note || 'This is a simulation test result for preparation purposes only.';
+
+  return `<div class="trf-doc" id="trf-printable">
+    <div class="trf-top-bar"></div>
+    <div class="trf-inner">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-family:'Source Serif 4',serif;font-size:1.3rem;font-weight:600;color:var(--blue)">${escH(instName)}</div>
+        <div style="font-size:0.8rem;color:var(--ink3);margin-top:2px">TOEIC Listening &amp; Reading — Score Report</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.85rem;margin-bottom:20px;border-top:1px solid #ddd;border-bottom:1px solid #ddd;padding:12px 0">
+        <div><b>Candidate:</b> ${escH(cd.fullName||'—')}</div>
+        <div><b>Candidate ID:</b> ${escH(cd.candidateID||'—')}</div>
+        <div><b>Test:</b> ${escH(setName)}</div>
+        <div><b>Date:</b> ${date}</div>
+      </div>
+      <div class="trf-bands" style="grid-template-columns:repeat(3,1fr)">
+        <div class="trf-band-cell">
+          <div class="trf-band-label">Listening</div>
+          <div class="trf-band-score" style="font-size:1.8rem">${lScaled}</div>
+          <div class="trf-band-raw">${lScore}/100 correct</div>
+        </div>
+        <div class="trf-band-cell">
+          <div class="trf-band-label">Reading</div>
+          <div class="trf-band-score" style="font-size:1.8rem">${rdScaled}</div>
+          <div class="trf-band-raw">${rdScore}/100 correct</div>
+        </div>
+        <div class="trf-band-cell">
+          <div class="trf-band-label">Total Score</div>
+          <div class="trf-band-score">${total}</div>
+          <div class="trf-band-raw">out of 990</div>
+        </div>
+      </div>
+      <div class="validity-note">
+        This is a SIMULATION result for preparation purposes only and is NOT an official TOEIC Score Report.<br>
+        ${escH(footerNote)}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderTOEICReport(r) {
+  const wrap = document.getElementById('trf-wrap');
+  wrap.innerHTML = buildTOEICTRFHtml(r) + `<button class="btn btn-blue" style="margin-top:14px" onclick="window.print()">🖨 Print / Save as PDF</button>`;
+}
+
+function buildIELTSTRFHtml(r, idx) {
+  const cd      = candidateData;
+  const lBand   = r[7]||'—';
+  const rdBand  = r[9]||'—';
+  const wBand   = r[12]||'';
+  const sBand   = r[13]||'';
+  const overall = r[14]||'';
+  const date    = r[1] ? new Date(r[1]).toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}) : '—';
+  const setName = r[5]||'Simulation Test';
+  const examiner= r[20]||'';
+  const gradedAt= r[21] ? new Date(r[21]).toLocaleDateString('en-PH') : '';
+  const notes   = r[19]||'';
+  const instName= settings.institution_name || 'BandUp Center';
+  const instAddr= settings.institution_address || '';
+  const footerNote = settings.trf_footer_note || 'This is a simulation test result for preparation purposes only.';
+  const photoSrc = candidateData.photoBase64 || localStorage.getItem('photo_'+cd.candidateID) || '';
+
+  return `<div class="trf-doc" id="trf-printable">
+    <div class="trf-top-bar"></div>
+    <div class="trf-inner">
+
+      <!-- TRF HEADER -->
+      <div class="trf-hdr">
+        <div class="trf-hdr-left">
+          <div class="trf-logo-main">BandUp</div>
+          <div class="trf-logo-sub">Simulation Test Platform</div>
+          <div class="trf-inst">${escH(instName)}</div>
+          ${instAddr?`<div class="trf-inst-addr">${escH(instAddr)}</div>`:''}
+          <div class="trf-form-no">Form No. ${escH(cd.candidateID||'—')}-${idx}</div>
+        </div>
+        <div class="trf-hdr-right">
+          <div class="trf-doc-title">Test Report Form</div>
+          <div class="trf-photo">
+            ${photoSrc?`<img src="${photoSrc}" alt="Candidate photo">`:'👤'}
+          </div>
+        </div>
+      </div>
+
+      <!-- CANDIDATE DETAILS -->
+      <div class="trf-section-title">Candidate Details</div>
+      <div class="trf-fields">
+        <div class="trf-field" style="grid-column:1/-1">
+          <div class="trf-field-label">Candidate Name</div>
+          <div class="trf-field-val large">${escH(cd.fullName||'—')}</div>
+        </div>
+        <div class="trf-field">
+          <div class="trf-field-label">Candidate No.</div>
+          <div class="trf-field-val large" style="font-family:monospace;letter-spacing:0.05em">${escH(cd.candidateID||'—')}</div>
+        </div>
+        <div class="trf-field">
+          <div class="trf-field-label">Date of Birth</div>
+          <div class="trf-field-val">${formatDate(cd.dob)||'—'}</div>
+        </div>
+        <div class="trf-field">
+          <div class="trf-field-label">Gender</div>
+          <div class="trf-field-val">${escH(cd.gender||'—')}</div>
+        </div>
+        <div class="trf-field">
+          <div class="trf-field-label">Nationality</div>
+          <div class="trf-field-val">${escH(cd.nationality||'—')}</div>
+        </div>
+        <div class="trf-field">
+          <div class="trf-field-label">Test Date</div>
+          <div class="trf-field-val">${date}</div>
+        </div>
+        <div class="trf-field">
+          <div class="trf-field-label">Test Module</div>
+          <div class="trf-field-val">${escH(setName)}</div>
+        </div>
+      </div>
+
+      <!-- BAND SCORES -->
+      <div class="trf-section-title">Test Component Scores</div>
+      <div class="trf-bands">
+        <div class="trf-band-cell">
+          <div class="trf-band-label">Listening</div>
+          <div class="trf-band-score">${lBand}</div>
+          <div class="trf-band-raw">${r[6]||0}/40 correct</div>
+        </div>
+        <div class="trf-band-cell">
+          <div class="trf-band-label">Reading</div>
+          <div class="trf-band-score">${rdBand}</div>
+          <div class="trf-band-raw">${r[8]||0}/40 correct</div>
+        </div>
+        <div class="trf-band-cell">
+          <div class="trf-band-label">Writing</div>
+          ${wBand
+            ? `<div class="trf-band-score">${wBand}</div><div class="trf-band-raw">T1: ${r[10]||'—'} · T2: ${r[11]||'—'}</div>`
+            : `<div class="trf-band-pending">Pending</div>`}
+        </div>
+        <div class="trf-band-cell">
+          <div class="trf-band-label">Speaking</div>
+          ${sBand
+            ? `<div class="trf-band-score">${sBand}</div><div class="trf-band-raw">&nbsp;</div>`
+            : `<div class="trf-band-pending">N/A</div>`}
+        </div>
+        <div class="trf-band-cell trf-band-overall">
+          <div class="trf-band-label">Overall Band</div>
+          ${overall
+            ? `<div class="trf-band-score">${overall}</div><div class="trf-band-raw">Average</div>`
+            : `<div class="trf-band-pending" style="color:rgba(255,255,255,0.5)">Pending</div>`}
+        </div>
+      </div>
+
+      <!-- WRITING DETAILS -->
+      <div class="trf-writing-row">
+        <div class="trf-writing-item"><b>Task 1 Word Count</b>${r[15]||0} words</div>
+        <div class="trf-writing-item"><b>Task 2 Word Count</b>${r[16]||0} words</div>
+        ${examiner?`<div class="trf-writing-item"><b>Graded By</b>${escH(examiner)}</div>`:''}
+        ${gradedAt?`<div class="trf-writing-item"><b>Grading Date</b>${gradedAt}</div>`:''}
+      </div>
+
+      ${notes?`<div style="padding:10px 14px;background:#fff9e6;border:1px solid #f5d87a;border-radius:4px;margin-bottom:18px;font-size:0.82rem;color:var(--ink2)"><b style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3)">Examiner Notes</b><br>${escH(notes)}</div>`:''}
+
+      <!-- SIGNATURES -->
+      <div class="trf-sig-row">
+        <div class="trf-sig-box">Candidate Signature</div>
+        <div class="trf-sig-box">Authorized Examiner</div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="trf-footer-doc">
+        <div class="trf-stamp">🏛</div>
+        ${escH(footerNote)}<br>
+        For official IELTS certification, visit <b>ielts.org</b>
+      </div>
+
+    </div>
+  </div>`;
+}
+
+function renderIELTSTRF(r) {
+  const wrap = document.getElementById('trf-wrap');
+  const idx  = document.getElementById('trf-attempt-sel').value;
+  wrap.innerHTML = buildIELTSTRFHtml(r, idx);
+}
+
+function downloadTRF() {
+  const idx = document.getElementById('trf-attempt-sel').value;
+  if (idx==='') { alert('Select an attempt first.'); return; }
+  const doc = document.getElementById('trf-printable');
+  if (!doc) return;
+  const cd  = candidateData;
+  const allCSS = [...document.styleSheets].map(s=>{try{return [...s.cssRules].map(r=>r.cssText).join('')}catch(e){return ''}}).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>TRF — ${cd.fullName}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    @page{size:A4;margin:10mm}
+    html,body{height:auto;width:100%}
+    body{font-family:'DM Sans',sans-serif;color:#1a1a2e;background:#fff}
+    ${allCSS}
+    /* Force single-page, compact fit for download/print */
+    body{padding:0!important}
+    .trf-doc{border:1px solid #ddd;box-shadow:none!important}
+    .trf-inner{padding:18px 22px!important}
+    .trf-hdr{padding-bottom:10px!important;margin-bottom:12px!important}
+    .trf-logo-main{font-size:1.4rem!important}
+    .trf-photo{width:70px!important;height:84px!important}
+    .trf-section-title{margin-bottom:6px!important;padding-bottom:3px!important}
+    .trf-fields{margin-bottom:12px!important}
+    .trf-field{padding:6px 12px!important}
+    .trf-field-val.large{font-size:0.92rem!important}
+    .trf-bands{margin-bottom:12px!important}
+    .trf-band-cell{padding:10px 6px!important}
+    .trf-band-score{font-size:1.7rem!important}
+    .trf-band-cell:last-child .trf-band-score{font-size:2rem!important}
+    .trf-writing-row{padding:8px 12px!important;margin-bottom:12px!important}
+    .trf-sig-row{margin-top:16px!important;margin-bottom:10px!important}
+    .trf-footer-doc{padding-top:8px!important}
+    .trf-stamp{width:44px!important;height:44px!important;margin-bottom:6px!important}
+  </style></head><body>${doc.outerHTML}<script>
+    window.onload = () => { setTimeout(() => window.print(), 200); };
+  <\/script></body></html>`;
+  const blob = new Blob([html],{type:'text/html'});
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `TRF_${cd.candidateID}_attempt${parseInt(idx)+1}.html`;
+  a.click();
+}
+
+function downloadAllTRFs() {
+  if (!myScores.length) { alert('No test attempts yet.'); return; }
+  const cd = candidateData;
+  const docs = myScores.map((r,i) => {
+    const html = isTOEIC(r) ? buildTOEICTRFHtml(r) : buildIELTSTRFHtml(r, i+1);
+    return `<div style="page-break-after:always">${html}</div>`;
+  }).join('');
+  const allCSS = [...document.styleSheets].map(s=>{try{return [...s.cssRules].map(r=>r.cssText).join('')}catch(e){return ''}}).join('');
+  const htmlDoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Results — ${cd.fullName}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    @page{size:A4;margin:10mm}
+    html,body{height:auto;width:100%}
+    body{font-family:'DM Sans',sans-serif;color:#1a1a2e;background:#fff}
+    ${allCSS}
+    body{padding:0!important}
+    .trf-doc{border:1px solid #ddd;box-shadow:none!important}
+    .trf-inner{padding:18px 22px!important}
+    .trf-hdr{padding-bottom:10px!important;margin-bottom:12px!important}
+    .trf-logo-main{font-size:1.4rem!important}
+    .trf-photo{width:70px!important;height:84px!important}
+    .trf-section-title{margin-bottom:6px!important;padding-bottom:3px!important}
+    .trf-fields{margin-bottom:12px!important}
+    .trf-field{padding:6px 12px!important}
+    .trf-field-val.large{font-size:0.92rem!important}
+    .trf-bands{margin-bottom:12px!important}
+    .trf-band-cell{padding:10px 6px!important}
+    .trf-band-score{font-size:1.7rem!important}
+    .trf-band-cell:last-child .trf-band-score{font-size:2rem!important}
+    .trf-writing-row{padding:8px 12px!important;margin-bottom:12px!important}
+    .trf-sig-row{margin-top:16px!important;margin-bottom:10px!important}
+    .trf-footer-doc{padding-top:8px!important}
+    .trf-stamp{width:44px!important;height:44px!important;margin-bottom:6px!important}
+    div[style*="page-break-after"]:last-child{page-break-after:auto!important}
+  </style></head><body>${docs}<script>
+    window.onload = () => { setTimeout(() => window.print(), 300); };
+  <\/script></body></html>`;
+  const blob = new Blob([htmlDoc],{type:'text/html'});
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `AllResults_${cd.candidateID}.html`;
+  a.click();
+}
+
+// ─── PHOTO ───
+function handlePhotoUpload(input) {
+  if (!input.files[0]) return;
+  const file = input.files[0];
+  if (!file.type.startsWith('image/')) { alert('Please select an image file.'); return; }
+
+  const reader = new FileReader();
+  reader.onload = e => { openPhotoCrop(e.target.result); };
+  reader.readAsDataURL(file);
+  input.value = ''; // allow re-selecting the same file later
+}
+
+// ─── PHOTO CROP / REPOSITION ───
+const CROP_VIEW = 250;   // px, matches .photo-crop-view width/height
+const CROP_OUT  = 300;   // px, output resolution saved to the server
+let cropState = null;    // {scale, minScale, maxScale, offsetX, offsetY, natW, natH}
+let cropDrag  = null;    // {startX, startY, startOffX, startOffY}
+
+function openPhotoCrop(dataUrl) {
+  const img = document.getElementById('photo-crop-img');
+  img.onload = () => {
+    const natW = img.naturalWidth, natH = img.naturalHeight;
+    const minScale = Math.max(CROP_VIEW / natW, CROP_VIEW / natH); // "cover" the circle
+    cropState = {
+      scale: minScale, minScale, maxScale: minScale * 3,
+      offsetX: (CROP_VIEW - natW * minScale) / 2,
+      offsetY: (CROP_VIEW - natH * minScale) / 2,
+      natW, natH
+    };
+    document.getElementById('photo-crop-zoom').value = 100;
+    applyCropTransform();
+    document.getElementById('photo-crop-overlay').classList.add('open');
+  };
+  img.src = dataUrl;
+}
+
+function applyCropTransform() {
+  const img = document.getElementById('photo-crop-img');
+  img.style.width  = (cropState.natW * cropState.scale) + 'px';
+  img.style.height = (cropState.natH * cropState.scale) + 'px';
+  img.style.left = cropState.offsetX + 'px';
+  img.style.top  = cropState.offsetY + 'px';
+}
+
+function clampCropOffset() {
+  const w = cropState.natW * cropState.scale, h = cropState.natH * cropState.scale;
+  cropState.offsetX = Math.min(0, Math.max(CROP_VIEW - w, cropState.offsetX));
+  cropState.offsetY = Math.min(0, Math.max(CROP_VIEW - h, cropState.offsetY));
+}
+
+function onCropZoom() {
+  if (!cropState) return;
+  const pct = parseFloat(document.getElementById('photo-crop-zoom').value) / 100;
+  const newScale = cropState.minScale * pct;
+
+  // Keep the point currently at the center of the view fixed while zooming
+  const cx = (CROP_VIEW / 2 - cropState.offsetX) / cropState.scale;
+  const cy = (CROP_VIEW / 2 - cropState.offsetY) / cropState.scale;
+  cropState.scale = newScale;
+  cropState.offsetX = CROP_VIEW / 2 - cx * newScale;
+  cropState.offsetY = CROP_VIEW / 2 - cy * newScale;
+
+  clampCropOffset();
+  applyCropTransform();
+}
+
+function cropPointFromEvent(e) {
+  return { x: e.clientX, y: e.clientY };
+}
+
+(function initCropDrag() {
+  document.addEventListener('DOMContentLoaded', () => {
+    const view = document.getElementById('photo-crop-view');
+    if (!view) return;
+    view.addEventListener('pointerdown', e => {
+      if (!cropState) return;
+      view.setPointerCapture(e.pointerId);
+      const pt = cropPointFromEvent(e);
+      cropDrag = { startX: pt.x, startY: pt.y, startOffX: cropState.offsetX, startOffY: cropState.offsetY };
+    });
+    view.addEventListener('pointermove', e => {
+      if (!cropDrag || !cropState) return;
+      const pt = cropPointFromEvent(e);
+      cropState.offsetX = cropDrag.startOffX + (pt.x - cropDrag.startX);
+      cropState.offsetY = cropDrag.startOffY + (pt.y - cropDrag.startY);
+      clampCropOffset();
+      applyCropTransform();
+    });
+    ['pointerup','pointercancel','pointerleave'].forEach(evt =>
+      view.addEventListener(evt, () => { cropDrag = null; })
+    );
+  });
+})();
+
+function cancelPhotoCrop() {
+  document.getElementById('photo-crop-overlay').classList.remove('open');
+  cropState = null;
+}
+
+async function confirmPhotoCrop() {
+  if (!cropState) return;
+  const img = document.getElementById('photo-crop-img');
+  const ratio = CROP_OUT / CROP_VIEW;
+
+  // Draw once at full output resolution — this is the source we'll re-encode
+  // at progressively lower quality/size if the result is too big to store.
+  const srcCanvas = document.createElement('canvas');
+  srcCanvas.width = CROP_OUT; srcCanvas.height = CROP_OUT;
+  const srcCtx = srcCanvas.getContext('2d');
+  srcCtx.fillStyle = '#ffffff'; srcCtx.fillRect(0, 0, CROP_OUT, CROP_OUT); // flatten transparency for JPEG
+  srcCtx.drawImage(
+    img,
+    cropState.offsetX * ratio, cropState.offsetY * ratio,
+    cropState.natW * cropState.scale * ratio, cropState.natH * cropState.scale * ratio
+  );
+
+  // Server limit is 45000 chars (Google Sheets cell limit). Try progressively
+  // lower quality first, then smaller dimensions, until it fits — a busy/
+  // detailed photo can still be too big even at the default quality.
+  const MAX_CHARS = 45000;
+  const attempts = [
+    { size: CROP_OUT, quality: 0.75 },
+    { size: CROP_OUT, quality: 0.55 },
+    { size: CROP_OUT, quality: 0.4 },
+    { size: 220,       quality: 0.6 },
+    { size: 220,       quality: 0.4 },
+    { size: 160,       quality: 0.5 },
+    { size: 160,       quality: 0.3 }
+  ];
+
+  let compressed = null;
+  for (const a of attempts) {
+    let sourceCanvas = srcCanvas;
+    if (a.size !== CROP_OUT) {
+      const resized = document.createElement('canvas');
+      resized.width = a.size; resized.height = a.size;
+      resized.getContext('2d').drawImage(srcCanvas, 0, 0, a.size, a.size);
+      sourceCanvas = resized;
+    }
+    const candidate = sourceCanvas.toDataURL('image/jpeg', a.quality);
+    if (candidate.length <= MAX_CHARS) { compressed = candidate; break; }
+    compressed = candidate; // keep the smallest attempt so far as a fallback
+  }
+
+  document.getElementById('photo-crop-overlay').classList.remove('open');
+  cropState = null;
+
+  if (!compressed || compressed.length > MAX_CHARS) {
+    alert('This photo is too detailed to compress small enough to save. Please try a simpler/smaller photo (a plain-background headshot works best).');
+    return;
+  }
+
+  // Show immediately (optimistic UI)
+  document.getElementById('profile-photo-img').src = compressed;
+  document.getElementById('profile-photo-img').style.display = 'block';
+  document.getElementById('photo-placeholder').style.display = 'none';
+  localStorage.setItem('photo_'+candidateData.candidateID, compressed); // local cache, instant on reload
+
+  // Save to Google Sheets so it follows the candidate across devices
+  try {
+    const res = await callSheetsPost({ action:'updateProfilePhoto', candidateID: candidateData.candidateID, photoBase64: compressed });
+    if (res.success) {
+      candidateData.photoBase64 = compressed;
+      sessionStorage.setItem('candidateData', JSON.stringify(candidateData));
+    } else {
+      alert('Photo saved on this device, but could not sync to the server: ' + (res.message||''));
+    }
+  } catch(err) {
+    alert('Photo saved on this device, but could not sync to the server (offline?). It will only show on this browser for now.');
+  }
+
+  renderTRF();
+}
+
+// ─── HELPERS ───
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+  if (id==='trf') renderTRF();
+}
+
+const COUNTRIES = ["Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cabo Verde","Cambodia","Cameroon","Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo","Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"];
+
+let _countriesLoaded = false;
+function populateSettingsForm() {
+  if (!_countriesLoaded) {
+    const sel = document.getElementById('set-nationality');
+    COUNTRIES.forEach(c => { const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); });
+    _countriesLoaded = true;
+  }
+  document.getElementById('set-fullname').value    = candidateData.fullName    || '';
+  document.getElementById('set-dob').value         = (candidateData.dob || '').split('T')[0];
+  document.getElementById('set-gender').value      = candidateData.gender      || '';
+  document.getElementById('set-nationality').value = candidateData.nationality || '';
+  // Email
+  document.getElementById('email-current-display').value = candidateData.email || '(no email set)';
+  // Reset email change + pw change sections to default state
+  cancelEmailChange();
+  document.getElementById('set-cur-pass').value    = '';
+  document.getElementById('set-new-pass').value    = '';
+  document.getElementById('set-confirm-pass').value= '';
+  document.getElementById('pw-strength-s').className = 'pw-strength-s';
+  hideInlineMsg('pw-change-status');
+
+  // Notifications
+  loadNotifPrefs();
+
+  // Referral code
+  document.getElementById('referral-code-display').value = generateReferralCode();
+}
+
+// ─── NOTIFICATION PREFERENCES (stored locally — hook up to backend for real email/SMS delivery) ───
+function getNotifKey() { return 'notif_prefs_'+(candidateData.candidateID||'guest'); }
+function loadNotifPrefs() {
+  let prefs = { graded:true, reminder:true, announce:true }; // sensible defaults
+  try {
+    const saved = JSON.parse(localStorage.getItem(getNotifKey()) || 'null');
+    if (saved) prefs = saved;
+  } catch(e) {}
+  document.getElementById('notif-graded').checked   = !!prefs.graded;
+  document.getElementById('notif-reminder').checked = !!prefs.reminder;
+  document.getElementById('notif-announce').checked = !!prefs.announce;
+}
+function saveNotifPrefs() {
+  const prefs = {
+    graded:   document.getElementById('notif-graded').checked,
+    reminder: document.getElementById('notif-reminder').checked,
+    announce: document.getElementById('notif-announce').checked,
+  };
+  localStorage.setItem(getNotifKey(), JSON.stringify(prefs));
+  // NOTE: this only saves the preference locally. To actually send emails/reminders,
+  // wire this up to a backend action (e.g. callSheets({action:'updateNotifPrefs', ...})).
+}
+
+// ─── REFERRAL CODE ───
+function generateReferralCode() {
+  const id = candidateData.candidateID || 'GUEST';
+  return 'REF-' + String(id).toUpperCase().replace(/[^A-Z0-9]/g,'').slice(-6).padStart(6,'0');
+}
+function copyReferralCode() {
+  const input = document.getElementById('referral-code-display');
+  input.select();
+  navigator.clipboard.writeText(input.value).then(() => {
+    showInlineMsg('referral-copy-status', 'ok', 'Copied to clipboard!');
+    setTimeout(() => hideInlineMsg('referral-copy-status'), 2000);
+  }).catch(() => {
+    showInlineMsg('referral-copy-status', 'err', 'Could not copy — select and copy manually.');
+  });
+}
+
+async function saveProfileSettings() {
+  const fullName    = document.getElementById('set-fullname').value.trim();
+  const dob         = document.getElementById('set-dob').value;
+  const gender      = document.getElementById('set-gender').value;
+  const nationality = document.getElementById('set-nationality').value;
+  const statusEl    = document.getElementById('settings-save-status');
+
+  if (!fullName) {
+    showInlineMsg('settings-save-status', 'err', 'Full name is required.');
+    return;
+  }
+
+  try {
+    const res = await callSheets({
+      action:'updateProfile',
+      candidateID: candidateData.candidateID,
+      fullName, dob, gender, nationality
+    });
+    if (res.success) {
+      candidateData.fullName    = fullName;
+      candidateData.dob         = dob;
+      candidateData.gender      = gender;
+      candidateData.nationality = nationality;
+      sessionStorage.setItem('candidateData', JSON.stringify(candidateData));
+      sessionStorage.setItem('candidateName', fullName);
+      showInlineMsg('settings-save-status', 'ok', '✅ Profile updated!');
+      renderProfile();
+    } else {
+      showInlineMsg('settings-save-status', 'err', '❌ ' + (res.message || 'Could not save changes.'));
+    }
+  } catch(e) {
+    showInlineMsg('settings-save-status', 'err', '❌ ' + e.message);
+  }
+}
+
+function formatDate(val) {
+  if (!val) return '—';
+  try { return new Date(val).toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}); }
+  catch(e){ return String(val); }
+}
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ─── INLINE MSG HELPERS ───
+function showInlineMsg(id, type, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'inline-msg ' + type;
+}
+function hideInlineMsg(id) {
+  const el = document.getElementById(id);
+  el.className = 'inline-msg';
+  el.textContent = '';
+}
+
+// ─── PASSWORD HELPERS (Settings) ───
+function togglePwS(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.textContent = show ? 'Hide' : 'Show';
+}
+function checkPwStrengthS(inp) {
+  const v = inp.value;
+  const bar = document.getElementById('pw-strength-s');
+  if (!v) { bar.className='pw-strength-s'; return; }
+  if (v.length < 6) bar.className='pw-strength-s weak';
+  else if (v.length < 10 || !/[0-9]/.test(v)) bar.className='pw-strength-s fair';
+  else bar.className='pw-strength-s strong';
+}
+
+// ─── CHANGE PASSWORD ───
+async function changePassword() {
+  const current = document.getElementById('set-cur-pass').value;
+  const newPass = document.getElementById('set-new-pass').value;
+  const confirm = document.getElementById('set-confirm-pass').value;
+  hideInlineMsg('pw-change-status');
+
+  if (!current)         { showInlineMsg('pw-change-status','err','Please enter your current password.'); return; }
+  if (newPass.length<6) { showInlineMsg('pw-change-status','err','New password must be at least 6 characters.'); return; }
+  if (newPass!==confirm){ showInlineMsg('pw-change-status','err','Passwords do not match.'); return; }
+
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    const res = await callSheets({
+      action: 'changePassword',
+      candidateID: candidateData.candidateID,
+      currentPassword: current,
+      newPassword: newPass
+    });
+    if (res.success) {
+      showInlineMsg('pw-change-status','ok','✅ Password changed successfully!');
+      document.getElementById('set-cur-pass').value = '';
+      document.getElementById('set-new-pass').value = '';
+      document.getElementById('set-confirm-pass').value = '';
+      document.getElementById('pw-strength-s').className = 'pw-strength-s';
+    } else {
+      showInlineMsg('pw-change-status','err','❌ ' + (res.message||'Could not change password.'));
+    }
+  } catch(e) {
+    showInlineMsg('pw-change-status','err','❌ Cannot connect to server.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔑 Change Password';
+  }
+}
+
+// ─── EMAIL CHANGE ───
+function startEmailChange() {
+  document.getElementById('email-current-wrap').style.display = 'none';
+  document.getElementById('email-change-wrap').style.display  = 'block';
+  document.getElementById('set-new-email').value = '';
+  document.getElementById('set-email-otp').value = '';
+  document.getElementById('email-otp-wrap').style.display = 'none';
+  hideInlineMsg('email-change-status');
+  setTimeout(()=>document.getElementById('set-new-email').focus(), 50);
+}
+
+function cancelEmailChange() {
+  document.getElementById('email-current-wrap').style.display = 'block';
+  document.getElementById('email-change-wrap').style.display  = 'none';
+  hideInlineMsg('email-change-status');
+}
+
+async function sendEmailChangeOTP() {
+  const newEmail = document.getElementById('set-new-email').value.trim();
+  hideInlineMsg('email-change-status');
+
+  if (!newEmail || !newEmail.includes('@')) {
+    showInlineMsg('email-change-status','err','Please enter a valid email address.');
+    return;
+  }
+  if (newEmail.toLowerCase() === (candidateData.email||'').toLowerCase()) {
+    showInlineMsg('email-change-status','err','That is already your current email address.');
+    return;
+  }
+
+  const btn = document.getElementById('btn-send-email-otp');
+  btn.disabled = true; btn.textContent = 'Sending...';
+
+  try {
+    const res = await callSheets({
+      action: 'sendOTP',
+      email: newEmail,
+      purpose: 'emailchange',
+      candidateID: candidateData.candidateID
+    });
+    if (res.success) {
+      document.getElementById('email-otp-wrap').style.display = 'block';
+      showInlineMsg('email-change-status','ok','✅ Code sent to ' + newEmail + '. Check your inbox.');
+      setTimeout(()=>document.getElementById('set-email-otp').focus(), 50);
+    } else {
+      showInlineMsg('email-change-status','err','❌ ' + (res.message||'Could not send code.'));
+    }
+  } catch(e) {
+    showInlineMsg('email-change-status','err','❌ Cannot connect to server.');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send Code';
+  }
+}
+
+async function verifyEmailChange() {
+  const newEmail = document.getElementById('set-new-email').value.trim();
+  const otp      = document.getElementById('set-email-otp').value.trim();
+  hideInlineMsg('email-change-status');
+
+  if (!otp || otp.length !== 6) {
+    showInlineMsg('email-change-status','err','Please enter the 6-digit code.');
+    return;
+  }
+
+  try {
+    const res = await callSheets({
+      action: 'verifyOTPAndUpdateEmail',
+      email: newEmail,
+      otp,
+      candidateID: candidateData.candidateID
+    });
+    if (res.success) {
+      candidateData.email = newEmail;
+      sessionStorage.setItem('candidateData', JSON.stringify(candidateData));
+      document.getElementById('email-current-display').value = newEmail;
+      showInlineMsg('email-change-status','ok','✅ Email updated successfully!');
+      setTimeout(()=>cancelEmailChange(), 1800);
+    } else {
+      showInlineMsg('email-change-status','err','❌ ' + (res.message||'Incorrect or expired code.'));
+    }
+  } catch(e) {
+    showInlineMsg('email-change-status','err','❌ Cannot connect to server.');
+  }
+}
+</script>
+</body>
+</html>
