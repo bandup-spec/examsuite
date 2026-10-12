@@ -12,11 +12,14 @@
    It defines the same  callSheets(payload)  function every page already uses, so
    the rest of each page keeps working unchanged.
    ============================================================================ */
-const SUPABASE_URL      = 'https://wvqaznclijycptpuxjni.supabase.co';
+const SUPABASE_URL      = 'https://wvqaznclijycptpuxjni.supabase.co/';
 const SUPABASE_ANON_KEY = 'sb_publishable_ZVEYRaWmtQKFTiBQJhbpig_LUCt6vNH';
 
 (function () {
-  const ENDPOINT = SUPABASE_URL.replace(/\/+$/, '') + '/rest/v1/rpc/api';
+  // Only the host matters: if the pasted URL has extra path text (e.g. ".../rest/v1/"), drop it.
+  let BASE = String(SUPABASE_URL).trim();
+  try { BASE = new URL(BASE).origin; } catch (e) { BASE = BASE.replace(/\/+$/, ''); }
+  const ENDPOINT = BASE + '/rest/v1/rpc/api';
 
   function readJSON(key) {
     try { return JSON.parse(sessionStorage.getItem(key) || 'null'); } catch (e) { return null; }
