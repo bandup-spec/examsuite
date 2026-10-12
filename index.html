@@ -37,13 +37,57 @@
   .fs-btn{padding:6px 12px;border-radius:5px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;line-height:1}
   body{font-family:'DM Sans',sans-serif;background:var(--paper2);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ink)}
   body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--paper3) 1px,transparent 1px),linear-gradient(90deg,var(--paper3) 1px,transparent 1px);background-size:32px 32px;opacity:0.5;pointer-events:none;z-index:0}
-  .card{position:relative;z-index:1;width:420px;background:var(--paper);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,0.08)}
+  /* Split-screen shell with a FIXED height (not min-height) — the image
+     panel's crop/composition never shifts no matter which step (login,
+     register step 1/2, forgot password) is showing on the right; only the
+     card's own content area scrolls internally if it runs out of room. */
+  .login-shell{position:relative;z-index:1;display:flex;width:100%;max-width:960px;height:640px;
+    border-radius:20px;overflow:hidden;box-shadow:0 20px 70px rgba(0,0,0,0.18);background:var(--paper)}
+  .login-image-panel{flex:0 0 46%;position:relative;background-image:url('img/login-page-img.jpg');
+    background-size:cover;background-position:center 30%;min-width:0}
+  .login-image-panel::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(0,47,95,0.10) 0%,rgba(0,47,95,0.05) 45%,rgba(0,47,95,0.82) 100%)}
+  .login-image-caption{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:32px 34px;color:#fff}
+  .login-image-caption h2{font-family:'Source Serif 4',serif;font-size:1.5rem;font-weight:600;margin:0 0 8px;line-height:1.25}
+  .login-image-caption h2 span{color:var(--gold)}
+  .login-image-caption p{font-size:0.85rem;color:rgba(255,255,255,0.82);margin:0;line-height:1.5;max-width:340px}
+  @media (max-width:800px){
+    .login-shell{max-width:420px;height:auto;max-height:92vh;box-shadow:none;border-radius:0;background:transparent}
+    .login-image-panel{display:none}
+  }
+
+  .card{position:relative;z-index:1;flex:1 1 420px;min-width:0;width:420px;background:var(--paper);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,0.08);display:flex;flex-direction:column}
+  @media (min-width:801px){ .card{border:none;border-radius:0;box-shadow:none} }
   .card-header{background:var(--blue);padding:28px 32px 24px;text-align:center;border-bottom:3px solid var(--gold)}
   .card-logo{font-family:'Source Serif 4',serif;font-size:1.5rem;font-weight:600;color:#fff;letter-spacing:0.02em;margin-bottom:4px}
   .card-logo span{color:var(--gold)}
   .card-sub{font-size:0.75rem;color:rgba(255,255,255,0.55);letter-spacing:0.1em;text-transform:uppercase;font-weight:600}
-  .card-body{padding:28px 32px}
-  .step{animation:fadeIn 0.2s ease}
+  .card-body{padding:28px 32px;flex:1;overflow-y:auto;min-height:0}
+  .step{animation:stepIn 0.32s cubic-bezier(0.16,1,0.3,1)}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes stepIn{from{opacity:0;transform:translateY(10px) scale(0.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+  @keyframes popIn{from{opacity:0;transform:scale(0.92)}to{opacity:1;transform:scale(1)}}
+  .login-shell{animation:popIn 0.4s cubic-bezier(0.16,1,0.3,1)}
+  .btn-primary{transition:transform 0.15s cubic-bezier(0.16,1,0.3,1),box-shadow 0.15s ease,background 0.15s ease}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,47,95,0.25)}
+  .btn-primary:active{transform:translateY(0) scale(0.98)}
+  .field input,.field select{transition:border-color 0.15s ease,box-shadow 0.15s ease,background-color 0.15s ease}
+  .error-msg,.success-msg{transition:opacity 0.2s ease,transform 0.2s ease}
+  .error-msg.show,.success-msg.show{animation:shake 0.35s ease}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+  .back-link{transition:transform 0.15s ease,color 0.15s ease}
+  .back-link:hover{transform:translateX(-2px)}
+  .fs-btn{transition:transform 0.15s ease,background-color 0.15s ease}
+  .fs-btn:hover{transform:scale(1.08)}
+  .fs-btn:active{transform:scale(0.94)}
+  .spinner{transition:opacity 0.15s ease}
+
+  /* Animations OFF switch — flips every transition/animation/keyframe in
+     the app to instant, without needing to touch each rule individually. */
+  body.no-animations, body.no-animations *, body.no-animations *::before, body.no-animations *::after{
+    animation-duration:0.001s !important; animation-delay:0s !important;
+    transition-duration:0.001s !important; transition-delay:0s !important;
+  }
   @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
   .step-label{font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}
   .step-title{font-family:'Source Serif 4',serif;font-size:1.15rem;font-weight:600;color:var(--blue);margin-bottom:4px}
@@ -98,9 +142,17 @@
     <span class="fs-icon fs-icon-lg">A</span>
   </div>
   <button class="fs-btn" id="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</button>
+  <button class="fs-btn" id="anim-toggle" onclick="toggleAnimations()" title="Toggle animations">✨</button>
 </div>
 
-<div class="card">
+<div class="login-shell">
+  <div class="login-image-panel">
+    <div class="login-image-caption">
+      <h2>Prepare with <span>Confidence</span></h2>
+      <p>Realistic practice tests to help you walk into exam day ready for anything.</p>
+    </div>
+  </div>
+  <div class="card">
   <div class="card-header">
     <div class="card-logo"><svg width="40" height="40" viewBox="0 0 290 270" role="img" aria-label="BandUp"><rect x="10" y="140" width="70" height="120" rx="10" fill="#c8a84b"/><rect x="110" y="90" width="70" height="170" rx="10" fill="#d8b85f"/><rect x="210" y="40" width="70" height="220" rx="10" fill="#c8a84b"/><path d="M27 110 L127 60 L227 10" fill="none" stroke="#f2e2b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M189 10 L227 10 L227 48" fill="none" stroke="#f2e2b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
     <div class="card-sub">Simulation Test Platform</div>
@@ -223,6 +275,16 @@
           <button class="pw-toggle" onclick="togglePw('confirmPass',this)" type="button">Show</button>
         </div>
       </div>
+      <div class="field">
+        <label for="regCourse">Course / Test Type</label>
+        <select id="regCourse">
+          <option value="IELTS">IELTS</option>
+          <option value="TOEIC">TOEIC</option>
+          <option value="TOEFL">TOEFL</option>
+          <option value="ESL">ESL</option>
+        </select>
+        <div style="font-size:0.75rem;color:var(--ink3,#8888aa);margin-top:4px">This locks which tests you can take — an IELTS student can't take TOEIC tests and vice versa. Ask the admin if this needs to change later.</div>
+      </div>
       <div class="error-msg" id="err-register"></div>
       <div class="success-msg" id="suc-register"></div>
       <button class="btn-primary" id="btn-register" onclick="handleRegisterSendOTP()">
@@ -313,6 +375,7 @@
   </div>
   <div class="footer-note">Do not close or refresh this window during the test.</div>
 </div>
+</div><!-- /login-shell -->
 
 <script src="bandup-api.js"></script>
 <script>
@@ -339,6 +402,12 @@ function initAccessibilityPrefs() {
     const btn = document.getElementById('dark-mode-toggle');
     if (btn) btn.textContent = '☀️';
   }
+  const animsOff = localStorage.getItem('ielts_animations_off') === '1';
+  if (animsOff) {
+    document.body.classList.add('no-animations');
+    const ab = document.getElementById('anim-toggle');
+    if (ab) { ab.textContent = '⏸'; ab.title = 'Animations off — click to turn on'; }
+  }
 }
 function applyFontScale() {
   document.documentElement.style.fontSize = fontScalePct + '%';
@@ -349,6 +418,12 @@ function setFontSize(pct) {
   if (isNaN(val) || val < FONT_SCALE_MIN || val > FONT_SCALE_MAX) return;
   fontScalePct = val;
   applyFontScale();
+}
+function toggleAnimations() {
+  const isOff = document.body.classList.toggle('no-animations');
+  localStorage.setItem('ielts_animations_off', isOff ? '1' : '0');
+  const btn = document.getElementById('anim-toggle');
+  if (btn) { btn.textContent = isOff ? '⏸' : '✨'; btn.title = isOff ? 'Animations off — click to turn on' : 'Toggle animations'; }
 }
 function toggleDarkMode() {
   const isDark = document.body.classList.toggle('dark-mode');
@@ -366,6 +441,9 @@ window.onload = () => {
   if (typeof SUPABASE_URL === 'undefined' || /YOUR-PROJECT-REF/.test(SUPABASE_URL)) {
     document.getElementById('setup-warn').classList.add('show');
   }
+  // Re-assert focus on the first field shortly after load: on some kiosk setups the browser's own
+  // autofocus fires before the window has OS keyboard focus, leaving a blinking cursor that can't type.
+  setTimeout(() => { const first = document.getElementById('candidateNum'); if (first) first.focus(); }, 150);
 };
 
 // ══════════════════════════════════════════════
@@ -615,6 +693,7 @@ async function handleRegisterSendOTP() {
   const dob     = document.getElementById('dob').value;
   const gender  = document.getElementById('gender').value;
   const nat     = document.getElementById('nationality').value;
+  const course  = document.getElementById('regCourse').value;
   const email   = document.getElementById('regEmail').value.trim();
   const pass    = document.getElementById('newPass').value;
   const confirm = document.getElementById('confirmPass').value;
@@ -643,6 +722,7 @@ async function handleRegisterSendOTP() {
       sessionStorage.setItem('pendingDOB', dob);
       sessionStorage.setItem('pendingGender', gender);
       sessionStorage.setItem('pendingNat', nat);
+      sessionStorage.setItem('pendingCourse', course);
       sessionStorage.setItem('pendingPass', pass);
 
       document.getElementById('otp-reg-desc').textContent =
@@ -677,6 +757,7 @@ async function handleVerifyOTPReg() {
   const dob     = sessionStorage.getItem('pendingDOB');
   const gender  = sessionStorage.getItem('pendingGender');
   const nat     = sessionStorage.getItem('pendingNat');
+  const course  = sessionStorage.getItem('pendingCourse') || 'IELTS';
   const pass    = sessionStorage.getItem('pendingPass');
 
   hideErr('err-otp-reg');
@@ -688,13 +769,13 @@ async function handleVerifyOTPReg() {
     const data = await callSheets({
       action: 'verifyOTPAndRegister',
       otp, candidateID: id, fullName: name,
-      email, dob, gender, nationality: nat, password: pass
+      email, dob, gender, nationality: nat, course, password: pass
     });
 
     if (data.success) {
       showSuc('suc-otp-reg','✅ Registration submitted! Your account is now awaiting admin approval — you\'ll be able to log in once approved.');
       // Clean up temp storage
-      ['pendingEmail','pendingName','pendingDOB','pendingGender','pendingNat','pendingPass'].forEach(k=>sessionStorage.removeItem(k));
+      ['pendingEmail','pendingName','pendingDOB','pendingGender','pendingNat','pendingCourse','pendingPass'].forEach(k=>sessionStorage.removeItem(k));
       document.getElementById('btn-otp-reg').style.display = 'none';
       setTimeout(()=>{
         goTo('step-otp-reg','step1');
