@@ -288,6 +288,18 @@
   .qbank-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .qbank-tag{font-size:0.68rem;background:var(--paper2);border-radius:4px;padding:1px 7px;color:var(--ink3);font-weight:600}
   .qbank-actions{display:flex;gap:5px;flex-shrink:0}
+
+  /* INPUTS NOT COVERED ABOVE (email / password inside .field) */
+  .field input[type=email],.field input[type=password]{width:100%;padding:8px 12px;border:1px solid var(--paper3);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--ink);background:#fff;transition:all 0.15s}
+  .field input[type=email]:focus,.field input[type=password]:focus{outline:none;border-color:var(--blue2);background:#f5f9ff}
+
+  /* ADMIN ACCOUNTS */
+  .perm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin:10px 0 14px}
+  .perm-item{display:flex;align-items:center;gap:8px;font-size:0.83rem;padding:8px 10px;border:1px solid var(--paper3);border-radius:7px;background:#fff;cursor:pointer;user-select:none}
+  .perm-item:hover{border-color:var(--blue2)}
+  .perm-item input{accent-color:var(--green);width:15px;height:15px;cursor:pointer}
+  .perm-chip{display:inline-block;background:var(--paper2);border:1px solid var(--paper3);border-radius:4px;padding:1px 7px;font-size:0.7rem;font-weight:600;color:var(--ink2);margin:2px 3px 2px 0;white-space:nowrap}
+  .role-owner{background:rgba(200,168,75,0.15);color:#7a5f1a;border:1px solid rgba(200,168,75,0.4)}
 </style>
 </head>
 <body>
@@ -296,13 +308,13 @@
 <div class="hdr">
   <div style="display:flex;align-items:center;gap:14px">
     <div class="hdr-logo"><svg width="30" height="30" viewBox="0 0 290 270" role="img" aria-label="BandUp"><rect x="10" y="140" width="70" height="120" rx="10" fill="#c8a84b"/><rect x="110" y="90" width="70" height="170" rx="10" fill="#d8b85f"/><rect x="210" y="40" width="70" height="220" rx="10" fill="#c8a84b"/><path d="M27 110 L127 60 L227 10" fill="none" stroke="#f2e2b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M189 10 L227 10 L227 48" fill="none" stroke="#f2e2b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-    <div class="admin-badge">Admin Panel</div>
+    <div class="admin-badge" id="admin-badge">Admin Panel</div>
   </div>
   <button class="hdr-burger" onclick="toggleHdrMenu()" aria-label="Menu">☰</button>
   <div class="hdr-right" id="hdr-actions">
-    <button class="btn-hdr" style="background:rgba(200,168,75,0.25);color:#fff;border:1px solid var(--gold)" onclick="window.location.href='question-maker.html'">🧠 Question Maker</button>
-    <button class="btn-hdr" style="background:rgba(200,168,75,0.25);color:#fff;border:1px solid var(--gold)" onclick="window.location.href='toeic-question-maker.html'">💼 TOEIC Question Maker</button>
-    <button class="btn-hdr" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3)" onclick="showPanel('p-drive')">☁️ Drive Link</button>
+    <button class="btn-hdr" style="background:rgba(200,168,75,0.25);color:#fff;border:1px solid var(--gold)" data-perm="questionmaker" onclick="window.location.href='question-maker.html'">🧠 Question Maker</button>
+    <button class="btn-hdr" style="background:rgba(200,168,75,0.25);color:#fff;border:1px solid var(--gold)" data-perm="questionmaker" onclick="window.location.href='toeic-question-maker.html'">💼 TOEIC Question Maker</button>
+    <button class="btn-hdr" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3)" data-owner-only onclick="showPanel('p-drive')">☁️ Drive Link</button>
     <button class="btn-hdr btn-logout" onclick="if(confirm('Logout?')){sessionStorage.clear();window.location.href='index.html'}">Logout</button>
   </div>
 </div>
@@ -311,20 +323,21 @@
   <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sb-section">Candidates</div>
-    <button class="sb-btn active" onclick="showPanel('p-monitor')"    id="sb-p-monitor"><span class="sb-icon">🟢</span> Live Monitor</button>
-    <button class="sb-btn" onclick="showPanel('p-candidates')" id="sb-p-candidates"><span class="sb-icon">👥</span> Candidates <span id="pending-badge" style="display:none;background:var(--gold);color:var(--blue);border-radius:10px;padding:1px 7px;font-size:0.7rem;font-weight:700;margin-left:auto"></span></button>
-    <button class="sb-btn" onclick="showPanel('p-scores')"    id="sb-p-scores"><span class="sb-icon">📊</span> Scores</button>
-    <button class="sb-btn" onclick="showPanel('p-trf')"       id="sb-p-trf"><span class="sb-icon">📄</span> TRF Viewer</button>
+    <button class="sb-btn active" onclick="showPanel('p-monitor')"    id="sb-p-monitor" data-perm="monitor"><span class="sb-icon">🟢</span> Live Monitor</button>
+    <button class="sb-btn" onclick="showPanel('p-candidates')" id="sb-p-candidates" data-perm="candidates"><span class="sb-icon">👥</span> Candidates <span id="pending-badge" style="display:none;background:var(--gold);color:var(--blue);border-radius:10px;padding:1px 7px;font-size:0.7rem;font-weight:700;margin-left:auto"></span></button>
+    <button class="sb-btn" onclick="showPanel('p-scores')"    id="sb-p-scores" data-perm="scores"><span class="sb-icon">📊</span> Scores</button>
+    <button class="sb-btn" onclick="showPanel('p-trf')"       id="sb-p-trf" data-perm="trf"><span class="sb-icon">📄</span> TRF Viewer</button>
     <div class="sb-section">Grading</div>
-    <button class="sb-btn" onclick="showPanel('p-grading')"   id="sb-p-grading"><span class="sb-icon">✏️</span> Grade Writing</button>
+    <button class="sb-btn" onclick="showPanel('p-grading')"   id="sb-p-grading" data-perm="grading"><span class="sb-icon">✏️</span> Grade Writing</button>
     <div class="sb-section">Publish</div>
-    <button class="sb-btn" onclick="showPanel('p-testsets')"  id="sb-p-testsets"><span class="sb-icon">📚</span> Test Sets</button>
-    <button class="sb-btn" onclick="showPanel('p-answerkey')" id="sb-p-answerkey"><span class="sb-icon">🔑</span> Answer Keys</button>
-    <button class="sb-btn" onclick="showPanel('p-publish')"   id="sb-p-publish"><span class="sb-icon">🚀</span> Publish</button>
-    <button class="sb-btn" onclick="window.location.href='toeic-question-maker.html'"><span class="sb-icon">💼</span> TOEIC Question Maker</button>
+    <button class="sb-btn" onclick="showPanel('p-testsets')"  id="sb-p-testsets" data-perm="testsets"><span class="sb-icon">📚</span> Test Sets</button>
+    <button class="sb-btn" onclick="showPanel('p-answerkey')" id="sb-p-answerkey" data-perm="answerkey"><span class="sb-icon">🔑</span> Answer Keys</button>
+    <button class="sb-btn" onclick="showPanel('p-publish')"   id="sb-p-publish" data-perm="publish"><span class="sb-icon">🚀</span> Publish</button>
+    <button class="sb-btn" data-perm="questionmaker" onclick="window.location.href='toeic-question-maker.html'"><span class="sb-icon">💼</span> TOEIC Question Maker</button>
     <div class="sb-section">Config</div>
-    <button class="sb-btn" onclick="showPanel('p-settings')"  id="sb-p-settings"><span class="sb-icon">⚙️</span> Settings</button>
-    <button class="sb-btn" onclick="showPanel('p-drive')"     id="sb-p-drive"><span class="sb-icon">☁️</span> Drive Config</button>
+    <button class="sb-btn" onclick="showPanel('p-settings')"  id="sb-p-settings" data-owner-only><span class="sb-icon">⚙️</span> Settings</button>
+    <button class="sb-btn" onclick="showPanel('p-drive')"     id="sb-p-drive" data-owner-only><span class="sb-icon">☁️</span> Drive Config</button>
+    <button class="sb-btn" onclick="showPanel('p-admins')"    id="sb-p-admins" data-owner-only><span class="sb-icon">🛡️</span> Admins <span id="admin-pending-badge" style="display:none;background:var(--gold);color:var(--blue);border-radius:10px;padding:1px 7px;font-size:0.7rem;font-weight:700;margin-left:auto"></span></button>
   </div>
 
   <!-- CONTENT -->
@@ -334,7 +347,7 @@
       <div class="panel-title">🟢 Live Monitor</div>
       <div class="panel-desc">See who is currently online or recently active, track their test progress, and view submitted answers in real time.</div>
 
-      <div class="card" style="background:linear-gradient(135deg,var(--blue),#003d7a);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div class="card" data-perm="questionmaker" style="background:linear-gradient(135deg,var(--blue),#003d7a);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
         <div>
           <div style="font-family:'Source Serif 4',serif;font-size:1.05rem;font-weight:600;margin-bottom:4px">💼 Building a TOEIC test?</div>
           <div style="font-size:0.83rem;opacity:0.85">Question authoring for TOEIC happens in its own tool — CSV import for all 200 questions.</div>
@@ -759,6 +772,53 @@
     </div>
 
 
+    <!-- ADMIN ACCOUNTS PANEL (Owner only) -->
+    <div id="p-admins" class="panel">
+      <div class="panel-title">🛡️ Admin Accounts</div>
+      <div class="panel-desc">Only the Owner sees this page. Approve or reject sub-admin requests, choose which sections each sub-admin can open, and remove access at any time.</div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+          <div class="card-title" style="margin:0">All Admins</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="sheets-status" id="admins-status"></span>
+            <button class="refresh-btn" onclick="loadAdmins()">🔄 Refresh</button>
+          </div>
+        </div>
+        <div id="admins-table-wrap"><div class="tbl-empty">Click Refresh to load admin accounts.</div></div>
+      </div>
+
+      <div class="card" id="admin-perm-card" style="display:none">
+        <div class="card-title" id="admin-perm-title">Access</div>
+        <div id="admin-perm-info" style="font-size:0.83rem;color:var(--ink2);margin-bottom:4px"></div>
+        <div class="perm-grid" id="admin-perm-grid"></div>
+        <div class="btn-row">
+          <button class="btn btn-green" id="admin-perm-save" onclick="savePermEditor()">💾 Save</button>
+          <button class="btn btn-ghost" onclick="closePermEditor()">Cancel</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">➕ Add a Sub-admin</div>
+        <p style="font-size:0.82rem;color:var(--ink2);margin-bottom:14px;line-height:1.6">
+          Accounts you create here are approved immediately. People who request access from the login page show up above as <b>Pending</b> until you approve them.
+        </p>
+        <div class="row2">
+          <div class="field"><label>Full Name</label><input type="text" id="new-sub-name" placeholder="e.g. Maria Santos"></div>
+          <div class="field"><label>Email (used to log in)</label><input type="email" id="new-sub-email" placeholder="name@email.com"></div>
+        </div>
+        <div class="field" style="max-width:380px">
+          <label>Temporary Password <span style="font-weight:400;color:var(--ink3)">(min. 8 characters)</span></label>
+          <input type="password" id="new-sub-pass" placeholder="Share this with them privately">
+        </div>
+        <label style="display:block;font-size:0.78rem;font-weight:600;color:var(--ink2)">Can access</label>
+        <div class="perm-grid" id="new-sub-perms"></div>
+        <div class="btn-row">
+          <button class="btn btn-blue" onclick="createSubAdmin()">➕ Create Sub-admin</button>
+        </div>
+      </div>
+    </div>
+
     <!-- SETTINGS PANEL -->
     <div id="p-settings" class="panel">
       <div class="panel-title">Settings</div>
@@ -1177,15 +1237,96 @@ let candidateResponses = null;
 // ═══════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════
-window.onload = () => {
+window.onload = async () => {
   if (sessionStorage.getItem('userRole') !== 'Admin' || !sessionStorage.getItem('adminToken')) {
     window.location.href = 'index.html'; return;
   }
+  loadMe();
+  applyRoleUI();                 // first paint from the login session
+  await refreshMeFromServer();   // then trust the server's answer
+  applyRoleUI();
   const saved = localStorage.getItem('ielts_admin_config');
   if (saved) { try { config = JSON.parse(saved); } catch(e){} }
-  initDrivePanel();
-  loadCandidates(); // silent — populates the pending-approval badge on load
+  renderPermGrid('new-sub-perms', DEFAULT_SUB_PERMS);
+  if (isOwner()) { initDrivePanel(); loadAdmins(true); }
+  if (can('candidates')) loadCandidates(); // silent — populates the pending-approval badge on load
+  if (!canOpenPanel('p-monitor')) {
+    const first = firstAllowedPanel();
+    if (first) showPanel(first);
+    else document.querySelector('.content').innerHTML = '<div class="card"><div class="tbl-empty">🔒 No sections have been assigned to your account yet.<br>Ask the Owner to grant you access.</div></div>';
+  }
 };
+
+// ═══════════════════════════════════════
+// ROLES & PERMISSIONS
+// Owner = full access + manages admins. SubAdmin = only the sections the Owner ticked.
+// NOTE: this only controls what the page SHOWS. The server must enforce the same rules.
+// ═══════════════════════════════════════
+const PERM_DEFS = [
+  ['monitor','🟢 Live Monitor'], ['candidates','👥 Candidates'], ['scores','📊 Scores'],
+  ['trf','📄 TRF Viewer'], ['grading','✏️ Grade Writing'], ['testsets','📚 Test Sets'],
+  ['answerkey','🔑 Answer Keys'], ['publish','🚀 Publish'], ['questionmaker','🧠 Question Makers']
+];
+const DEFAULT_SUB_PERMS = ['monitor','candidates','scores','trf','grading'];
+const PANEL_PERM = {
+  'p-monitor':'monitor', 'p-candidates':'candidates', 'p-scores':'scores', 'p-trf':'trf',
+  'p-grading':'grading', 'p-testsets':'testsets', 'p-answerkey':'answerkey', 'p-publish':'publish'
+};
+const OWNER_ONLY_PANELS = ['p-settings','p-drive','p-admins'];
+const PANEL_ORDER = ['p-monitor','p-candidates','p-scores','p-trf','p-grading','p-testsets','p-answerkey','p-publish','p-settings','p-drive','p-admins'];
+
+let ME = { role:'Owner', name:'', perms:[] };
+
+function isOwner() { return ME.role === 'Owner'; }
+function can(perm) { return isOwner() || (ME.perms || []).includes(perm); }
+function canOpenPanel(id) {
+  if (OWNER_ONLY_PANELS.includes(id)) return isOwner();
+  const p = PANEL_PERM[id];
+  return !p || can(p);
+}
+function firstAllowedPanel() { return PANEL_ORDER.find(canOpenPanel) || null; }
+
+function loadMe() {
+  // Sessions created before sub-admins existed have no adminRole — that was the single Owner account.
+  const role = sessionStorage.getItem('adminRole') === 'SubAdmin' ? 'SubAdmin' : 'Owner';
+  let perms = [];
+  try { perms = JSON.parse(sessionStorage.getItem('adminPerms') || '[]') || []; } catch(e) {}
+  ME = { role, name: sessionStorage.getItem('adminName') || '', perms };
+}
+
+async function refreshMeFromServer() {
+  try {
+    const d = await callSheets({ action:'getMyAdminProfile' });
+    if (d && d.code === 'REVOKED') {
+      sessionStorage.clear();
+      alert('Your admin access has been removed or is no longer approved.');
+      window.location.href = 'index.html';
+      return;
+    }
+    if (d && d.success && d.admin) {
+      sessionStorage.setItem('adminRole', d.admin.role === 'Owner' ? 'Owner' : 'SubAdmin');
+      sessionStorage.setItem('adminName', d.admin.fullName || '');
+      sessionStorage.setItem('adminPerms', JSON.stringify(d.admin.permissions || []));
+      loadMe();
+    }
+  } catch(e) { /* server not updated yet — keep what the login session says */ }
+}
+
+function applyRoleUI() {
+  document.querySelectorAll('[data-owner-only]').forEach(el => el.classList.toggle('hidden', !isOwner()));
+  document.querySelectorAll('[data-perm]').forEach(el => el.classList.toggle('hidden', !can(el.dataset.perm)));
+  // hide sidebar section titles that have nothing left under them
+  document.querySelectorAll('.sidebar .sb-section').forEach(sec => {
+    let n = sec.nextElementSibling, any = false;
+    while (n && !n.classList.contains('sb-section')) {
+      if (n.classList.contains('sb-btn') && !n.classList.contains('hidden')) any = true;
+      n = n.nextElementSibling;
+    }
+    sec.classList.toggle('hidden', !any);
+  });
+  const badge = document.getElementById('admin-badge');
+  if (badge) badge.textContent = isOwner() ? 'Owner' : ('Sub-admin' + (ME.name ? ' · ' + ME.name : ''));
+}
 
 
 // ═══════════════════════════════════════
@@ -1266,6 +1407,7 @@ async function akSave() {
 // PANEL NAVIGATION
 // ═══════════════════════════════════════
 function showPanel(id) {
+  if (!canOpenPanel(id)) { toast('🔒 You do not have access to that section.'); return; }
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sb-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -1277,6 +1419,7 @@ function showPanel(id) {
     qmRenderList('R', n);
   }
   if (id === 'p-answerkey') akLoadSets();
+  if (id === 'p-admins') loadAdmins();
   // Auto-load Question Bank when navigating to it
   if (id === 'p-qbank') renderQBank();
   // Auto-load monitor
@@ -2527,7 +2670,166 @@ async function openAnswerSheetPopup() {
 
 // ═══════════════════════════════════════
 
+// ADMIN ACCOUNTS (Owner only)
+// ═══════════════════════════════════════
+let _admins = [];
+let _permEdit = null; // { id, mode:'approve'|'edit' }
+
+function renderPermGrid(containerId, selected) {
+  const sel = new Set(selected || []);
+  document.getElementById(containerId).innerHTML = PERM_DEFS.map(([k, label]) =>
+    `<label class="perm-item"><input type="checkbox" value="${k}" ${sel.has(k) ? 'checked' : ''}> ${escH(label)}</label>`).join('');
+}
+function collectPerms(containerId) {
+  return Array.from(document.querySelectorAll('#' + containerId + ' input:checked')).map(i => i.value);
+}
+
+async function loadAdmins(silent) {
+  const wrap = document.getElementById('admins-table-wrap');
+  const status = document.getElementById('admins-status');
+  if (!silent) { wrap.innerHTML = '<div class="tbl-empty">⏳ Loading...</div>'; status.className = 'sheets-status'; status.textContent = 'Fetching...'; }
+  try {
+    const d = await callSheets({ action:'getAdmins' });
+    if (!d.success) throw new Error(d.message || 'Failed');
+    _admins = d.admins || [];
+    status.className = 'sheets-status ok';
+    status.textContent = `✅ ${_admins.length} account${_admins.length === 1 ? '' : 's'}`;
+    renderAdminsTable();
+    updateAdminBadge();
+  } catch(e) {
+    if (silent) return;
+    status.className = 'sheets-status err'; status.textContent = '❌ Error';
+    wrap.innerHTML = `<div class="tbl-empty" style="color:var(--red)">❌ ${escH(e.message)}<br><br>The server needs the admin-management actions added (see the backend spec).</div>`;
+  }
+}
+
+function updateAdminBadge() {
+  const n = _admins.filter(a => a.status === 'Pending').length;
+  const b = document.getElementById('admin-pending-badge');
+  if (!b) return;
+  if (n > 0) { b.style.display = 'inline-block'; b.textContent = n; } else b.style.display = 'none';
+}
+
+function adminStatusBadge(s) {
+  if (s === 'Pending')  return '<span class="band-badge" style="background:rgba(200,168,75,0.15);color:#7a5f1a;border:1px solid rgba(200,168,75,0.4)">⏳ Pending</span>';
+  if (s === 'Rejected') return '<span class="band-badge" style="background:rgba(192,57,43,0.1);color:var(--red);border:1px solid rgba(192,57,43,0.3)">✕ Rejected</span>';
+  return '<span class="band-badge band-high">✓ Approved</span>';
+}
+function permSummary(a) {
+  if (a.role === 'Owner') return '<span class="band-badge band-high">Full access</span>';
+  const p = a.permissions || [];
+  if (!p.length) return '<span style="color:var(--ink3);font-size:0.78rem">No access yet</span>';
+  return p.map(k => { const d = PERM_DEFS.find(x => x[0] === k); return d ? `<span class="perm-chip">${escH(d[1])}</span>` : ''; }).join('');
+}
+
+function renderAdminsTable() {
+  const wrap = document.getElementById('admins-table-wrap');
+  if (!_admins.length) { wrap.innerHTML = '<div class="tbl-empty">No admin accounts found.</div>'; return; }
+  const rank = { Pending:0, Approved:1, Rejected:2 };
+  const rows = [..._admins].sort((a, b) => (a.role === 'Owner' ? -1 : 0) - (b.role === 'Owner' ? -1 : 0) || (rank[a.status] ?? 1) - (rank[b.status] ?? 1));
+  let html = `<div style="overflow-x:auto"><table class="sheets-table"><thead><tr>
+    <th>Name</th><th>Role</th><th>Status</th><th>Access</th><th>Requested</th><th>Last Login</th><th>Actions</th>
+  </tr></thead><tbody>`;
+  rows.forEach(a => {
+    const id = escH(a.adminID);
+    const btn = (cls, act, label) => `<button class="btn ${cls}" style="padding:3px 8px;font-size:0.75rem;margin:2px 4px 2px 0" data-id="${id}" onclick="adminAct('${act}',this.dataset.id)">${label}</button>`;
+    let actions = '<span style="color:var(--ink3);font-size:0.78rem">—</span>';
+    if (a.role !== 'Owner') {
+      if (a.status === 'Pending')       actions = btn('btn-green','approve','✓ Approve') + btn('btn-red','reject','✕ Reject') + btn('btn-red','delete','🗑️');
+      else if (a.status === 'Rejected') actions = btn('btn-green','approve','✓ Approve') + btn('btn-red','delete','🗑️ Delete');
+      else actions = btn('btn-blue','edit','✏️ Access') + btn('btn-ghost','resetpw','🔑 Password') + btn('btn-ghost','reject','✕ Revoke') + btn('btn-red','delete','🗑️ Delete');
+    }
+    html += `<tr>
+      <td><b>${escH(a.fullName)}</b><br><span style="font-size:0.75rem;color:var(--ink3)">${escH(a.email)}</span></td>
+      <td>${a.role === 'Owner' ? '<span class="band-badge role-owner">👑 Owner</span>' : '<span class="band-badge">Sub-admin</span>'}</td>
+      <td>${adminStatusBadge(a.status)}</td>
+      <td style="max-width:280px">${permSummary(a)}</td>
+      <td style="font-size:0.78rem;color:var(--ink3)">${formatDate(a.createdAt)}</td>
+      <td style="font-size:0.78rem;color:var(--ink3)">${formatDate(a.lastLogin)}</td>
+      <td>${actions}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  wrap.innerHTML = html;
+}
+
+function adminAct(kind, id) {
+  const a = _admins.find(x => x.adminID === id);
+  if (!a) { toast('❌ Admin not found — refresh the list.'); return; }
+  if (kind === 'approve' || kind === 'edit') return openPermEditor(a, kind === 'approve' ? 'approve' : 'edit');
+  if (kind === 'reject')  return adminSimple('rejectAdmin', a, `${a.status === 'Approved' ? 'Revoke access for' : 'Reject'} ${a.fullName}? They will not be able to log in to the admin panel.`, 'Updated.');
+  if (kind === 'delete')  return adminSimple('deleteAdmin', a, `DELETE the account for ${a.fullName} (${a.email})?\n\nThis cannot be undone.`, '🗑️ Deleted.');
+  if (kind === 'resetpw') return resetAdminPw(a);
+}
+
+async function adminSimple(action, a, confirmMsg, doneMsg) {
+  if (!confirm(confirmMsg)) return;
+  try {
+    const d = await callSheets({ action, adminID: a.adminID });
+    if (d.success) { toast(doneMsg); loadAdmins(); } else alert(d.message || 'Failed.');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+function openPermEditor(a, mode) {
+  _permEdit = { id: a.adminID, mode };
+  const hasPerms = (a.permissions || []).length > 0;
+  document.getElementById('admin-perm-title').textContent = (mode === 'approve' ? 'Approve — ' : 'Edit access — ') + a.fullName;
+  document.getElementById('admin-perm-info').textContent = mode === 'approve'
+    ? 'Choose which sections they can open, then approve. You can change this later.'
+    : 'Tick the sections this sub-admin can open. Changes apply the next time their page loads.';
+  document.getElementById('admin-perm-save').textContent = mode === 'approve' ? '✅ Approve with this access' : '💾 Save access';
+  renderPermGrid('admin-perm-grid', mode === 'approve' && !hasPerms ? DEFAULT_SUB_PERMS : a.permissions);
+  const card = document.getElementById('admin-perm-card');
+  card.style.display = 'block';
+  card.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+function closePermEditor() { _permEdit = null; document.getElementById('admin-perm-card').style.display = 'none'; }
+
+async function savePermEditor() {
+  if (!_permEdit) return;
+  const permissions = collectPerms('admin-perm-grid');
+  if (_permEdit.mode === 'approve' && !permissions.length && !confirm('No sections ticked — they will be able to log in but see nothing. Approve anyway?')) return;
+  try {
+    const d = await callSheets({ action: _permEdit.mode === 'approve' ? 'approveAdmin' : 'setAdminPermissions', adminID: _permEdit.id, permissions });
+    if (d.success) { toast(_permEdit.mode === 'approve' ? '✅ Approved.' : '✅ Access updated.'); closePermEditor(); loadAdmins(); }
+    else alert(d.message || 'Failed.');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function resetAdminPw(a) {
+  const pw = prompt(`Set a new password for ${a.fullName} (min. 8 characters).\nShare it with them privately.`);
+  if (pw === null) return;
+  if (pw.length < 8) { alert('Password must be at least 8 characters.'); return; }
+  try {
+    const d = await callSheets({ action:'resetAdminPassword', adminID: a.adminID, newPassword: pw });
+    if (d.success) toast('🔑 Password reset.'); else alert(d.message || 'Failed.');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function createSubAdmin() {
+  const fullName = document.getElementById('new-sub-name').value.trim();
+  const email    = document.getElementById('new-sub-email').value.trim().toLowerCase();
+  const password = document.getElementById('new-sub-pass').value;
+  const permissions = collectPerms('new-sub-perms');
+  if (!fullName) { alert('Please enter a full name.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Please enter a valid email address.'); return; }
+  if (password.length < 8) { alert('Password must be at least 8 characters.'); return; }
+  if (!confirm(`Create sub-admin ${fullName} (${email}) with access to ${permissions.length} section(s)?`)) return;
+  try {
+    const d = await callSheets({ action:'createAdmin', fullName, email, password, permissions });
+    if (d.success) {
+      toast('✅ Sub-admin created.');
+      ['new-sub-name','new-sub-email','new-sub-pass'].forEach(id => document.getElementById(id).value = '');
+      renderPermGrid('new-sub-perms', DEFAULT_SUB_PERMS);
+      loadAdmins();
+    } else alert(d.message || 'Failed.');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ═══════════════════════════════════════
+
 // UTILS
+
 // ═══════════════════════════════════════
 function escH(str) {
   return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
