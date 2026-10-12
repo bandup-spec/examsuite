@@ -73,7 +73,21 @@
   .page-title{font-family:'Source Serif 4',serif;font-size:1.5rem;font-weight:600;color:var(--blue);margin-bottom:6px}
   .page-desc{font-size:0.88rem;color:var(--ink3);margin-bottom:28px}
 
-  .test-card{background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:22px 24px;margin-bottom:14px;display:flex;align-items:center;gap:18px;transition:all 0.2s;cursor:pointer}
+  .test-card{background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:22px 24px;margin-bottom:14px;display:flex;align-items:center;gap:18px;transition:transform 0.18s cubic-bezier(0.16,1,0.3,1),box-shadow 0.18s ease,border-color 0.18s ease;cursor:pointer;animation:testCardIn 0.35s cubic-bezier(0.16,1,0.3,1) backwards}
+  .test-card:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,0.09);border-color:var(--blue2)}
+  .test-card:active{transform:translateY(0) scale(0.995)}
+  .test-card:nth-of-type(1){animation-delay:0.03s} .test-card:nth-of-type(2){animation-delay:0.08s}
+  .test-card:nth-of-type(3){animation-delay:0.13s} .test-card:nth-of-type(4){animation-delay:0.18s}
+  .test-card:nth-of-type(5){animation-delay:0.23s} .test-card:nth-of-type(n+6){animation-delay:0.28s}
+  @keyframes testCardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .btn-hdr,.icon-btn,.type-card{transition:transform 0.15s ease,box-shadow 0.15s ease,opacity 0.15s ease}
+  .btn-hdr:hover,.icon-btn:hover{transform:translateY(-1px)}
+  .btn-hdr:active,.icon-btn:active{transform:translateY(0) scale(0.97)}
+
+  body.no-animations, body.no-animations *, body.no-animations *::before, body.no-animations *::after{
+    animation-duration:0.001s !important; animation-delay:0s !important;
+    transition-duration:0.001s !important; transition-delay:0s !important;
+  }
   .test-card:hover{border-color:var(--blue2);box-shadow:0 4px 16px rgba(0,47,95,0.08);transform:translateY(-1px)}
   .test-icon{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--blue2));display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;color:var(--gold)}
   .test-info{flex:1;min-width:0}
@@ -156,6 +170,13 @@
             <span class="slider-track"></span>
           </label>
         </div>
+        <div class="settings-row">
+          <span class="settings-label">✨ Animations</span>
+          <label class="switch">
+            <input type="checkbox" id="anim-switch" checked onchange="toggleAnimations()">
+            <span class="slider-track"></span>
+          </label>
+        </div>
         <div class="settings-row" style="flex-direction:column;align-items:stretch">
           <span class="settings-label" style="margin-bottom:8px">🔤 Font Size</span>
           <div class="fs-slider-wrap">
@@ -172,8 +193,14 @@
 
 <div class="tests-page">
 
-  <!-- TOP: Test Type Filter Grid -->
-  <div class="type-grid">
+  <!-- Course lock badge — replaces the old "browse by type" filter grid,
+       since a candidate is now locked to one course and switching types
+       would just show an empty list. -->
+  <div id="course-lock-badge" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--paper1,#f4f1ea);border-radius:8px;margin-bottom:16px;font-size:0.85rem;color:var(--ink2)">
+    <span>🔒</span>
+    <span>You're registered for <b id="course-lock-label">IELTS</b> — only <b id="course-lock-label2">IELTS</b> tests are shown here. Ask the admin if this needs to change.</span>
+  </div>
+  <div class="type-grid" style="display:none">
     <button class="type-card active" data-type="all" onclick="filterByType('all',this)">
       <span class="type-icon">📋</span>
       <span>All Tests</span>
@@ -264,6 +291,10 @@ function initAccessibilityPrefs() {
   if (darkOn) document.body.classList.add('dark-mode');
   const darkSwitch = document.getElementById('dark-mode-switch');
   if (darkSwitch) darkSwitch.checked = darkOn;
+  const animsOff = localStorage.getItem('ielts_animations_off') === '1';
+  if (animsOff) document.body.classList.add('no-animations');
+  const animSwitch = document.getElementById('anim-switch');
+  if (animSwitch) animSwitch.checked = !animsOff;
 }
 function applyFontScale() {
   document.documentElement.style.fontSize = fontScalePct + '%';
@@ -277,6 +308,12 @@ function setFontSize(pct) {
   if (isNaN(val) || val < FONT_SCALE_MIN || val > FONT_SCALE_MAX) return;
   fontScalePct = val;
   applyFontScale();
+}
+function toggleAnimations() {
+  const isOff = document.body.classList.toggle('no-animations');
+  localStorage.setItem('ielts_animations_off', isOff ? '1' : '0');
+  const animSwitch = document.getElementById('anim-switch');
+  if (animSwitch) animSwitch.checked = !isOff;
 }
 function toggleDarkMode() {
   const isDark = document.body.classList.toggle('dark-mode');
@@ -307,6 +344,15 @@ window.onload = async () => {
   candidateData = JSON.parse(raw);
   document.getElementById('disp-name').textContent = candidateData.fullName || 'Guest';
 
+  // Course lock badge (the database enforces the lock too — this just tells the student why they see what they see)
+  const myCourseLabel = (candidateData.course || 'IELTS').toUpperCase();
+  if (myCourseLabel === 'ALL') {
+    document.getElementById('course-lock-badge').innerHTML = '<span>🔓</span><span>Special account — you can access <b>all</b> course types.</span>';
+  } else {
+    document.getElementById('course-lock-label').textContent = myCourseLabel;
+    document.getElementById('course-lock-label2').textContent = myCourseLabel;
+  }
+
   await loadTests();
 };
 
@@ -315,9 +361,9 @@ async function loadTests() {
   let sets = [];
   let source = 'sheets';
 
-  // Try Google Sheets first
+  // Ask the server first (it only returns tests for this student's course)
   try {
-    const data = await callSheets({ action: 'getTestSets' });
+    const data = await callSheets({ action: 'getTestSets', candidateID: candidateData.candidateID });
     if (data.success && data.sets) sets = data.sets;
   } catch(e) { /* fall through to localStorage */ }
 
@@ -328,7 +374,14 @@ async function loadTests() {
   }
 
   // Only show Active sets
-  const activeSets = sets.filter(s => s.status === 'Active' && s.configURL);
+  let activeSets = sets.filter(s => s.status === 'Active' && s.configURL);
+
+  // Course lock (second layer — the server already filters and refuses drafts/submissions for other courses).
+  // "ALL" is a special admin-granted course that skips this filter.
+  const myCourse = (candidateData.course || 'IELTS').toUpperCase();
+  if (myCourse !== 'ALL') {
+    activeSets = activeSets.filter(s => (s.examType || 'IELTS').toUpperCase() === myCourse);
+  }
 
   // Sort by date, newest first
   activeSets.sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
