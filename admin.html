@@ -339,6 +339,9 @@
     <button class="sb-btn" onclick="showPanel('p-drive')"     id="sb-p-drive" data-owner-only><span class="sb-icon">☁️</span> Drive Config</button>
     <button class="sb-btn" onclick="showPanel('p-account')"   id="sb-p-account" data-sub-only><span class="sb-icon">🔑</span> My Account</button>
     <button class="sb-btn" onclick="showPanel('p-admins')"    id="sb-p-admins" data-owner-only><span class="sb-icon">🛡️</span> Admins <span id="admin-pending-badge" style="display:none;background:var(--gold);color:var(--blue);border-radius:10px;padding:1px 7px;font-size:0.7rem;font-weight:700;margin-left:auto"></span></button>
+    <div class="sb-section">Preview as candidate</div>
+    <button class="sb-btn" onclick="openPreview('tests.html')"   id="sb-pv-tests"><span class="sb-icon">📝</span> Tests &amp; Simulations</button>
+    <button class="sb-btn" onclick="openPreview('profile.html')" id="sb-pv-profile"><span class="sb-icon">👤</span> Candidate Profile</button>
   </div>
 
   <!-- CONTENT -->
@@ -2691,6 +2694,20 @@ async function openAnswerSheetPopup() {
 
 // ═══════════════════════════════════════
 
+// PREVIEW AS CANDIDATE
+// Opens the real candidate pages in a new tab, read-only (nothing is saved — see bandup-api.js).
+// ═══════════════════════════════════════
+function openPreview(page) {
+  try {   // the new tab has its own sessionStorage, so hand the admin session over for a few seconds
+    const keep = {};
+    ['adminToken','userRole','adminRole','adminName','adminPerms'].forEach(k => { const v = sessionStorage.getItem(k); if (v !== null) keep[k] = v; });
+    localStorage.setItem('bandupPreviewHandoff', JSON.stringify({ t: Date.now(), s: keep }));
+  } catch(e) {}
+  const w = window.open(page + '?preview=1', '_blank');
+  if (!w) toast('⚠️ Pop-up blocked — allow pop-ups for this site, then try again.');
+}
+
+// ═══════════════════════════════════════
 // MY ACCOUNT (sub-admins)
 // ═══════════════════════════════════════
 async function changeMyPassword() {
