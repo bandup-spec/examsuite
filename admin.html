@@ -446,7 +446,7 @@
     <!-- SCORES PANEL -->
     <div id="p-scores" class="panel">
       <div class="panel-title">Test Scores</div>
-      <div class="panel-desc">Live scores of all submitted tests from Google Sheets.</div>
+      <div class="panel-desc">Live scores of all submitted tests. Owners can delete score history here (permanent — see the 🗑️ buttons).</div>
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
           <div class="card-title" style="margin:0">Scores List</div>
@@ -454,6 +454,7 @@
             <span class="sheets-status" id="scores-status"></span>
             <button class="refresh-btn" onclick="loadScores()">🔄 Refresh</button>
             <button class="btn btn-gold" onclick="exportScoresPDF()" style="padding:6px 14px;font-size:0.8rem">📄 Export PDF</button>
+            <button class="btn btn-red" data-owner-only onclick="openClearHistory('')" style="padding:6px 14px;font-size:0.8rem">🗑️ Delete history…</button>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
@@ -466,7 +467,7 @@
           <span id="scores-count-label" style="font-size:0.78rem;color:var(--ink3);white-space:nowrap"></span>
         </div>
         <div id="scores-table-wrap">
-          <div class="tbl-empty">Click Refresh to load scores from Google Sheets.</div>
+          <div class="tbl-empty">Click Refresh to load scores.</div>
         </div>
       </div>
     </div>
@@ -1052,7 +1053,8 @@ function renderCandidateTable(rows, highlight) {
       : status === 'Rejected'
       ? `<button class="btn btn-green" style="padding:3px 8px;font-size:0.75rem" data-id="${escH(r[0])}" onclick="approveCand(this.dataset.id)">✓ Approve</button>`
       : `<button class="btn btn-ghost" style="padding:3px 8px;font-size:0.75rem" data-id="${escH(r[0])}" onclick="rejectCand(this.dataset.id)">✕ Revoke</button>`;
-    const actionsAll = actions + ` <button class="btn btn-red" style="padding:3px 8px;font-size:0.75rem;margin-left:4px" data-id="${escH(r[0])}" data-name="${escH(r[1])}" onclick="deleteCand(this.dataset.id,this.dataset.name)">🗑️ Delete</button>`;
+    const actionsAll = actions + ` <button class="btn btn-red" style="padding:3px 8px;font-size:0.75rem;margin-left:4px" data-id="${escH(r[0])}" data-name="${escH(r[1])}" onclick="deleteCand(this.dataset.id,this.dataset.name)">🗑️ Delete</button>`
+      + (isOwner() ? ` <button class="btn btn-ghost" style="padding:3px 8px;font-size:0.75rem;margin-left:4px" title="Delete this candidate's test score history" data-id="${escH(r[0])}" onclick="openClearHistory(this.dataset.id)">🧹 Scores</button>` : '');
     html += `<tr>
       <td><b>${hl(r[0])}</b></td>
       <td>${hl(r[1])}</td>
@@ -1136,7 +1138,7 @@ async function loadScores() {
 function filterScores() {
   const q = document.getElementById('scores-search').value.trim().toLowerCase();
   const filtered = q
-    ? _scoreRows.filter(r => String(r[1]||'').toLowerCase().includes(q) || String(r[2]||'').toLowerCase().includes(q))
+    ? _scoreRows.filter(r => String(r[2]||'').toLowerCase().includes(q) || String(r[3]||'').toLowerCase().includes(q))
     : _scoreRows;
   renderScoresTable(filtered, q);
 }
@@ -1166,8 +1168,10 @@ function renderScoresTable(rows, highlight) {
       <th>Date</th><th>Candidate ID</th><th>Full Name</th>
       <th>L Score</th><th>L Band</th>
       <th>R Score</th><th>R Band</th>
-      <th>Writing</th><th>Speaking</th><th>Overall</th><th>Answers</th>
+      <th>Writing</th><th>Speaking</th><th>Overall</th><th>Answers</th>${isOwner() ? '<th>Delete</th>' : ''}
     </tr></thead><tbody>`;
+  const delCell = r => isOwner()
+    ? `<td><button class="btn btn-red" style="padding:3px 8px;font-size:0.72rem" title="Delete this attempt permanently" data-id="${escH(r[0])}" onclick="deleteScoreRow(this.dataset.id)">🗑️</button></td>` : '';
   rows.forEach(r => {
     // [1]=Timestamp [2]=CandidateID [3]=FullName
     // [6]=LScore [7]=LBand [8]=RScore [9]=RBand
@@ -1186,7 +1190,7 @@ function renderScoresTable(rows, highlight) {
         <td><span class="band-badge">${escH(String(r[26]||'—'))}</span></td>
         <td colspan="2" style="text-align:center;color:var(--ink3);font-size:0.78rem">— (TOEIC has no Writing/Speaking) —</td>
         <td><span class="band-badge band-high">${escH(String(r[27]||'—'))} / 990</span></td>
-        <td><button class="btn btn-ghost" style="padding:3px 8px;font-size:0.72rem" data-id="${escH(r[0])}" onclick="viewCandidateAnswers(this.dataset.id)">👁 Answers</button></td>
+        <td><button class="btn btn-ghost" style="padding:3px 8px;font-size:0.72rem" data-id="${escH(r[0])}" onclick="viewCandidateAnswers(this.dataset.id)">👁 Answers</button></td>${delCell(r)}
       </tr>`;
       return;
     }
@@ -1205,7 +1209,7 @@ function renderScoresTable(rows, highlight) {
       <td><span class="band-badge">${escH(String(r[12]||'—'))}</span></td>
       <td><span class="band-badge">${escH(String(r[13]||'—'))}</span></td>
       <td><span class="band-badge ${bandClass(overall)}">${overall||'—'}</span></td>
-      <td><button class="btn btn-ghost" style="padding:3px 8px;font-size:0.72rem" data-id="${escH(r[0])}" onclick="viewCandidateAnswers(this.dataset.id)">👁 Answers</button></td>
+      <td><button class="btn btn-ghost" style="padding:3px 8px;font-size:0.72rem" data-id="${escH(r[0])}" onclick="viewCandidateAnswers(this.dataset.id)">👁 Answers</button></td>${delCell(r)}
     </tr>`;
   });
   html += '</tbody></table></div>';
@@ -3062,6 +3066,86 @@ async function viewCandidateAnswers(submissionID) {
 
   showAnswerModal('Answers — ' + candidateName,
     keyMsg + `<div style="overflow-x:auto">${compareTable(lAnswers, listeningKey, 'Listening')}${compareTable(rAnswers, readingKey, 'Reading')}</div>`);
+}
+
+
+// ═══════════════════════════════════════
+// DELETE SCORE HISTORY (owner only, permanent — the server also writes every deletion to its audit log)
+// ═══════════════════════════════════════
+async function deleteScoreRow(submissionID) {
+  const r = _scoreRows.find(x => x[0] === submissionID);
+  if (!r) { toast('❌ Submission not found — refresh the list.'); return; }
+  if (!confirm(`Delete this score PERMANENTLY?\n\nCandidate: ${r[3] || ''} (${r[2] || ''})\nTest: ${r[5] || r[4] || '—'}\nSubmitted: ${formatDate(r[1])}\n\nThis cannot be undone.`)) return;
+  try {
+    const d = await callSheets({ action: 'deleteScore', submissionID });
+    if (d.success) {
+      _scoreRows = _scoreRows.filter(x => x[0] !== submissionID);
+      const st = document.getElementById('scores-status'); if (st) st.textContent = `✅ ${_scoreRows.length} submissions`;
+      filterScores();
+      toast('🗑️ Score deleted.');
+    } else alert(d.message || 'Could not delete.');
+  } catch (e) { alert('Error: ' + e.message); }
+}
+
+// Dialog: pick a candidate (and optionally one test), see exactly what will go, type DELETE to confirm.
+async function openClearHistory(candidateID) {
+  if (!_scoreRows.length) { try { await loadScores(); } catch (e) {} }
+  const old = document.getElementById('clear-history-modal'); if (old) old.remove();
+  const ids = [...new Set(_scoreRows.map(r => r[2]).filter(Boolean))].sort();
+  const ov = document.createElement('div');
+  ov.id = 'clear-history-modal';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
+  ov.innerHTML = `<div style="background:var(--paper,#fff);color:var(--ink,#111);border-radius:12px;padding:22px 24px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+    <h3 style="margin:0 0 4px;font-size:1.05rem">🗑️ Delete score history</h3>
+    <p style="margin:0 0 14px;font-size:.82rem;color:var(--ink2)">Permanently removes test results. The candidate's account is not touched. <b>Tip:</b> use “Export PDF” on the Scores page first if you may need a copy.</p>
+    <div class="field"><label>Candidate ID</label>
+      <input type="text" id="ch-cid" list="ch-cid-list" placeholder="e.g. CWA-01234" autocomplete="off" style="text-transform:uppercase">
+      <datalist id="ch-cid-list">${ids.map(i => `<option value="${escH(i)}">`).join('')}</datalist></div>
+    <div class="field"><label>Which results?</label><select id="ch-set"><option value="">All of this candidate's tests</option></select></div>
+    <div id="ch-preview" style="font-size:.82rem;line-height:1.6;border:1px solid var(--paper3);border-radius:8px;padding:10px 12px;margin-bottom:12px;background:var(--paper2)"></div>
+    <div class="field"><label>Type <b>DELETE</b> to confirm</label><input type="text" id="ch-confirm" autocomplete="off" placeholder="DELETE"></div>
+    <div id="ch-msg" style="min-height:18px;font-size:.82rem;color:var(--red);margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" id="ch-cancel">Cancel</button>
+      <button class="btn btn-red" id="ch-go" disabled>🗑️ Delete permanently</button></div></div>`;
+  document.body.appendChild(ov);
+  const $ = id => ov.querySelector('#' + id);
+  const matching = () => {
+    const cid = $('ch-cid').value.trim().toUpperCase(), sid = $('ch-set').value;
+    return _scoreRows.filter(r => String(r[2]).toUpperCase() === cid && (!sid || r[4] === sid));
+  };
+  const refresh = (rebuildSets) => {
+    const cid = $('ch-cid').value.trim().toUpperCase();
+    if (rebuildSets) {
+      const sets = new Map(); _scoreRows.filter(r => String(r[2]).toUpperCase() === cid).forEach(r => sets.set(r[4], r[5] || r[4]));
+      const keep = $('ch-set').value;
+      $('ch-set').innerHTML = '<option value="">All of this candidate\'s tests</option>' + [...sets].map(([id, n]) => `<option value="${escH(id)}">${escH(n)}</option>`).join('');
+      if (sets.has(keep)) $('ch-set').value = keep;
+    }
+    const rows = matching();
+    $('ch-preview').innerHTML = !cid ? 'Enter a candidate ID.'
+      : !rows.length ? `No score history found for <b>${escH(cid)}</b>${$('ch-set').value ? ' in that test' : ''}.`
+      : `<b>${rows.length}</b> submission${rows.length === 1 ? '' : 's'} for <b>${escH(rows[0][3] || cid)}</b> will be deleted:<br>` +
+        rows.slice(0, 8).map(r => `• ${escH(r[5] || r[4] || 'Test')} — ${escH(formatDate(r[1]))}`).join('<br>') + (rows.length > 8 ? `<br>…and ${rows.length - 8} more` : '');
+    $('ch-go').disabled = !(rows.length && $('ch-confirm').value.trim() === 'DELETE');
+  };
+  $('ch-cid').value = (candidateID || '').toUpperCase();
+  $('ch-cid').oninput = () => refresh(true); $('ch-set').onchange = () => refresh(false); $('ch-confirm').oninput = () => refresh(false);
+  $('ch-cancel').onclick = () => ov.remove();
+  $('ch-go').onclick = async () => {
+    const cid = $('ch-cid').value.trim().toUpperCase(), sid = $('ch-set').value;
+    $('ch-go').disabled = true; $('ch-go').textContent = 'Deleting…'; $('ch-msg').textContent = '';
+    try {
+      const d = await callSheets({ action: 'deleteCandidateScores', candidateID: cid, testSetID: sid || undefined });
+      if (d.success) {
+        ov.remove();
+        toast('🗑️ ' + (d.message || 'Deleted.'));
+        try { await loadScores(); } catch (e) {}
+      } else { $('ch-msg').textContent = d.message || 'Could not delete.'; $('ch-go').textContent = '🗑️ Delete permanently'; refresh(false); }
+    } catch (e) { $('ch-msg').textContent = e.message; $('ch-go').textContent = '🗑️ Delete permanently'; refresh(false); }
+  };
+  refresh(true);
+  (candidateID ? $('ch-confirm') : $('ch-cid')).focus();
 }
 
 </script>
