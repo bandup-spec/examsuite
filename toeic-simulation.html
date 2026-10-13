@@ -768,6 +768,8 @@ async function submitTest(autoSubmit){
 }
 
 async function doSubmitTest(autoSubmit){
+  // Admin preview: never submit anything — show the "preview finished" screen instead.
+  if (window.BANDUP_PREVIEW && BANDUP_PREVIEW.on()) { clearInterval(timerInterval); BANDUP_PREVIEW.finish(); return; }
   clearInterval(timerInterval);
   const candidateData = JSON.parse(sessionStorage.getItem('candidateData')||'{}');
 
