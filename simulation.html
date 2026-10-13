@@ -2078,6 +2078,8 @@ function closeReviewModal(){
 }
 
 async function submitTest(autoSubmit){
+  // Admin preview: never submit anything — show the "preview finished" screen instead.
+  if (window.BANDUP_PREVIEW && BANDUP_PREVIEW.on()) { BANDUP_PREVIEW.finish(); return; }
   // autoSubmit is also used for "already reviewed" — the review modal is the
   // confirmation step now, so a manual submit only reaches here after it.
   try {
