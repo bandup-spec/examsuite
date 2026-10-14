@@ -24,10 +24,21 @@
     --input-bg:#23243a;--input-bg-focus:#2a2c46;
   }
 
-  .a11y-bar{position:fixed;top:16px;right:16px;z-index:5;display:flex;gap:6px;align-items:center}
-  .a11y-bar .fs-btn,.a11y-bar #dark-mode-toggle{background:var(--paper);border:1px solid var(--border);color:var(--ink2)}
-  .a11y-bar .fs-btn:hover,.a11y-bar #dark-mode-toggle:hover{background:var(--paper2)}
-  .font-size-ctrl{display:flex;gap:8px;align-items:center;background:var(--paper);border:1px solid var(--border);border-radius:5px;padding:6px 10px}
+  /* BURGER MENU (accessibility settings) */
+  .a11y-menu{position:fixed;top:16px;right:16px;z-index:10}
+  .burger-btn{width:40px;height:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:var(--paper);border:1px solid var(--border);border-radius:8px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
+  .burger-btn:hover{background:var(--paper2)}
+  .burger-btn span{display:block;width:18px;height:2px;background:var(--ink2);border-radius:2px;transition:transform 0.2s ease,opacity 0.2s ease}
+  .burger-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .burger-btn.open span:nth-child(2){opacity:0}
+  .burger-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+  .a11y-panel{position:absolute;top:48px;right:0;width:250px;background:var(--paper);border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,0.25);padding:12px 14px;display:flex;flex-direction:column;gap:12px}
+  .a11y-panel[hidden]{display:none}
+  .a11y-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .a11y-label{font-size:0.78rem;font-weight:600;color:var(--ink2)}
+  .a11y-panel .fs-btn{background:var(--paper2);border:1px solid var(--border);color:var(--ink2)}
+  .a11y-panel .fs-btn:hover{background:var(--paper3)}
+  .font-size-ctrl{display:flex;gap:8px;align-items:center}
   .fs-icon{font-family:'DM Sans',sans-serif;font-weight:700;color:var(--ink2);line-height:1;user-select:none}
   .fs-icon-sm{font-size:0.68rem}
   .fs-icon-lg{font-size:1rem}
@@ -179,15 +190,29 @@
 </head>
 <body>
 
-<div class="a11y-bar">
-  <div class="font-size-ctrl" title="Adjust text size">
-    <span class="fs-icon fs-icon-sm">A</span>
-    <input type="range" class="fs-slider" id="fs-slider" min="85" max="145" step="1" value="100"
-           oninput="setFontSize(this.value)" aria-label="Text size">
-    <span class="fs-icon fs-icon-lg">A</span>
+<div class="a11y-menu" id="a11y-menu">
+  <button class="burger-btn" id="burger-btn" onclick="toggleA11yMenu()" aria-label="Display settings" aria-expanded="false" aria-controls="a11y-panel">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="a11y-panel" id="a11y-panel" hidden>
+    <div class="a11y-row">
+      <span class="a11y-label">Text size</span>
+      <div class="font-size-ctrl" title="Adjust text size">
+        <span class="fs-icon fs-icon-sm">A</span>
+        <input type="range" class="fs-slider" id="fs-slider" min="85" max="145" step="1" value="100"
+               oninput="setFontSize(this.value)" aria-label="Text size">
+        <span class="fs-icon fs-icon-lg">A</span>
+      </div>
+    </div>
+    <div class="a11y-row">
+      <span class="a11y-label">Dark mode</span>
+      <button class="fs-btn" id="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</button>
+    </div>
+    <div class="a11y-row">
+      <span class="a11y-label">Animations</span>
+      <button class="fs-btn" id="anim-toggle" onclick="toggleAnimations()" title="Toggle animations">✨</button>
+    </div>
   </div>
-  <button class="fs-btn" id="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</button>
-  <button class="fs-btn" id="anim-toggle" onclick="toggleAnimations()" title="Toggle animations">✨</button>
 </div>
 
 <div class="page">
@@ -577,6 +602,22 @@ function toggleDarkMode() {
   const btn = document.getElementById('dark-mode-toggle');
   if (btn) btn.textContent = isDark ? '☀️' : '🌙';
 }
+
+function toggleA11yMenu(forceOpen) {
+  const panel = document.getElementById('a11y-panel');
+  const btn = document.getElementById('burger-btn');
+  const open = typeof forceOpen === 'boolean' ? forceOpen : panel.hidden;
+  panel.hidden = !open;
+  btn.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+document.addEventListener('click', e => {
+  const menu = document.getElementById('a11y-menu');
+  if (menu && !menu.contains(e.target)) toggleA11yMenu(false);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') toggleA11yMenu(false);
+});
 
 window.onload = () => {
   initAccessibilityPrefs();
