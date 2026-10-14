@@ -146,6 +146,32 @@
   .btn-latest-start:hover{opacity:0.88}
   .latest-empty{padding:28px 16px;text-align:center;color:var(--ink3);font-size:0.82rem}
   .latest-empty span{display:block;font-size:1.8rem;margin-bottom:8px}
+
+  /* ── Sort button + menu ── */
+  .list-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+  .list-head .page-desc{margin-bottom:0}
+  .sort-wrap{position:relative}
+  .sort-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--paper);color:var(--ink);border:1px solid var(--border);border-radius:9px;font:600 0.82rem 'DM Sans',sans-serif;cursor:pointer}
+  .sort-btn:hover{border-color:var(--blue2);color:var(--blue)}
+  .sort-menu{display:none;position:absolute;right:0;top:calc(100% + 6px);min-width:210px;background:var(--paper);border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,0.14);z-index:60;overflow:hidden}
+  .sort-menu.open{display:block}
+  .sort-opt{display:flex;align-items:center;width:100%;padding:10px 14px;border:none;background:transparent;color:var(--ink);font:0.84rem 'DM Sans',sans-serif;text-align:left;cursor:pointer}
+  .sort-opt:hover{background:var(--paper2)}
+  .sort-opt.active{font-weight:700;color:var(--blue)}
+  .sort-opt.active::after{content:'✓';margin-left:auto;padding-left:12px}
+  /* ── Tests outside the candidate's course ── */
+  .test-card.locked{opacity:0.78}
+  .test-card.locked .test-icon{filter:grayscale(0.85)}
+  .test-card.locked:hover{border-color:var(--paper3);box-shadow:none;transform:none}
+  .btn-start.locked{background:var(--paper3);color:var(--ink2)}
+  .status-locked{background:rgba(192,57,43,0.10);color:#b03a2e;border:1px solid rgba(192,57,43,0.25)}
+  .type-card .type-lock{font-size:0.78rem;opacity:0.8}
+  .lock-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.55);display:none;align-items:center;justify-content:center;z-index:9999;padding:20px}
+  .lock-modal-bg.open{display:flex}
+  .lock-modal{background:var(--paper);color:var(--ink);border-radius:14px;max-width:430px;width:100%;padding:28px 26px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,0.4)}
+  .lock-modal-icon{font-size:2.2rem;margin-bottom:6px}
+  .lock-modal-title{font-family:'Source Serif 4',serif;font-size:1.2rem;font-weight:600;color:var(--blue);margin-bottom:10px}
+  .lock-modal-text{font-size:0.9rem;line-height:1.65;color:var(--ink2);margin-bottom:18px}
 </style>
 </head>
 <body>
@@ -193,53 +219,27 @@
 
 <div class="tests-page">
 
-  <!-- Course lock badge — replaces the old "browse by type" filter grid,
-       since a candidate is now locked to one course and switching types
-       would just show an empty list. -->
+  <!-- Course banner: everyone can browse every test, but can only TAKE tests of their own course -->
   <div id="course-lock-badge" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--paper1,#f4f1ea);border-radius:8px;margin-bottom:16px;font-size:0.85rem;color:var(--ink2)">
     <span>🔒</span>
-    <span>You're registered for <b id="course-lock-label">IELTS</b> — only <b id="course-lock-label2">IELTS</b> tests are shown here. Ask the admin if this needs to change.</span>
+    <span>You're registered for <b id="course-lock-label">IELTS</b>. You can browse every test, but you can only take <b id="course-lock-label2">IELTS</b> tests — tests marked 🔒 are locked. Need access to another course? Contact the administrator.</span>
   </div>
-  <div class="type-grid" style="display:none">
-    <button class="type-card active" data-type="all" onclick="filterByType('all',this)">
-      <span class="type-icon">📋</span>
-      <span>All Tests</span>
-      <span class="type-count" id="cnt-all">0</span>
-    </button>
-    <button class="type-card" data-type="IELTS" onclick="filterByType('IELTS',this)">
-      <span class="type-icon">🎓</span>
-      <span>IELTS Academic</span>
-      <span class="type-count" id="cnt-IELTS">0</span>
-    </button>
-    <button class="type-card" data-type="TOEIC" onclick="filterByType('TOEIC',this)">
-      <span class="type-icon">💼</span>
-      <span>TOEIC</span>
-      <span class="type-count" id="cnt-TOEIC">0</span>
-    </button>
-    <button class="type-card" data-type="TOEFL" onclick="filterByType('TOEFL',this)">
-      <span class="type-icon">🌐</span>
-      <span>TOEFL</span>
-      <span class="type-count" id="cnt-TOEFL">0</span>
-    </button>
-    <button class="type-card" data-type="Placement" onclick="filterByType('Placement',this)">
-      <span class="type-icon">📍</span>
-      <span>Placement Test</span>
-      <span class="type-count" id="cnt-Placement">0</span>
-    </button>
-    <button class="type-card" data-type="Level-Up" onclick="filterByType('Level-Up',this)">
-      <span class="type-icon">⬆️</span>
-      <span>Level-Up Test</span>
-      <span class="type-count" id="cnt-Level-Up">0</span>
-    </button>
-  </div>
+  <!-- Categories (filled in by renderTypeGrid) -->
+  <div class="type-grid" id="type-grid"></div>
 
   <div class="tests-layout">
 
   <!-- LEFT: Test List -->
   <div>
-    <div style="margin-bottom:20px">
-      <div class="page-title" id="filter-heading">Available Tests</div>
-      <div class="page-desc" id="filter-desc">Select a test set to begin. Tests are listed by date.</div>
+    <div class="list-head">
+      <div>
+        <div class="page-title" id="filter-heading">Available Tests</div>
+        <div class="page-desc" id="filter-desc">Select a test set to begin.</div>
+      </div>
+      <div class="sort-wrap">
+        <button class="sort-btn" id="sort-btn" onclick="toggleSortMenu(event)" aria-haspopup="true">↕ Sort: <span id="sort-label">Newest first</span> ▾</button>
+        <div class="sort-menu" id="sort-menu" role="menu"></div>
+      </div>
     </div>
     <div id="tests-wrap">
       <div class="loading-state">
@@ -263,6 +263,15 @@
     </div>
   </div>
 
+  </div>
+</div>
+
+<div class="lock-modal-bg" id="lock-modal-bg" onclick="if(event.target===this)closeLockModal()">
+  <div class="lock-modal" role="dialog" aria-modal="true" aria-labelledby="lock-modal-title">
+    <div class="lock-modal-icon">🔒</div>
+    <div class="lock-modal-title" id="lock-modal-title">Not available for your course</div>
+    <div class="lock-modal-text" id="lock-modal-text"></div>
+    <button class="btn-start" onclick="closeLockModal()">OK, got it</button>
   </div>
 </div>
 
@@ -344,10 +353,10 @@ window.onload = async () => {
   candidateData = JSON.parse(raw);
   document.getElementById('disp-name').textContent = candidateData.fullName || 'Guest';
 
-  // Course lock badge (the database enforces the lock too — this just tells the student why they see what they see)
+  // Course banner (the database enforces the lock too — this tells the student what they can take)
   const myCourseLabel = (candidateData.course || 'IELTS').toUpperCase();
   if (myCourseLabel === 'ALL') {
-    document.getElementById('course-lock-badge').innerHTML = '<span>🔓</span><span>Special account — you can access <b>all</b> course types.</span>';
+    document.getElementById('course-lock-badge').innerHTML = '<span>🔓</span><span>Special account — you can take <b>all</b> course types.</span>';
   } else {
     document.getElementById('course-lock-label').textContent = myCourseLabel;
     document.getElementById('course-lock-label2').textContent = myCourseLabel;
@@ -356,35 +365,55 @@ window.onload = async () => {
   await loadTests();
 };
 
-async function loadTests() {
-  const wrap = document.getElementById('tests-wrap');
-  let sets = [];
-  let source = 'sheets';
+// ═══════════════════════════════════════
+// TESTS: categories, sorting and the course lock
+// ═══════════════════════════════════════
+let allActiveSets = [];
+let currentFilter = 'all';
+let currentSort = 'newest';
+try { currentSort = localStorage.getItem('tests_sort') || 'newest'; } catch(e) {}
 
-  // Ask the server first (it only returns tests for this student's course)
+const SORT_OPTIONS = [
+  ['newest', 'Newest first'], ['oldest', 'Oldest first'], ['az', 'Name A → Z'], ['za', 'Name Z → A'],
+  ['new', 'Not taken first'], ['mine', 'My course first']
+];
+const TYPE_ORDER = ['IELTS','TOEIC','TOEFL','ESL','Placement','Level-Up'];
+const TYPE_META = {
+  'IELTS':     { icon:'🎓', label:'IELTS Academic', desc:'Full simulation tests for the IELTS Academic module.' },
+  'TOEIC':     { icon:'💼', label:'TOEIC',          desc:'Test of English for International Communication.' },
+  'TOEFL':     { icon:'🌐', label:'TOEFL',          desc:'Test of English as a Foreign Language.' },
+  'ESL':       { icon:'🗣️', label:'ESL',            desc:'English as a Second Language tests.' },
+  'Placement': { icon:'📍', label:'Placement',      desc:'Determine your current English proficiency level.' },
+  'Level-Up':  { icon:'⬆️', label:'Level-Up',       desc:'Challenge tests to advance to a higher level.' }
+};
+const typeMeta = t => TYPE_META[t] || { icon:'📝', label:t, desc:'' };
+
+// The category of a test = its Exam Type (the same field the server uses to enforce the course lock).
+function setType(s) {
+  const up = String((s && s.examType) || 'IELTS').trim().toUpperCase();
+  if (up === 'PLACEMENT') return 'Placement';
+  if (up === 'LEVEL-UP' || up === 'LEVEL UP' || up === 'LEVELUP') return 'Level-Up';
+  return up;
+}
+function myCourse() { return String((candidateData && candidateData.course) || 'IELTS').toUpperCase(); }
+function isAllowed(s) { const c = myCourse(); return c === 'ALL' || setType(s).toUpperCase() === c; }
+function findSet(id) { return allActiveSets.find(x => x.setID === id) || null; }
+function escA(v) { return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+async function loadTests() {
+  let sets = [];
+
+  // Ask the server first (every signed-in candidate sees every test; the lock applies when they try to take one)
   try {
     const data = await callSheets({ action: 'getTestSets', candidateID: candidateData.candidateID });
     if (data.success && data.sets) sets = data.sets;
   } catch(e) { /* fall through to localStorage */ }
 
   // Fallback to localStorage (set by admin's Publish panel)
-  if (!sets.length) {
-    sets = JSON.parse(localStorage.getItem('ielts_test_sets') || '[]');
-    source = 'local';
-  }
+  if (!sets.length) sets = JSON.parse(localStorage.getItem('ielts_test_sets') || '[]');
 
   // Only show Active sets
-  let activeSets = sets.filter(s => s.status === 'Active' && s.configURL);
-
-  // Course lock (second layer — the server already filters and refuses drafts/submissions for other courses).
-  // "ALL" is a special admin-granted course that skips this filter.
-  const myCourse = (candidateData.course || 'IELTS').toUpperCase();
-  if (myCourse !== 'ALL') {
-    activeSets = activeSets.filter(s => (s.examType || 'IELTS').toUpperCase() === myCourse);
-  }
-
-  // Sort by date, newest first
-  activeSets.sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+  const activeSets = sets.filter(s => s.status === 'Active' && s.configURL);
 
   // Get candidate's taken tests (from their own score history)
   try {
@@ -395,15 +424,13 @@ async function loadTests() {
   } catch(e) { /* optional */ }
 
   allActiveSets = activeSets;
-  updateCounts();
+  renderTypeGrid();
+  renderSortMenu();
+  refreshList();
   renderLatestPanel(activeSets);
-  renderTests(activeSets);
 }
 
-let allActiveSets = [];
-let currentFilter = 'all';
-
-// Infer test type from set name/description
+// Infer test type from set name/description (only used to pick the TOEIC engine for old sets saved without an Exam Type)
 function inferType(s) {
   const text = ((s.setName||'') + ' ' + (s.description||'')).toLowerCase();
   if (text.includes('toeic')) return 'TOEIC';
@@ -414,43 +441,83 @@ function inferType(s) {
   return 'IELTS'; // default
 }
 
+// ── Categories ──
+function renderTypeGrid() {
+  const counts = {};
+  allActiveSets.forEach(s => { const t = setType(s); counts[t] = (counts[t] || 0) + 1; });
+  const types = Object.keys(counts).sort((a, b) => {
+    const ia = TYPE_ORDER.indexOf(a), ib = TYPE_ORDER.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+  });
+  if (currentFilter !== 'all' && !counts[currentFilter]) currentFilter = 'all';
+  const course = myCourse();
+  let html = `<button class="type-card ${currentFilter==='all'?'active':''}" data-type="all" onclick="filterByType('all',this)">
+      <span class="type-icon">📋</span><span>All Tests</span><span class="type-count">${allActiveSets.length}</span></button>`;
+  types.forEach(t => {
+    const m = typeMeta(t), locked = course !== 'ALL' && t.toUpperCase() !== course;
+    html += `<button class="type-card ${currentFilter===t?'active':''}" data-type="${escA(t)}" onclick="filterByType(this.dataset.type,this)">
+      <span class="type-icon">${m.icon}</span><span>${escH(m.label)}</span>${locked ? '<span class="type-lock" title="Not part of your course — you can browse these but not take them">🔒</span>' : ''}<span class="type-count">${counts[t]}</span></button>`;
+  });
+  document.getElementById('type-grid').innerHTML = html;
+}
+
 function filterByType(type, btn) {
   currentFilter = type;
   document.querySelectorAll('.type-card').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-
-  const typeLabels = {
-    'all': ['Available Tests', 'Select a test set to begin. Tests are listed by date.'],
-    'IELTS': ['IELTS Academic', 'Full simulation tests for IELTS Academic module.'],
-    'TOEIC': ['TOEIC Tests', 'Test of English for International Communication.'],
-    'TOEFL': ['TOEFL Tests', 'Test of English as a Foreign Language.'],
-    'Placement': ['Placement Tests', 'Determine your current English proficiency level.'],
-    'Level-Up': ['Level-Up Tests', 'Challenge tests to advance to a higher level.'],
-  };
-  const [heading, desc] = typeLabels[type] || ['Available Tests', ''];
-  document.getElementById('filter-heading').textContent = heading;
-  document.getElementById('filter-desc').textContent = desc;
-
-  const filtered = type === 'all' ? allActiveSets : allActiveSets.filter(s => inferType(s) === type);
-  renderTests(filtered);
+  if (btn) btn.classList.add('active');
+  const m = type === 'all' ? { label:'Available Tests', desc:'Select a test set to begin.' } : { label: typeMeta(type).label + ' Tests', desc: typeMeta(type).desc };
+  document.getElementById('filter-heading').textContent = m.label;
+  document.getElementById('filter-desc').textContent = m.desc;
+  refreshList();
 }
 
-function updateCounts() {
-  const types = ['IELTS','TOEIC','TOEFL','Placement','Level-Up'];
-  document.getElementById('cnt-all').textContent = allActiveSets.length;
-  types.forEach(t => {
-    const el = document.getElementById('cnt-' + t);
-    if (el) el.textContent = allActiveSets.filter(s => inferType(s) === t).length;
-  });
+// ── Sorting ──
+function sortSets(list) {
+  const t = s => new Date(s.createdAt || 0).getTime() || 0;
+  const taken = s => myTakenSets.includes(s.setID) ? 1 : 0;
+  const byName = (a, b) => String(a.setName||'').localeCompare(String(b.setName||''), undefined, { numeric:true, sensitivity:'base' });
+  const out = list.slice();
+  switch (currentSort) {
+    case 'oldest': out.sort((a, b) => t(a) - t(b)); break;
+    case 'az':     out.sort(byName); break;
+    case 'za':     out.sort((a, b) => byName(b, a)); break;
+    case 'new':    out.sort((a, b) => taken(a) - taken(b) || t(b) - t(a)); break;
+    case 'mine':   out.sort((a, b) => (isAllowed(b) ? 1 : 0) - (isAllowed(a) ? 1 : 0) || t(b) - t(a)); break;
+    default:       out.sort((a, b) => t(b) - t(a));
+  }
+  return out;
+}
+function renderSortMenu() {
+  document.getElementById('sort-menu').innerHTML = SORT_OPTIONS.map(([k, label]) =>
+    `<button class="sort-opt ${k===currentSort?'active':''}" role="menuitem" onclick="setSort('${k}')">${label}</button>`).join('');
+  const cur = SORT_OPTIONS.find(o => o[0] === currentSort) || SORT_OPTIONS[0];
+  document.getElementById('sort-label').textContent = cur[1];
+}
+function toggleSortMenu(ev) { if (ev) ev.stopPropagation(); document.getElementById('sort-menu').classList.toggle('open'); }
+function setSort(key) {
+  currentSort = key;
+  try { localStorage.setItem('tests_sort', key); } catch(e) {}
+  document.getElementById('sort-menu').classList.remove('open');
+  renderSortMenu();
+  refreshList();
+}
+document.addEventListener('click', () => { const m = document.getElementById('sort-menu'); if (m) m.classList.remove('open'); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { const m = document.getElementById('sort-menu'); if (m) m.classList.remove('open'); closeLockModal(); } });
+
+function refreshList() {
+  const list = currentFilter === 'all' ? allActiveSets : allActiveSets.filter(s => setType(s) === currentFilter);
+  renderTests(sortSets(list));
 }
 
+// ── Latest panel (prefers a test the candidate is actually allowed to take) ──
 function renderLatestPanel(sets) {
   const body = document.getElementById('latest-body');
   const nameEl = document.getElementById('latest-name');
   const descEl = document.getElementById('latest-desc');
 
-  const notTaken = sets.filter(s => !myTakenSets.includes(s.setID));
-  const latest = notTaken[0] || sets[0];
+  const byNewest = sets.slice().sort((a, b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+  const mine = byNewest.filter(isAllowed);
+  const latest = mine.find(s => !myTakenSets.includes(s.setID)) || mine[0] || byNewest[0];
 
   if (!latest) {
     nameEl.textContent = 'No tests available';
@@ -463,28 +530,36 @@ function renderLatestPanel(sets) {
   descEl.textContent = latest.description || '';
 
   const taken = myTakenSets.includes(latest.setID);
+  const locked = !isAllowed(latest);
   const dateStr = formatDate(latest.createdAt);
-  const type = inferType(latest);
 
   body.innerHTML = `
     <div class="latest-meta-row">📅 ${dateStr}</div>
     <div class="latest-stats-grid">
       <div class="latest-stat">
-        <div class="latest-stat-val">${type}</div>
+        <div class="latest-stat-val">${escH(typeMeta(setType(latest)).label)}</div>
         <div class="latest-stat-lbl">Test Type</div>
       </div>
       <div class="latest-stat">
-        <div class="latest-stat-val" style="font-size:0.9rem;color:${taken?'var(--gold)':'var(--green)'}">${taken?'Taken':'New'}</div>
+        <div class="latest-stat-val" style="font-size:0.9rem;color:${locked?'var(--red)':taken?'var(--gold)':'var(--green)'}">${locked?'Locked':taken?'Taken':'New'}</div>
         <div class="latest-stat-lbl">Status</div>
       </div>
     </div>
-    <button class="btn-latest-start" onclick="startTest('${escH(latest.setID)}','${escH(latest.setName)}','${escH(latest.configURL)}')">
-      ${taken ? '🔄 Retake Test' : '▶ Start Now'}
+    <button class="btn-latest-start" data-setid="${escA(latest.setID)}" onclick="startFromLatest(this)">
+      ${locked ? '🔒 Not in your course' : taken ? '🔄 Retake Test' : '▶ Start Now'}
     </button>
-    <div style="font-size:0.72rem;color:var(--ink3);text-align:center;margin-top:8px">Most recently added test</div>
+    <div style="font-size:0.72rem;color:var(--ink3);text-align:center;margin-top:8px">Most recently added test${locked ? '' : ' for your course'}</div>
   `;
 }
+function startFromLatest(btn) {
+  const s = findSet(btn.dataset.setid);
+  if (!s) return;
+  if (!isAllowed(s)) { showCourseLocked(s); return; }
+  if (myTakenSets.includes(s.setID)) retakeConfirm(s.setID, s.setName, s.configURL);
+  else startTest(s.setID, s.setName, s.configURL);
+}
 
+// ── Test list ──
 function renderTests(sets) {
   const wrap = document.getElementById('tests-wrap');
 
@@ -500,22 +575,25 @@ function renderTests(sets) {
   let html = '';
   sets.forEach(s => {
     const taken = myTakenSets.includes(s.setID);
+    const locked = !isAllowed(s);
     const dateStr = formatDate(s.createdAt);
-    const type = inferType(s);
-    const typeIcons = {IELTS:'🎓',TOEIC:'💼',TOEFL:'🌐',Placement:'📍','Level-Up':'⬆️'};
-    html += `<div class="test-card" data-setid="${escH(s.setID)}" data-setname="${escH(s.setName)}" data-configurl="${escH(s.configURL)}" data-taken="${taken?'1':'0'}" onclick="handleCardClick(this)">
-      <div class="test-icon">${typeIcons[type]||'📝'}</div>
+    const type = setType(s), meta = typeMeta(type);
+    const statusHtml = locked
+      ? '<span class="test-status status-locked">🔒 Not in your course</span>'
+      : `<span class="test-status ${taken?'status-taken':'status-active'}">${taken?'Already Taken':'Available'}</span>`;
+    html += `<div class="test-card ${locked?'locked':''}" data-setid="${escA(s.setID)}" data-setname="${escA(s.setName)}" data-configurl="${escA(s.configURL)}" data-taken="${taken?'1':'0'}" onclick="handleCardClick(this)">
+      <div class="test-icon">${meta.icon}</div>
       <div class="test-info">
         <div class="test-name">${escH(s.setName)}</div>
         ${s.description?`<div class="test-desc">${escH(s.description)}</div>`:''}
         <div class="test-meta">
           <span class="test-date">📅 ${dateStr}</span>
-          <span class="test-status ${taken?'status-taken':'status-active'}">${taken?'Already Taken':'Available'}</span>
-          <span style="font-size:0.68rem;background:rgba(0,47,95,0.07);color:var(--blue);padding:2px 7px;border-radius:4px;font-weight:700">${type}</span>
+          ${statusHtml}
+          <span style="font-size:0.68rem;background:rgba(0,47,95,0.07);color:var(--blue);padding:2px 7px;border-radius:4px;font-weight:700">${escH(meta.label)}</span>
         </div>
       </div>
-      <button class="btn-start ${taken?'taken':''}" onclick="event.stopPropagation();handleButtonClick(this.closest('.test-card'))">
-        ${taken?'Retake':'Start →'}
+      <button class="btn-start ${locked?'locked':taken?'taken':''}" onclick="event.stopPropagation();handleButtonClick(this.closest('.test-card'))">
+        ${locked?'🔒 Locked':taken?'Retake':'Start →'}
       </button>
     </div>`;
   });
@@ -524,6 +602,8 @@ function renderTests(sets) {
 }
 
 function handleCardClick(card) {
+  const s = findSet(card.dataset.setid);
+  if (s && !isAllowed(s)) { showCourseLocked(s); return; }
   if (card.dataset.taken === '1') return; // taken — only the Retake button should act
   startTest(card.dataset.setid, card.dataset.setname, card.dataset.configurl);
 }
@@ -532,16 +612,29 @@ function handleButtonClick(card) {
   const setID     = card.dataset.setid;
   const setName   = card.dataset.setname;
   const configURL = card.dataset.configurl;
+  const s = findSet(setID);
+  if (s && !isAllowed(s)) { showCourseLocked(s); return; }
   if (card.dataset.taken === '1') retakeConfirm(setID, setName, configURL);
   else startTest(setID, setName, configURL);
 }
 
+// Shown whenever a candidate tries to open a test that is not part of their course.
+function showCourseLocked(s) {
+  const type = typeMeta(setType(s)).label;
+  document.getElementById('lock-modal-text').innerHTML =
+    `You're registered for <b>${escH(myCourse())}</b>, so you can't take <b>${escH(type)}</b> tests such as “${escH(s.setName)}”.<br><br>` +
+    `You can still browse every test, but only your own course's tests can be taken. ` +
+    `Please reach out to the <b>administrator</b> if you need access to this test.`;
+  document.getElementById('lock-modal-bg').classList.add('open');
+}
+function closeLockModal() { const m = document.getElementById('lock-modal-bg'); if (m) m.classList.remove('open'); }
+
 function startTest(setID, setName, configURL) {
+  const s = findSet(setID);
+  if (s && !isAllowed(s)) { showCourseLocked(s); return; }   // last line of defence — every entry point ends up here
   sessionStorage.setItem('selectedTestSet', JSON.stringify({ setID, setName, configURL }));
-  // TOEIC test sets are named/described with "TOEIC" (see inferType above) and
-  // use their own candidate-facing engine — everything else falls back to the
-  // original IELTS simulation.
-  const isTOEIC = inferType({ setName, description: '' }) === 'TOEIC';
+  // TOEIC tests use their own candidate-facing engine — everything else uses the IELTS simulation.
+  const isTOEIC = (s && setType(s) === 'TOEIC') || inferType({ setName, description: '' }) === 'TOEIC';
   window.location.href = isTOEIC ? 'toeic-simulation.html' : 'simulation.html';
 }
 
