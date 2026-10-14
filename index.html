@@ -263,6 +263,10 @@
             <button onclick="goTo('step1','step-admin-request')" style="background:none;border:none;color:var(--ink3);font-size:0.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
               Teacher or staff? Request admin access
             </button>
+            <span style="color:var(--ink3);font-size:0.78rem"> · </span>
+            <button onclick="openAdminStep('sub','')" style="background:none;border:none;color:var(--blue2);font-size:0.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
+              Admin sign in
+            </button>
           </div>
         </div>
 
@@ -736,7 +740,7 @@ async function handleAdminRequest() {
 
   setLoading('btn-adminreq','spin-adminreq','btn-adminreq-txt',true,'Send Request →');
   try {
-    const data = await callSheets({ action:'registerAdmin', fullName:name, email, password:pass });
+    const data = await callSheets({ action:'requestAdminAccess', fullName:name, email, password:pass });
     if (data.success) {
       showSuc('suc-adminreq', '✅ ' + (data.message || 'Request sent!'));
       document.getElementById('btn-adminreq').style.display = 'none';
@@ -769,16 +773,16 @@ async function verifyAdmin() {
 
   try {
     const data = adminMode === 'sub'
-      ? await callSheets({ action:'adminLogin', email: subEmail, password: pass })
+      ? await callSheets({ action:'verifyAdmin', email: subEmail, password: pass })
       : await callSheets({ action:'verifyAdmin', password: pass });
     if (data.success) {
-      const sub = adminMode === 'sub' && data.admin;
+      const sub = adminMode === 'sub' || data.role === 'SubAdmin';
       sessionStorage.setItem('adminToken', data.adminToken || '');
       sessionStorage.setItem('userRole','Admin');
       sessionStorage.setItem('adminRole', sub ? 'SubAdmin' : 'Owner');
-      sessionStorage.setItem('adminName', sub ? (data.admin.fullName || '') : 'Owner');
-      sessionStorage.setItem('adminPerms', JSON.stringify(sub ? (data.admin.permissions || []) : []));
-      sessionStorage.setItem('candidateName', sub ? (data.admin.fullName || 'ADMIN') : 'SYSTEM ADMIN');
+      sessionStorage.setItem('adminName', sub ? (data.adminName || '') : 'Owner');
+      sessionStorage.setItem('adminPerms', JSON.stringify(sub ? (data.permissions || []) : []));
+      sessionStorage.setItem('candidateName', sub ? (data.adminName || 'ADMIN') : 'SYSTEM ADMIN');
       sessionStorage.setItem('candidateID','000000');
       window.location.href = 'admin.html';
     } else {
