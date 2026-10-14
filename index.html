@@ -130,6 +130,95 @@
   /* CONFIG WARNING */
   .config-warn{background:#fff9e6;border:1px solid #f5d87a;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:0.82rem;color:#7a5f1a;line-height:1.6;display:none}
   .config-warn.show{display:block}
+ /* Footer Container */
+.site-footer {
+  background: var(--blue, #0d1b2a);
+  color: rgba(255, 255, 255, 0.8);
+  border-top: 3px solid var(--gold, #c8a84b);
+  padding: 40px 20px 20px;
+  font-family: inherit;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  justify-content: space-between;
+}
+
+/* Brand Styling */
+.footer-brand {
+  flex: 1 1 300px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Source Serif 4', serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.footer-logo .gold-text {
+  color: var(--gold, #c8a84b);
+}
+
+.footer-desc {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 320px;
+}
+
+/* Links Sections */
+.footer-links {
+  flex: 1 1 160px;
+}
+
+.footer-links h4 {
+  color: #fff;
+  font-size: 0.95rem;
+  margin-bottom: 16px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.footer-links ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 10px;
+}
+
+.footer-links a {
+  color: rgba(255, 255, 255, 0.65);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+  color: var(--gold, #c8a84b);
+}
+
+/* Bottom Copyright Bar */
+.footer-bottom {
+  max-width: 1200px;
+  margin: 32px auto 0;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+}
 </style>
 </head>
 <body>
@@ -439,6 +528,50 @@
   <div class="footer-note">Do not close or refresh this window during the test.</div>
 </div>
 </div><!-- /login-shell -->
+ <footer class="site-footer">
+  <div class="footer-container">
+    <!-- Brand Info Section -->
+    <div class="footer-brand">
+      <div class="footer-logo">
+        <svg width="28" height="28" viewBox="0 0 290 270" role="img" aria-label="BandUp">
+          <rect x="10" y="140" width="70" height="120" rx="10" fill="#c8a84b"/>
+          <rect x="110" y="90" width="70" height="170" rx="10" fill="#d8b85f"/>
+          <rect x="210" y="40" width="70" height="220" rx="10" fill="#c8a84b"/>
+          <path d="M27 110 L127 60 L227 10" fill="none" stroke="#f2e2b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M189 10 L227 10 L227 48" fill="none" stroke="#f2e2b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Band<span class="gold-text">Up</span></span>
+      </div>
+      <p class="footer-desc">Simulation Test Platform for skill enhancement and real-time assessments.</p>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="footer-links">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="#about">About Us</a></li>
+        <li><a href="#simulations">Simulations</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+
+    <!-- Legal Links -->
+    <div class="footer-links">
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="#privacy">Privacy Policy</a></li>
+        <li><a href="#terms">Terms of Service</a></li>
+        <li><a href="#security">Security</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Copyright Bar -->
+  <div class="footer-bottom">
+    <p>&copy; 2026 BandUp. All rights reserved.</p>
+  </div>
+</footer>
 
 <script src="bandup-api.js"></script>
 <script>
