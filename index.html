@@ -23,7 +23,7 @@
     --green:#4caf6e;--red:#e05858;--border:rgba(255,255,255,0.12);
     --input-bg:#23243a;--input-bg-focus:#2a2c46;
   }
-  
+
   .a11y-bar{position:fixed;top:16px;right:16px;z-index:5;display:flex;gap:6px;align-items:center}
   .a11y-bar .fs-btn,.a11y-bar #dark-mode-toggle{background:var(--paper);border:1px solid var(--border);color:var(--ink2)}
   .a11y-bar .fs-btn:hover,.a11y-bar #dark-mode-toggle:hover{background:var(--paper2)}
@@ -33,72 +33,57 @@
   .fs-icon-lg{font-size:1rem}
   .fs-slider{width:80px;height:4px;-webkit-appearance:none;appearance:none;background:var(--paper3);border-radius:2px;outline:none;cursor:pointer}
   .fs-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:var(--blue);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
-  .fs-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--blue);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.3);border:none}
+  .fs-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--blue);cursor:pointer;border:none;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
   .fs-btn{padding:6px 12px;border-radius:5px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;line-height:1}
 
-  /* Full viewport background setup */
-  body{
-    font-family:'DM Sans',sans-serif;
-    margin:0;
-    min-height:100vh;
-    display:flex;
-    flex-direction:column;
-    align-items:flex-end;
-    justify-content:center;
-    background-image:url('img/login-page-img.jpg');
-    background-size:cover;
-    background-position:center;
-    position:relative;
-    color:var(--ink);
-    overflow-x:hidden;
-  }
-  
-  /* Background gradient overlay */
-  body::before{
-    content:'';
-    position:fixed;
-    inset:0;
-    background:linear-gradient(90deg, rgba(0,47,95,0.4) 0%, rgba(0,47,95,0.85) 100%);
-    pointer-events:none;
-    z-index:0;
-  }
-
+  /* PAGE LAYOUT — picture left, login panel right */
+  body{font-family:'DM Sans',sans-serif;margin:0;color:var(--ink);background:var(--paper);overflow-x:hidden}
   body.dark-mode{background-color:#15161f}
 
-  /* Floating card shell on the right */
-  .login-shell{
-    position:relative;
-    z-index:1;
-    display:flex;
-    width:100%;
-    max-width:460px;
-    height:640px;
-    border-radius:20px 0 0 20px;
-    overflow:hidden;
-    box-shadow:-10px 0 40px rgba(0,0,0,0.3);
-    background:var(--paper);
-    margin:40px 0;
+  .page{display:flex;min-height:100vh}
+  .hero{
+    flex:1;position:relative;
+    background:url('img/login-page-img.jpg') center/cover no-repeat;
+    background-color:var(--blue);
   }
-  
-  @media (max-width:800px){
-    body{align-items:center}
-    .login-shell{max-width:420px;height:auto;max-height:92vh;border-radius:16px;margin:20px}
+  .hero::before{
+    content:'';position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(90deg,rgba(0,47,95,0.05) 0%,rgba(0,47,95,0.35) 100%);
   }
 
-  .card{position:relative;z-index:1;flex:1;min-width:0;width:100%;background:var(--paper);border:none;border-radius:0;box-shadow:none;display:flex;flex-direction:column}
-  
-  .card-header{background:var(--blue);padding:24px 32px 20px;text-align:center;border-bottom:3px solid var(--gold)}
-  .brand-lockup{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:4px}
-  .card-logo-text{font-family:'Source Serif 4',serif;font-size:1.5rem;font-weight:600;color:#fff;letter-spacing:0.02em}
+  .login-shell{
+    position:relative;z-index:1;flex:0 0 440px;
+    display:flex;align-items:center;justify-content:center;
+    padding:24px;background:var(--paper2);
+    box-shadow:-10px 0 40px rgba(0,0,0,0.2);
+  }
+
+  @media (max-width:800px){
+    .page{flex-direction:column}
+    .hero{flex:none;height:160px}
+    .login-shell{flex:1 1 auto;box-shadow:none;padding:20px}
+  }
+
+  /* CARD (smaller) */
+  .card{
+    position:relative;width:100%;max-width:360px;min-height:0;
+    max-height:calc(100vh - 48px);
+    background:var(--paper);border:1px solid var(--border);border-radius:14px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.12);overflow:hidden;
+    display:flex;flex-direction:column;
+  }
+  .card-header{background:var(--blue);padding:16px 26px 14px;text-align:center;border-bottom:3px solid var(--gold)}
+  .brand-lockup{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px}
+  .card-logo-text{font-family:'Source Serif 4',serif;font-size:1.3rem;font-weight:600;color:#fff;letter-spacing:0.02em}
   .card-logo-text span{color:var(--gold)}
-  .card-sub{font-size:0.75rem;color:rgba(255,255,255,0.55);letter-spacing:0.1em;text-transform:uppercase;font-weight:600}
-  
-  .card-body{padding:28px 32px;flex:1;overflow-y:auto;min-height:0}
+  .card-sub{font-size:0.7rem;color:rgba(255,255,255,0.55);letter-spacing:0.1em;text-transform:uppercase;font-weight:600}
+
+  .card-body{padding:22px 26px;flex:1;overflow-y:auto;min-height:0}
   .step{animation:stepIn 0.32s cubic-bezier(0.16,1,0.3,1)}
   @keyframes stepIn{from{opacity:0;transform:translateY(10px) scale(0.99)}to{opacity:1;transform:translateY(0) scale(1)}}
-  @keyframes popIn{from{opacity:0;transform:scale(0.92)}to{opacity:1;transform:scale(1)}}
-  .login-shell{animation:popIn 0.4s cubic-bezier(0.16,1,0.3,1)}
-  
+  @keyframes popIn{from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)}}
+  .card{animation:popIn 0.4s cubic-bezier(0.16,1,0.3,1)}
+
   .btn-primary{transition:transform 0.15s cubic-bezier(0.16,1,0.3,1),box-shadow 0.15s ease,background 0.15s ease}
   .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,47,95,0.25)}
   .btn-primary:active{transform:translateY(0) scale(0.98)}
@@ -138,7 +123,7 @@
   .admin-badge{display:inline-block;margin-bottom:12px;background:rgba(200,168,75,0.12);border:1px solid rgba(200,168,75,0.35);color:#7a5f1a;border-radius:6px;padding:4px 12px;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase}
   .welcome-badge{background:#f0f5ff;border:1px solid #c0d0f0;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:0.85rem;color:var(--blue)}
   .welcome-badge b{display:block;font-size:1rem;margin-bottom:2px}
-  .footer-note{text-align:center;font-size:0.75rem;color:var(--ink3);padding:14px 32px;border-top:1px solid var(--border);background:var(--paper2)}
+  .footer-note{text-align:center;font-size:0.75rem;color:var(--ink3);padding:12px 26px;border-top:1px solid var(--border);background:var(--paper2)}
   .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.6s linear infinite;display:none}
   .spinner.show{display:block}
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -155,95 +140,40 @@
   .config-warn{background:#fff9e6;border:1px solid #f5d87a;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:0.82rem;color:#7a5f1a;line-height:1.6;display:none}
   .config-warn.show{display:block}
 
-  /* FULL-BLEED SITE FOOTER */
-  .site-footer {
-    width: 100vw;
-    position: relative;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
-    background: var(--blue, #002f5f);
-    color: rgba(255, 255, 255, 0.85);
-    border-top: 3px solid var(--gold, #c8a84b);
-    padding: 48px 24px 24px;
-    box-sizing: border-box;
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  /* SITE FOOTER — normal full-width block under the page */
+  .site-footer{
+    width:100%;
+    background:var(--blue,#002f5f);
+    color:rgba(255,255,255,0.85);
+    border-top:3px solid var(--gold,#c8a84b);
+    padding:40px 24px 20px;
+    display:flex;flex-direction:column;align-items:center;
   }
-  .footer-container {
-    width: 100%;
-    max-width: 1100px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 32px;
+  .footer-container{
+    width:100%;max-width:1100px;margin:0 auto;
+    display:flex;flex-direction:row;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:32px;
   }
-  .footer-brand {
-    flex: 1 1 320px;
-    max-width: 380px;
+  .footer-brand{flex:1 1 320px;max-width:380px}
+  .footer-logo{
+    display:flex;align-items:center;gap:10px;
+    font-family:'Source Serif 4',serif;font-size:1.5rem;font-weight:600;color:#fff;margin-bottom:12px;
   }
-  .footer-logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-family: 'Source Serif 4', serif;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #ffffff;
-    margin-bottom: 12px;
+  .footer-logo .gold-text{color:var(--gold,#c8a84b)}
+  .footer-desc{font-size:0.875rem;line-height:1.6;color:rgba(255,255,255,0.7);margin:0}
+  .footer-links{flex:0 1 180px}
+  .footer-links h4{color:#fff;font-size:0.875rem;font-weight:700;margin:0 0 16px 0;letter-spacing:0.08em;text-transform:uppercase}
+  .footer-links ul{list-style:none;padding:0;margin:0}
+  .footer-links li{margin-bottom:10px}
+  .footer-links a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.875rem;transition:color 0.2s ease}
+  .footer-links a:hover{color:var(--gold,#c8a84b)}
+  .footer-bottom{
+    width:100%;max-width:1100px;margin:32px auto 0;padding-top:20px;
+    border-top:1px solid rgba(255,255,255,0.12);
+    text-align:center;font-size:0.75rem;color:rgba(255,255,255,0.5);
   }
-  .footer-logo .gold-text {
-    color: var(--gold, #c8a84b);
-  }
-  .footer-desc {
-    font-size: 0.875rem;
-    line-height: 1.6;
-    color: rgba(255, 255, 255, 0.7);
-    margin: 0;
-  }
-  .footer-links {
-    flex: 0 1 180px;
-  }
-  .footer-links h4 {
-    color: #ffffff;
-    font-size: 0.875rem;
-    font-weight: 700;
-    margin: 0 0 16px 0;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .footer-links ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  .footer-links li {
-    margin-bottom: 10px;
-  }
-  .footer-links a {
-    color: rgba(255, 255, 255, 0.7);
-    text-decoration: none;
-    font-size: 0.875rem;
-    transition: color 0.2s ease;
-  }
-  .footer-links a:hover {
-    color: var(--gold, #c8a84b);
-  }
-  .footer-bottom {
-    width: 100%;
-    max-width: 1100px;
-    margin: 40px auto 0;
-    padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-    text-align: center;
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.5);
+  @media (max-width:600px){
+    .footer-container{flex-direction:column;gap:24px}
+    .footer-brand,.footer-links{flex:1 1 auto;max-width:none}
   }
 </style>
 </head>
@@ -260,293 +190,297 @@
   <button class="fs-btn" id="anim-toggle" onclick="toggleAnimations()" title="Toggle animations">✨</button>
 </div>
 
-<div class="login-shell">
-  <div class="card">
-    <div class="card-header">
-      <div class="brand-lockup">
-        <svg width="36" height="36" viewBox="0 0 290 270" role="img" aria-label="BandUp">
-          <rect x="10" y="140" width="70" height="120" rx="10" fill="#c8a84b"/>
-          <rect x="110" y="90" width="70" height="170" rx="10" fill="#d8b85f"/>
-          <rect x="210" y="40" width="70" height="220" rx="10" fill="#c8a84b"/>
-          <path d="M27 110 L127 60 L227 10" fill="none" stroke="#f2e2b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M189 10 L227 10 L227 48" fill="none" stroke="#f2e2b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <div class="card-logo-text">
-          Band<span>Up</span>
-        </div>
-      </div>
-      <div class="card-sub">Simulation Test Platform</div>
-    </div>
-    
-    <div class="card-body">
+<div class="page">
+  <div class="hero" aria-hidden="true"></div>
 
-      <!-- STEP 0: Setup warning if Supabase is not configured -->
-      <div id="setup-warn" class="config-warn">
-        ⚠️ <b>Supabase not configured.</b> Open <code>bandup-api.js</code> in a text editor and set <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code>. See <code>README_SUPABASE.md</code>.
-      </div>
-
-      <!-- STEP 1: Candidate Number -->
-      <div id="step1" class="step">
-        <div class="step-label">Step 1</div>
-        <div class="step-title">Welcome</div>
-        <div class="step-desc">Enter your candidate ID to continue.</div>
-        <div class="field">
-          <label for="candidateNum">Candidate ID</label>
-          <input type="text" id="candidateNum" placeholder="schoolcode-IDnumber" autofocus oninput="this.value=this.value.toUpperCase()">
-          <div style="font-size:0.75rem;color:var(--ink3);margin-top:5px">Enter the school code and ID number.</div>
-        </div>
-        <div class="error-msg" id="err1"></div>
-        <button class="btn-primary" id="btn1" onclick="handleStep1()">
-          <span id="btn1-txt">Continue →</span>
-          <div class="spinner" id="spin1"></div>
-        </button>
-        <div style="font-size:0.75rem;font-style:italic;color:var(--ink3);text-align:center;margin-top:10px;padding:8px;background:var(--paper2);border-radius:6px;line-height:1.5">*Note: Your details are securely stored.</div>
-        <div style="text-align:center;margin-top:12px">
-          <button onclick="goTo('step1','step-admin-request')" style="background:none;border:none;color:var(--ink3);font-size:0.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
-            Teacher or staff? Request admin access
-          </button>
-        </div>
-      </div>
-
-      <!-- STEP ADMIN -->
-      <div id="step-admin" class="step hidden">
-        <button class="back-link" onclick="goTo('step-admin','step1')">Back</button>
-        <div class="admin-badge">Admin Access</div>
-        <div class="step-title">Administrator Login</div>
-        <div class="step-desc" id="adminStepDesc">Enter admin password to access the control panel.</div>
-        <div class="field hidden" id="adminEmailWrap">
-          <label for="adminEmail">Admin Email</label>
-          <input type="email" id="adminEmail" placeholder="name@email.com" autocomplete="username">
-        </div>
-        <div class="field">
-          <label for="adminPass">Password</label>
-          <input type="password" id="adminPass" placeholder="Enter password">
-        </div>
-        <div class="error-msg" id="err-admin"></div>
-        <button class="btn-primary" onclick="verifyAdmin()">Sign In →</button>
-        <div style="text-align:center;margin-top:12px">
-          <button onclick="goTo('step-admin','step-admin-request')" style="background:none;border:none;color:var(--blue2);font-size:0.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
-            No account yet? Request admin access
-          </button>
-        </div>
-      </div>
-
-      <!-- STEP: REQUEST ADMIN ACCESS -->
-      <div id="step-admin-request" class="step hidden">
-        <button class="back-link" onclick="goTo('step-admin-request','step1')">Back</button>
-        <div class="admin-badge">Admin Access</div>
-        <div class="step-title">Request Admin Access</div>
-        <div class="step-desc">Send a request to the Owner. You can sign in once it is approved, and you will only see the sections the Owner gives you.</div>
-        <div class="field">
-          <label for="adminReqName">Full Name</label>
-          <input type="text" id="adminReqName" placeholder="e.g. Maria Santos" autocomplete="name">
-        </div>
-        <div class="field">
-          <label for="adminReqEmail">Email Address</label>
-          <input type="email" id="adminReqEmail" placeholder="name@email.com" autocomplete="email">
-        </div>
-        <div class="field">
-          <label for="adminReqPass">Create Password</label>
-          <div class="pw-wrap">
-            <input type="password" id="adminReqPass" placeholder="At least 8 characters" autocomplete="new-password">
-            <button class="pw-toggle" onclick="togglePw('adminReqPass',this)" type="button">Show</button>
+  <div class="login-shell">
+    <div class="card">
+      <div class="card-header">
+        <div class="brand-lockup">
+          <svg width="32" height="32" viewBox="0 0 290 270" role="img" aria-label="BandUp">
+            <rect x="10" y="140" width="70" height="120" rx="10" fill="#c8a84b"/>
+            <rect x="110" y="90" width="70" height="170" rx="10" fill="#d8b85f"/>
+            <rect x="210" y="40" width="70" height="220" rx="10" fill="#c8a84b"/>
+            <path d="M27 110 L127 60 L227 10" fill="none" stroke="#f2e2b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M189 10 L227 10 L227 48" fill="none" stroke="#f2e2b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="card-logo-text">
+            Band<span>Up</span>
           </div>
         </div>
-        <div class="field">
-          <label for="adminReqConfirm">Confirm Password</label>
-          <div class="pw-wrap">
-            <input type="password" id="adminReqConfirm" placeholder="Re-enter password" autocomplete="new-password">
-            <button class="pw-toggle" onclick="togglePw('adminReqConfirm',this)" type="button">Show</button>
-          </div>
-        </div>
-        <div class="error-msg" id="err-adminreq"></div>
-        <div class="success-msg" id="suc-adminreq"></div>
-        <button class="btn-primary" id="btn-adminreq" onclick="handleAdminRequest()">
-          <span id="btn-adminreq-txt">Send Request →</span>
-          <div class="spinner" id="spin-adminreq"></div>
-        </button>
+        <div class="card-sub">Simulation Test Platform</div>
       </div>
 
-      <!-- STEP 2a: RETURNING candidate — password login -->
-      <div id="step-login" class="step hidden">
-        <button class="back-link" onclick="goTo('step-login','step1')">Back</button>
-        <div class="step-label">Welcome Back</div>
-        <div class="welcome-badge" id="welcome-badge">
-          <b id="welcome-name">Loading...</b>
-          <span id="welcome-id" style="color:var(--ink3);font-size:0.78rem"></span>
-        </div>
-        <div class="step-desc">Enter your password to continue.</div>
-        <div class="field">
-          <label for="loginPass">Password</label>
-          <div class="pw-wrap">
-            <input type="password" id="loginPass" placeholder="Enter your password">
-            <button class="pw-toggle" onclick="togglePw('loginPass',this)" type="button">Show</button>
-          </div>
-        </div>
-        <div class="error-msg" id="err-login"></div>
-        <button class="btn-primary" id="btn-login" onclick="handleLogin()">
-          <span id="btn-login-txt">Sign In →</span>
-          <div class="spinner" id="spin-login"></div>
-        </button>
-        <div style="text-align:center;margin-top:12px">
-          <button onclick="goForgotPassword()" style="background:none;border:none;color:var(--blue2);font-size:0.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
-            Forgot password?
-          </button>
-        </div>
-      </div>
+      <div class="card-body">
 
-      <!-- STEP 2b: NEW candidate — fill details + create password -->
-      <div id="step-register" class="step hidden">
-        <button class="back-link" onclick="goTo('step-register','step1')">Back</button>
-        <div class="step-label">New Candidate — Registration</div>
-        <div class="step-title">Personal Details</div>
-        <div class="step-desc">Fill in your details and create a password. You'll use these to log in next time.</div>
-        <div class="field">
-          <label>Candidate Number</label>
-          <input type="text" id="disp-id" disabled>
+        <!-- STEP 0: Setup warning if Supabase is not configured -->
+        <div id="setup-warn" class="config-warn">
+          ⚠️ <b>Supabase not configured.</b> Open <code>bandup-api.js</code> in a text editor and set <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code>. See <code>README_SUPABASE.md</code>.
         </div>
-        <div class="field">
-          <label for="fullName">Full Name</label>
-          <input type="text" id="fullName" placeholder="e.g. Santos, Maria">
-        </div>
-        <div class="row2">
+
+        <!-- STEP 1: Candidate Number -->
+        <div id="step1" class="step">
+          <div class="step-label">Step 1</div>
+          <div class="step-title">Welcome</div>
+          <div class="step-desc">Enter your candidate ID to continue.</div>
           <div class="field">
-            <label for="dob">Date of Birth</label>
-            <input type="date" id="dob">
+            <label for="candidateNum">Candidate ID</label>
+            <input type="text" id="candidateNum" placeholder="schoolcode-IDnumber" autofocus oninput="this.value=this.value.toUpperCase()">
+            <div style="font-size:0.75rem;color:var(--ink3);margin-top:5px">Enter the school code and ID number.</div>
+          </div>
+          <div class="error-msg" id="err1"></div>
+          <button class="btn-primary" id="btn1" onclick="handleStep1()">
+            <span id="btn1-txt">Continue →</span>
+            <div class="spinner" id="spin1"></div>
+          </button>
+          <div style="font-size:0.75rem;font-style:italic;color:var(--ink3);text-align:center;margin-top:10px;padding:8px;background:var(--paper2);border-radius:6px;line-height:1.5">*Note: Your details are securely stored.</div>
+          <div style="text-align:center;margin-top:12px">
+            <button onclick="goTo('step1','step-admin-request')" style="background:none;border:none;color:var(--ink3);font-size:0.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
+              Teacher or staff? Request admin access
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP ADMIN -->
+        <div id="step-admin" class="step hidden">
+          <button class="back-link" onclick="goTo('step-admin','step1')">Back</button>
+          <div class="admin-badge">Admin Access</div>
+          <div class="step-title">Administrator Login</div>
+          <div class="step-desc" id="adminStepDesc">Enter admin password to access the control panel.</div>
+          <div class="field hidden" id="adminEmailWrap">
+            <label for="adminEmail">Admin Email</label>
+            <input type="email" id="adminEmail" placeholder="name@email.com" autocomplete="username">
           </div>
           <div class="field">
-            <label for="gender">Gender</label>
-            <select id="gender">
-              <option value="">Select...</option>
-              <option>Male</option><option>Female</option>
-              <option>Prefer not to say</option>
+            <label for="adminPass">Password</label>
+            <input type="password" id="adminPass" placeholder="Enter password">
+          </div>
+          <div class="error-msg" id="err-admin"></div>
+          <button class="btn-primary" onclick="verifyAdmin()">Sign In →</button>
+          <div style="text-align:center;margin-top:12px">
+            <button onclick="goTo('step-admin','step-admin-request')" style="background:none;border:none;color:var(--blue2);font-size:0.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
+              No account yet? Request admin access
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP: REQUEST ADMIN ACCESS -->
+        <div id="step-admin-request" class="step hidden">
+          <button class="back-link" onclick="goTo('step-admin-request','step1')">Back</button>
+          <div class="admin-badge">Admin Access</div>
+          <div class="step-title">Request Admin Access</div>
+          <div class="step-desc">Send a request to the Owner. You can sign in once it is approved, and you will only see the sections the Owner gives you.</div>
+          <div class="field">
+            <label for="adminReqName">Full Name</label>
+            <input type="text" id="adminReqName" placeholder="e.g. Maria Santos" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="adminReqEmail">Email Address</label>
+            <input type="email" id="adminReqEmail" placeholder="name@email.com" autocomplete="email">
+          </div>
+          <div class="field">
+            <label for="adminReqPass">Create Password</label>
+            <div class="pw-wrap">
+              <input type="password" id="adminReqPass" placeholder="At least 8 characters" autocomplete="new-password">
+              <button class="pw-toggle" onclick="togglePw('adminReqPass',this)" type="button">Show</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="adminReqConfirm">Confirm Password</label>
+            <div class="pw-wrap">
+              <input type="password" id="adminReqConfirm" placeholder="Re-enter password" autocomplete="new-password">
+              <button class="pw-toggle" onclick="togglePw('adminReqConfirm',this)" type="button">Show</button>
+            </div>
+          </div>
+          <div class="error-msg" id="err-adminreq"></div>
+          <div class="success-msg" id="suc-adminreq"></div>
+          <button class="btn-primary" id="btn-adminreq" onclick="handleAdminRequest()">
+            <span id="btn-adminreq-txt">Send Request →</span>
+            <div class="spinner" id="spin-adminreq"></div>
+          </button>
+        </div>
+
+        <!-- STEP 2a: RETURNING candidate — password login -->
+        <div id="step-login" class="step hidden">
+          <button class="back-link" onclick="goTo('step-login','step1')">Back</button>
+          <div class="step-label">Welcome Back</div>
+          <div class="welcome-badge" id="welcome-badge">
+            <b id="welcome-name">Loading...</b>
+            <span id="welcome-id" style="color:var(--ink3);font-size:0.78rem"></span>
+          </div>
+          <div class="step-desc">Enter your password to continue.</div>
+          <div class="field">
+            <label for="loginPass">Password</label>
+            <div class="pw-wrap">
+              <input type="password" id="loginPass" placeholder="Enter your password">
+              <button class="pw-toggle" onclick="togglePw('loginPass',this)" type="button">Show</button>
+            </div>
+          </div>
+          <div class="error-msg" id="err-login"></div>
+          <button class="btn-primary" id="btn-login" onclick="handleLogin()">
+            <span id="btn-login-txt">Sign In →</span>
+            <div class="spinner" id="spin-login"></div>
+          </button>
+          <div style="text-align:center;margin-top:12px">
+            <button onclick="goForgotPassword()" style="background:none;border:none;color:var(--blue2);font-size:0.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
+              Forgot password?
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 2b: NEW candidate — fill details + create password -->
+        <div id="step-register" class="step hidden">
+          <button class="back-link" onclick="goTo('step-register','step1')">Back</button>
+          <div class="step-label">New Candidate — Registration</div>
+          <div class="step-title">Personal Details</div>
+          <div class="step-desc">Fill in your details and create a password. You'll use these to log in next time.</div>
+          <div class="field">
+            <label>Candidate Number</label>
+            <input type="text" id="disp-id" disabled>
+          </div>
+          <div class="field">
+            <label for="fullName">Full Name</label>
+            <input type="text" id="fullName" placeholder="e.g. Santos, Maria">
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="dob">Date of Birth</label>
+              <input type="date" id="dob">
+            </div>
+            <div class="field">
+              <label for="gender">Gender</label>
+              <select id="gender">
+                <option value="">Select...</option>
+                <option>Male</option><option>Female</option>
+                <option>Prefer not to say</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="nationality">Nationality</label>
+            <select id="nationality"><option value="">Select country...</option></select>
+          </div>
+          <div class="field">
+            <label for="regEmail">Email Address</label>
+            <input type="email" id="regEmail" placeholder="e.g. maria@gmail.com">
+          </div>
+          <div class="field">
+            <label for="newPass">Create Password</label>
+            <div class="pw-wrap">
+              <input type="password" id="newPass" placeholder="At least 6 characters" oninput="checkStrength(this)">
+              <button class="pw-toggle" onclick="togglePw('newPass',this)" type="button">Show</button>
+            </div>
+            <div class="pw-strength" id="pw-strength"></div>
+          </div>
+          <div class="field">
+            <label for="confirmPass">Confirm Password</label>
+            <div class="pw-wrap">
+              <input type="password" id="confirmPass" placeholder="Re-enter password">
+              <button class="pw-toggle" onclick="togglePw('confirmPass',this)" type="button">Show</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="regCourse">Course / Test Type</label>
+            <select id="regCourse">
+              <option value="IELTS">IELTS</option>
+              <option value="TOEIC">TOEIC</option>
+              <option value="TOEFL">TOEFL</option>
+              <option value="ESL">ESL</option>
             </select>
+            <div style="font-size:0.75rem;color:var(--ink3,#8888aa);margin-top:4px">This locks which tests you can take. Ask the admin if this needs to change later.</div>
+          </div>
+          <div class="error-msg" id="err-register"></div>
+          <div class="success-msg" id="suc-register"></div>
+          <button class="btn-primary" id="btn-register" onclick="handleRegisterSendOTP()">
+            <span id="btn-register-txt">Proceed →</span>
+            <div class="spinner" id="spin-register"></div>
+          </button>
+          <div style="text-align:center;margin-top:12px">
+            <button onclick="switchToLogin()" style="background:none;border:none;color:var(--blue2);font-size:0.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
+              Already registered? Enter password instead
+            </button>
           </div>
         </div>
-        <div class="field">
-          <label for="nationality">Nationality</label>
-          <select id="nationality"><option value="">Select country...</option></select>
-        </div>
-        <div class="field">
-          <label for="regEmail">Email Address</label>
-          <input type="email" id="regEmail" placeholder="e.g. maria@gmail.com">
-        </div>
-        <div class="field">
-          <label for="newPass">Create Password</label>
-          <div class="pw-wrap">
-            <input type="password" id="newPass" placeholder="At least 6 characters" oninput="checkStrength(this)">
-            <button class="pw-toggle" onclick="togglePw('newPass',this)" type="button">Show</button>
+
+        <!-- STEP OTP VERIFY (Registration) -->
+        <div id="step-otp-reg" class="step hidden">
+          <button class="back-link" onclick="goTo('step-otp-reg','step-register')">Back</button>
+          <div class="step-label">Step 3 — Email Verification</div>
+          <div class="step-title">Check Your Email</div>
+          <div class="step-desc" id="otp-reg-desc">We sent a 6-digit code to your email. Enter it below to complete registration.</div>
+          <div class="field">
+            <label for="otpRegInput">Verification Code</label>
+            <input type="text" id="otpRegInput" placeholder="e.g. 847291" maxlength="6" autocomplete="one-time-code" style="letter-spacing:0.18em;font-size:1.1rem;text-align:center">
           </div>
-          <div class="pw-strength" id="pw-strength"></div>
-        </div>
-        <div class="field">
-          <label for="confirmPass">Confirm Password</label>
-          <div class="pw-wrap">
-            <input type="password" id="confirmPass" placeholder="Re-enter password">
-            <button class="pw-toggle" onclick="togglePw('confirmPass',this)" type="button">Show</button>
+          <div class="error-msg" id="err-otp-reg"></div>
+          <div class="success-msg" id="suc-otp-reg"></div>
+          <button class="btn-primary" id="btn-otp-reg" onclick="handleVerifyOTPReg()">
+            <span id="btn-otp-reg-txt">Verify & Register →</span>
+            <div class="spinner" id="spin-otp-reg"></div>
+          </button>
+          <div style="text-align:center;margin-top:12px">
+            <button onclick="resendOTPReg()" id="btn-resend-reg" style="background:none;border:none;color:var(--blue2);font-size:0.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
+              Resend code
+            </button>
           </div>
         </div>
-        <div class="field">
-          <label for="regCourse">Course / Test Type</label>
-          <select id="regCourse">
-            <option value="IELTS">IELTS</option>
-            <option value="TOEIC">TOEIC</option>
-            <option value="TOEFL">TOEFL</option>
-            <option value="ESL">ESL</option>
-          </select>
-          <div style="font-size:0.75rem;color:var(--ink3,#8888aa);margin-top:4px">This locks which tests you can take. Ask the admin if this needs to change later.</div>
-        </div>
-        <div class="error-msg" id="err-register"></div>
-        <div class="success-msg" id="suc-register"></div>
-        <button class="btn-primary" id="btn-register" onclick="handleRegisterSendOTP()">
-          <span id="btn-register-txt">Proceed →</span>
-          <div class="spinner" id="spin-register"></div>
-        </button>
-        <div style="text-align:center;margin-top:12px">
-          <button onclick="switchToLogin()" style="background:none;border:none;color:var(--blue2);font-size:0.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
-            Already registered? Enter password instead
+
+        <!-- STEP: FORGOT PASSWORD — enter email -->
+        <div id="step-forgot" class="step hidden">
+          <button class="back-link" onclick="goTo('step-forgot','step-login')">Back</button>
+          <div class="step-label">Password Reset</div>
+          <div class="step-title">Forgot Password?</div>
+          <div class="step-desc">Enter the email address linked to your account. We'll send a reset code.</div>
+          <div class="field">
+            <label for="forgotEmail">Email Address</label>
+            <input type="email" id="forgotEmail" placeholder="e.g. maria@gmail.com">
+          </div>
+          <div class="error-msg" id="err-forgot"></div>
+          <div class="success-msg" id="suc-forgot"></div>
+          <button class="btn-primary" id="btn-forgot" onclick="handleForgotPassword()">
+            <span id="btn-forgot-txt">Send Reset Code →</span>
+            <div class="spinner" id="spin-forgot"></div>
           </button>
         </div>
-      </div>
 
-      <!-- STEP OTP VERIFY (Registration) -->
-      <div id="step-otp-reg" class="step hidden">
-        <button class="back-link" onclick="goTo('step-otp-reg','step-register')">Back</button>
-        <div class="step-label">Step 3 — Email Verification</div>
-        <div class="step-title">Check Your Email</div>
-        <div class="step-desc" id="otp-reg-desc">We sent a 6-digit code to your email. Enter it below to complete registration.</div>
-        <div class="field">
-          <label for="otpRegInput">Verification Code</label>
-          <input type="text" id="otpRegInput" placeholder="e.g. 847291" maxlength="6" autocomplete="one-time-code" style="letter-spacing:0.18em;font-size:1.1rem;text-align:center">
-        </div>
-        <div class="error-msg" id="err-otp-reg"></div>
-        <div class="success-msg" id="suc-otp-reg"></div>
-        <button class="btn-primary" id="btn-otp-reg" onclick="handleVerifyOTPReg()">
-          <span id="btn-otp-reg-txt">Verify & Register →</span>
-          <div class="spinner" id="spin-otp-reg"></div>
-        </button>
-        <div style="text-align:center;margin-top:12px">
-          <button onclick="resendOTPReg()" id="btn-resend-reg" style="background:none;border:none;color:var(--blue2);font-size:0.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
-            Resend code
+        <!-- STEP: FORGOT PASSWORD — enter OTP + new password -->
+        <div id="step-reset" class="step hidden">
+          <button class="back-link" onclick="goTo('step-reset','step-forgot')">Back</button>
+          <div class="step-label">Password Reset — Step 2</div>
+          <div class="step-title">Reset Password</div>
+          <div class="step-desc" id="reset-desc">Enter the 6-digit code sent to your email, then set a new password.</div>
+          <div class="field">
+            <label for="resetOTPInput">Verification Code</label>
+            <input type="text" id="resetOTPInput" placeholder="e.g. 847291" maxlength="6" autocomplete="one-time-code" style="letter-spacing:0.18em;font-size:1.1rem;text-align:center">
+          </div>
+          <div class="field">
+            <label for="resetNewPass">New Password</label>
+            <div class="pw-wrap">
+              <input type="password" id="resetNewPass" placeholder="At least 6 characters" oninput="checkStrengthById('resetNewPass','pw-strength-reset')">
+              <button class="pw-toggle" onclick="togglePw('resetNewPass',this)" type="button">Show</button>
+            </div>
+            <div class="pw-strength" id="pw-strength-reset"></div>
+          </div>
+          <div class="field">
+            <label for="resetConfirmPass">Confirm New Password</label>
+            <div class="pw-wrap">
+              <input type="password" id="resetConfirmPass" placeholder="Re-enter new password">
+              <button class="pw-toggle" onclick="togglePw('resetConfirmPass',this)" type="button">Show</button>
+            </div>
+          </div>
+          <div class="error-msg" id="err-reset"></div>
+          <div class="success-msg" id="suc-reset"></div>
+          <button class="btn-primary" id="btn-reset" onclick="handleResetPassword()">
+            <span id="btn-reset-txt">Reset Password →</span>
+            <div class="spinner" id="spin-reset"></div>
           </button>
         </div>
-      </div>
 
-      <!-- STEP: FORGOT PASSWORD — enter email -->
-      <div id="step-forgot" class="step hidden">
-        <button class="back-link" onclick="goTo('step-forgot','step-login')">Back</button>
-        <div class="step-label">Password Reset</div>
-        <div class="step-title">Forgot Password?</div>
-        <div class="step-desc">Enter the email address linked to your account. We'll send a reset code.</div>
-        <div class="field">
-          <label for="forgotEmail">Email Address</label>
-          <input type="email" id="forgotEmail" placeholder="e.g. maria@gmail.com">
-        </div>
-        <div class="error-msg" id="err-forgot"></div>
-        <div class="success-msg" id="suc-forgot"></div>
-        <button class="btn-primary" id="btn-forgot" onclick="handleForgotPassword()">
-          <span id="btn-forgot-txt">Send Reset Code →</span>
-          <div class="spinner" id="spin-forgot"></div>
-        </button>
       </div>
-
-      <!-- STEP: FORGOT PASSWORD — enter OTP + new password -->
-      <div id="step-reset" class="step hidden">
-        <button class="back-link" onclick="goTo('step-reset','step-forgot')">Back</button>
-        <div class="step-label">Password Reset — Step 2</div>
-        <div class="step-title">Reset Password</div>
-        <div class="step-desc" id="reset-desc">Enter the 6-digit code sent to your email, then set a new password.</div>
-        <div class="field">
-          <label for="resetOTPInput">Verification Code</label>
-          <input type="text" id="resetOTPInput" placeholder="e.g. 847291" maxlength="6" autocomplete="one-time-code" style="letter-spacing:0.18em;font-size:1.1rem;text-align:center">
-        </div>
-        <div class="field">
-          <label for="resetNewPass">New Password</label>
-          <div class="pw-wrap">
-            <input type="password" id="resetNewPass" placeholder="At least 6 characters" oninput="checkStrengthById('resetNewPass','pw-strength-reset')">
-            <button class="pw-toggle" onclick="togglePw('resetNewPass',this)" type="button">Show</button>
-          </div>
-          <div class="pw-strength" id="pw-strength-reset"></div>
-        </div>
-        <div class="field">
-          <label for="resetConfirmPass">Confirm New Password</label>
-          <div class="pw-wrap">
-            <input type="password" id="resetConfirmPass" placeholder="Re-enter new password">
-            <button class="pw-toggle" onclick="togglePw('resetConfirmPass',this)" type="button">Show</button>
-          </div>
-        </div>
-        <div class="error-msg" id="err-reset"></div>
-        <div class="success-msg" id="suc-reset"></div>
-        <button class="btn-primary" id="btn-reset" onclick="handleResetPassword()">
-          <span id="btn-reset-txt">Reset Password →</span>
-          <div class="spinner" id="spin-reset"></div>
-        </button>
-      </div>
-
+      <div class="footer-note">Do not close or refresh this window during the test.</div>
     </div>
-    <div class="footer-note">Do not close or refresh this window during the test.</div>
-  </div>
-</div><!-- /login-shell -->
+  </div><!-- /login-shell -->
+</div><!-- /page -->
 
 <footer class="site-footer">
   <div class="footer-container">
