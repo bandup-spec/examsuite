@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin Panel — BandUp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="admin-extra.css">
+</head><body>
+<svg class="hidden" aria-hidden="true"><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></symbol><symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol><symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/></symbol><symbol id="i-box" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/></symbol></svg>
+<div id="app"><div class="app">
+<aside class="sidebar" id="sidebar">
+ <div class="brand"><svg class="brand-mark" viewBox="0 0 290 270" role="img" aria-label="BandUp"><rect width="290" height="270" rx="40" fill="#002f5f"/><rect x="30" y="140" width="55" height="100" rx="8" fill="#c8a84b"/><rect x="118" y="90" width="55" height="150" rx="8" fill="#d8b85f"/><rect x="206" y="40" width="55" height="200" rx="8" fill="#c8a84b"/></svg><div><div class="brand-name">BandUp</div><div class="brand-sub" id="admin-badge">Admin Panel</div></div></div>
+ <nav class="nav">
+  <div class="nav-group">Candidates</div>
+  <button class="nav-item" type="button" id="sb-p-monitor" data-click="showPanel('p-monitor')" data-perm="monitor" aria-current="page"><svg class="ico"><use href="#i-dot"/></svg>Live Monitor</button>
+  <button class="nav-item" type="button" id="sb-p-candidates" data-perm="candidates" data-click="showPanel('p-candidates')"><svg class="ico"><use href="#i-dot"/></svg>Candidates<span id="pending-badge" class="nav-badge start-hidden"></span></button>
+  <button class="nav-item" type="button" id="sb-p-scores" data-click="showPanel('p-scores')" data-perm="scores"><svg class="ico"><use href="#i-dot"/></svg>Scores</button><button class="nav-item" type="button" id="sb-p-trf" data-click="showPanel('p-trf')" data-perm="trf"><svg class="ico"><use href="#i-dot"/></svg>TRF Viewer</button>
+  <div class="nav-group">Grading</div><button class="nav-item" type="button" id="sb-p-grading" data-click="showPanel('p-grading')" data-perm="grading"><svg class="ico"><use href="#i-dot"/></svg>Grade Writing</button>
+  <div class="nav-group">Publish</div>
+  <button class="nav-item" type="button" id="sb-p-testsets" data-click="showPanel('p-testsets')" data-perm="testsets"><svg class="ico"><use href="#i-dot"/></svg>Test Sets</button><button class="nav-item" type="button" id="sb-p-answerkey" data-click="showPanel('p-answerkey')" data-perm="answerkey"><svg class="ico"><use href="#i-dot"/></svg>Answer Keys</button><button class="nav-item" type="button" id="sb-p-publish" data-click="showPanel('p-publish')" data-perm="publish"><svg class="ico"><use href="#i-dot"/></svg>Publish</button>
+  <button class="nav-item" type="button" data-perm="questionmaker" data-click="goto('toeic-question-maker.html')"><svg class="ico"><use href="#i-box"/></svg>TOEIC Question Maker</button>
+  <div class="nav-group">Config</div>
+  <button class="nav-item" type="button" id="sb-p-settings" data-click="showPanel('p-settings')" data-owner-only><svg class="ico"><use href="#i-dot"/></svg>Settings</button><button class="nav-item" type="button" id="sb-p-drive" data-click="showPanel('p-drive')" data-owner-only><svg class="ico"><use href="#i-dot"/></svg>Drive Config</button><button class="nav-item" type="button" id="sb-p-account" data-click="showPanel('p-account')" data-sub-only><svg class="ico"><use href="#i-dot"/></svg>My Account</button>
+  <button class="nav-item" type="button" id="sb-p-admins" data-owner-only data-click="showPanel('p-admins')"><svg class="ico"><use href="#i-dot"/></svg>Admins<span id="admin-pending-badge" class="nav-badge start-hidden"></span></button>
+  <div class="nav-group">Preview as candidate</div>
+  <button class="nav-item" type="button" data-click="openPreview('tests.html')">Tests &amp; Simulations</button>
+  <button class="nav-item" type="button" data-click="openPreview('profile.html')">Candidate Profile</button>
+ </nav>
+ <div class="nav-foot"><button class="btn btn-danger btn-block" type="button" data-click="logout()">Logout</button></div>
+</aside>
+<div class="scrim" id="scrim"></div>
+<div class="main">
+ <header class="topbar"><button class="btn btn-ghost btn-icon menu-btn" id="menu-btn" type="button" aria-label="Menu"><svg class="ico"><use href="#i-menu"/></svg></button><h1 class="topbar-title" id="topbar-title">BandUp Admin</h1><span class="grow"></span>
+  <button class="btn btn-secondary btn-sm" type="button" data-perm="questionmaker" data-click="goto('question-maker.html')">Question Maker</button>
+  <button class="btn btn-secondary btn-sm" type="button" data-owner-only data-click="showPanel('p-drive')">Drive Link</button></header>
+ <main class="page" id="page">
+<!-- LIVE MONITOR PANEL -->
+    <div id="p-monitor" class="panel">
+      <h2 class="page-title">🟢 Live Monitor</h2>
+      <p class="page-sub">See who is currently online or recently active, track their test progress, and view submitted answers in real time.</p>
+
+      <div class="card row between promo" data-perm="questionmaker">
+        <div>
+          <div>💼 Building a TOEIC test?</div>
+          <div>Question authoring for TOEIC happens in its own tool — CSV import for all 200 questions.</div>
+        </div>
+        <button class="btn" data-click="goto('toeic-question-maker.html')">Open TOEIC Question Maker →</button>
+      </div>
+
+      <div class="card">
+        <div class="row between">
+          <div class="card-title m0">Active &amp; Recent Candidates</div>
+          <div class="row">
+            <span class="sheets-status" id="monitor-status"></span>
+            <label class="row">
+              <input type="checkbox" id="monitor-auto" data-change="toggleAutoRefresh(this.checked)"> Auto-refresh (10s)
+            </label>
+            <button class="refresh-btn" data-click="loadMonitor()">🔄 Refresh</button>
+          </div>
+        </div>
+
+        <!-- Online Indicator Legend -->
+        <div class="row">
+          <span class="row"><span></span>Online now (&lt;5 min)</span>
+          <span class="row"><span></span>Recently active (&lt;30 min)</span>
+          <span class="row"><span></span>Offline</span>
+        </div>
+
+        <div class="row">
+          <div class="input-icon grow">
+            <svg class="ico"><use href="#i-search"/></svg>
+            <input class="input" type="text" id="monitor-search" placeholder="Search name or Candidate ID…"
+              data-input="filterMonitor()"
+             >
+          </div>
+          <span id="monitor-count-label"></span>
+        </div>
+
+        <div id="monitor-wrap"><div class="tbl-empty">Click Refresh to load live candidate status.</div></div>
+      </div>
+
+      <!-- Candidate Detail Drawer -->
+      <div class="card start-hidden" id="monitor-detail-card">
+        <div class="row between">
+          <div class="card-title m0" id="monitor-detail-name">Candidate Detail</div>
+          <button class="btn btn-ghost" data-click="hide('monitor-detail-card')">✕ Close</button>
+        </div>
+
+        <div id="monitor-detail-meta"></div>
+
+        <!-- Progress Bars -->
+        <div>
+          <div>Test Progress</div>
+          <div id="monitor-progress-bars"></div>
+        </div>
+
+        <!-- Answers Table -->
+        <div>
+          <div>Submitted Answers</div>
+          <div id="monitor-answers-wrap"><div class="tbl-empty">No answers submitted yet.</div></div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- CANDIDATES PANEL -->
+    <div id="p-candidates" class="panel hidden">
+      <h2 class="page-title">Registered Candidates</h2>
+      <p class="page-sub">Live list of all registered candidates from Google Sheets.</p>
+      <div class="card">
+        <div class="row between">
+          <div class="card-title m0">Candidates List</div>
+          <div class="row">
+            <span class="sheets-status" id="cand-status"></span>
+            <button class="refresh-btn" data-click="loadCandidates()">🔄 Refresh</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="input-icon grow">
+            <svg class="ico"><use href="#i-search"/></svg>
+            <input class="input" type="text" id="cand-search" placeholder="Search name or Candidate ID…"
+              data-input="filterCandidates()"
+             >
+          </div>
+          <span id="cand-count-label"></span>
+        </div>
+        <div id="cand-table-wrap">
+          <div class="tbl-empty">Click Refresh to load candidates from Google Sheets.</div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- SCORES PANEL -->
+    <div id="p-scores" class="panel hidden">
+      <h2 class="page-title">Test Scores</h2>
+      <p class="page-sub">Live scores of all submitted tests. Owners can delete score history here (permanent — see the 🗑️ buttons).</p>
+      <div class="card">
+        <div class="row between">
+          <div class="card-title m0">Scores List</div>
+          <div class="row">
+            <span class="sheets-status" id="scores-status"></span>
+            <button class="refresh-btn" data-click="loadScores()">🔄 Refresh</button>
+            <button class="btn btn-gold" data-click="exportScoresPDF()">📄 Export PDF</button>
+            <button class="btn btn-red" data-owner-only data-click="openClearHistory('')">🗑️ Delete history…</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="input-icon grow">
+            <svg class="ico"><use href="#i-search"/></svg>
+            <input class="input" type="text" id="scores-search" placeholder="Search name or Candidate ID…"
+              data-input="filterScores()"
+             >
+          </div>
+          <span id="scores-count-label"></span>
+        </div>
+        <div id="scores-table-wrap">
+          <div class="tbl-empty">Click Refresh to load scores.</div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- TRF VIEWER PANEL -->
+    <div id="p-trf" class="panel hidden">
+      <h2 class="page-title">📄 Test Result Forms</h2>
+      <p class="page-sub">View and print official Test Result Forms for any candidate and attempt.</p>
+      <div class="card">
+        <div class="row between">
+          <div class="card-title m0">Select Candidate &amp; Attempt</div>
+          <button class="refresh-btn" data-click="loadTRFCandidates()">🔄 Load Candidates</button>
+        </div>
+        <div class="row">
+          <div class="input-icon grow">
+            <svg class="ico"><use href="#i-search"/></svg>
+            <input class="input" type="text" id="trf-search" placeholder="Search name or Candidate ID…"
+              data-input="filterTRFCandidates()"
+             >
+          </div>
+          <span id="trf-count-label"></span>
+        </div>
+        <div class="row">
+          <div class="grow">
+            <label>① Candidate</label>
+            <select class="select" id="trf-cand-sel" data-change="loadTRFAttempts()">
+              <option value="">— Click Load first —</option>
+            </select>
+          </div>
+          <div class="grow">
+            <label>② Attempt — then TRF opens automatically</label>
+            <select class="select" id="trf-attempt-sel" data-change="trfAttemptChange(this.value)">
+              <option value="">— Select attempt —</option>
+            </select>
+          </div>
+        </div>
+        <div id="admin-trf-wrap"><div class="tbl-empty">Load candidates → select a candidate → select an attempt → TRF opens automatically.</div></div>
+      </div>
+    </div>
+
+
+    <!-- GRADE WRITING PANEL -->
+    <div id="p-grading" class="panel hidden">
+      <h2 class="page-title">Grade Writing</h2>
+      <p class="page-sub">Input Writing bands for submitted tests. Overall band is auto-calculated.</p>
+      <div class="card">
+        <div class="row between">
+          <div class="card-title m0">Ungraded Submissions</div>
+          <button class="refresh-btn" data-click="loadUngraded()">🔄 Refresh</button>
+        </div>
+        <div id="ungraded-wrap"><div class="tbl-empty">Click Refresh to load submissions.</div></div>
+      </div>
+      <!-- Grade Form -->
+      <div class="card start-hidden" id="grade-form-card">
+        <div class="card-title">Grade Submission</div>
+        <div id="grade-candidate-info"></div>
+        <div id="writing-texts-wrap"></div>
+        <div class="row2">
+          <div class="field">
+            <label>Writing Task 1 Band (1–9)</label>
+            <select class="select" id="grade-w1" data-change="updateGradePreview()">
+              <option value="">Select...</option>
+              <option value="9">9</option>
+              <option value="8.5">8.5</option>
+              <option value="8">8</option>
+              <option value="7.5">7.5</option>
+              <option value="7">7</option>
+              <option value="6.5">6.5</option>
+              <option value="6">6</option>
+              <option value="5.5">5.5</option>
+              <option value="5">5</option>
+              <option value="4.5">4.5</option>
+              <option value="4">4</option>
+              <option value="3.5">3.5</option>
+              <option value="3">3</option>
+              <option value="2.5">2.5</option>
+              <option value="2">2</option>
+              <option value="1.5">1.5</option>
+              <option value="1">1</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Writing Task 2 Band (1–9)</label>
+            <select class="select" id="grade-w2" data-change="updateGradePreview()">
+              <option value="">Select...</option>
+              <option value="9">9</option>
+              <option value="8.5">8.5</option>
+              <option value="8">8</option>
+              <option value="7.5">7.5</option>
+              <option value="7">7</option>
+              <option value="6.5">6.5</option>
+              <option value="6">6</option>
+              <option value="5.5">5.5</option>
+              <option value="5">5</option>
+              <option value="4.5">4.5</option>
+              <option value="4">4</option>
+              <option value="3.5">3.5</option>
+              <option value="3">3</option>
+              <option value="2.5">2.5</option>
+              <option value="2">2</option>
+              <option value="1.5">1.5</option>
+              <option value="1">1</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Speaking Band (optional)</label>
+            <select class="select" id="grade-s" data-change="updateGradePreview()">
+              <option value="">N/A</option>
+              <option value="9">9</option>
+              <option value="8.5">8.5</option>
+              <option value="8">8</option>
+              <option value="7.5">7.5</option>
+              <option value="7">7</option>
+              <option value="6.5">6.5</option>
+              <option value="6">6</option>
+              <option value="5.5">5.5</option>
+              <option value="5">5</option>
+              <option value="4.5">4.5</option>
+              <option value="4">4</option>
+              <option value="3.5">3.5</option>
+              <option value="3">3</option>
+              <option value="2.5">2.5</option>
+              <option value="2">2</option>
+              <option value="1.5">1.5</option>
+              <option value="1">1</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Graded By</label>
+            <input class="input" type="text" id="grade-by" value="Admin" placeholder="Examiner name">
+          </div>
+        </div>
+        <div class="field">
+          <label>Examiner Notes (optional)</label>
+          <textarea class="textarea" id="grade-notes" placeholder="Feedback for candidate..."></textarea>
+        </div>
+        <div id="grade-preview" class="start-hidden">
+          <b>Estimated Overall Band:</b> <span id="grade-overall"></span>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-green" data-click="submitGrade()">✅ Save Grade</button>
+          <button class="btn btn-ghost" data-click="hide('grade-form-card')">Cancel</button>
+        </div>
+        <input type="hidden" id="grade-sub-id">
+      </div>
+    </div>
+
+
+    <!-- TEST SETS PANEL -->
+    <div id="p-testsets" class="panel hidden">
+      <h2 class="page-title">Test Sets</h2>
+      <p class="page-sub">Manage questionnaire sets. Each set links to a config JSON on GitHub.</p>
+      <div class="card">
+        <div class="row between">
+          <div class="card-title m0">All Test Sets</div>
+          <div class="row">
+            <button class="refresh-btn" data-click="loadTestSets()">🔄 Refresh</button>
+            <button class="btn btn-blue" data-click="showNewSetForm()">+ New Set</button>
+          </div>
+        </div>
+        <div id="testsets-wrap"><div class="tbl-empty">Click Refresh to load test sets.</div></div>
+      </div>
+      <!-- New/Edit Set Form -->
+      <div class="card start-hidden" id="set-form-card">
+        <div class="card-title" id="set-form-title">New Test Set</div>
+        <div class="row2">
+          <div class="field">
+            <label>Set Name</label>
+            <input class="input" type="text" id="set-name" placeholder="e.g. Mock Test 1 — January 2025">
+          </div>
+          <div class="field">
+            <label>Description (optional)</label>
+            <input class="input" type="text" id="set-desc" placeholder="e.g. Academic module, 40 questions">
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>Exam Type</label>
+            <select class="select" id="set-exam-type">
+              <option value="IELTS">IELTS</option>
+              <option value="TOEIC">TOEIC</option>
+              <option value="TOEFL">TOEFL</option>
+              <option value="ESL">ESL</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <select class="select" id="set-status">
+              <option value="Active">Active</option>
+              <option value="Archived">Archived</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Config URL (GitHub raw URL)</label>
+          <input class="input" type="text" id="set-url" placeholder="https://raw.githubusercontent.com/...">
+          <div>
+            Get this from GitHub: open the JSON file → click "Raw" → copy URL
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-blue" data-click="saveTestSetForm()">💾 Save Set</button>
+          <button class="btn btn-green" data-click="activateSetForm()" id="activate-btn">⚡ Set as Active</button>
+          <button class="btn btn-ghost" data-click="hide('set-form-card')">Cancel</button>
+        </div>
+        <input type="hidden" id="set-id">
+      </div>
+    </div>
+
+
+    <!-- PUBLISH PANEL -->
+    <!-- ANSWER KEYS PANEL -->
+    <div id="p-answerkey" class="panel hidden">
+      <h2 class="page-title">🔑 Answer Keys</h2>
+      <p class="page-sub">Keys are stored privately in the database — candidates can never read them, and scoring is done on the server when they submit. Needed once per test set (IELTS and TOEIC).</p>
+      <div class="card">
+        <div class="card-title">1 — Choose the test set</div>
+        <div class="field">
+          <label>Test Set</label>
+          <select class="select" id="ak-set" data-change="akLoad()"><option value="">— loading… —</option></select>
+        </div>
+        <div id="ak-status"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">2 — Enter the answers</div>
+        <div>
+          One answer per line, as <code>number: answer</code> — e.g. <code>1: B</code>, <code>2: TRUE</code>, <code>6: MOVIE | FILM</code>
+          (use <b>|</b> to accept several alternative spellings). You can also paste a plain column of answers (one per line, no numbers) and they will be numbered 1, 2, 3… automatically.
+          Matching ignores capital letters and extra spaces. Listening and Reading are numbered separately (1–40 for IELTS, 1–100 for TOEIC).
+        </div>
+        <div class="row2">
+          <div class="field"><label>🎧 Listening key <span id="ak-lcount"></span></label>
+            <textarea id="ak-l" rows="16" data-input="akCount()" placeholder="1: B&#10;2: TRUE&#10;3: library&#10;4: film | movie" class="mono"></textarea></div>
+          <div class="field"><label>📖 Reading key <span id="ak-rcount"></span></label>
+            <textarea id="ak-r" rows="16" data-input="akCount()" placeholder="1: TRUE&#10;2: NOT GIVEN&#10;3: C" class="mono"></textarea></div>
+        </div>
+        <div class="row">
+          <button class="btn btn-blue" data-click="akSave()">💾 Save Answer Key</button>
+          <button class="btn btn-ghost" data-click="akLoad()">↺ Reload saved key</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="p-publish" class="panel hidden">
+      <h2 class="page-title">Publish to GitHub</h2>
+      <p class="page-sub">Generate config JSON and upload to GitHub Pages for candidates to access.</p>
+      <div class="card">
+        <div class="card-title">Step 1 — Set Test Set Name</div>
+        <div class="field">
+          <label>Exam Type</label>
+          <select class="select" id="pub-exam-type" data-change="onExamTypeChange()">
+            <option value="IELTS">IELTS</option>
+            <option value="TOEIC">TOEIC</option>
+            <option value="TOEFL">TOEFL</option>
+            <option value="ESL">ESL</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Test Set Name (will be shown to candidates)</label>
+          <input class="input" type="text" id="pub-set-name" placeholder="e.g. Mock Test 1 — January 2025">
+          <div>For TOEIC, keep the word "TOEIC" in the name — <code>tests.html</code> uses it to send candidates to the TOEIC test screen instead of the IELTS one.</div>
+        </div>
+        <div class="field">
+          <label>Description</label>
+          <input class="input" type="text" id="pub-set-desc" placeholder="e.g. IELTS Academic simulation">
+        </div>
+      </div>
+      <div class="card" id="pub-step2-ielts">
+        <div class="card-title">Step 2 — Download Config JSON</div>
+        <p>
+          This downloads a JSON file containing all questions, passages, answer key, and settings.
+          <b>Audio is NOT included</b> — YouTube URLs are stored in the config.
+        </p>
+        <button class="btn btn-blue" data-click="downloadConfigForGitHub()">⬇ Download Config JSON</button>
+      </div>
+      <div class="card start-hidden" id="pub-step2-toeic">
+        <div class="card-title">Step 2 — Build your TOEIC config</div>
+        <p>
+          TOEIC tests are authored separately, in the <b>TOEIC Question Maker</b> (CSV import for all 200 questions, then Download Config JSON + Send Answer Key to Sheets from there).
+        </p>
+        <button class="btn btn-blue" data-click="window.open('toeic-question-maker.html','_blank')">↗ Open TOEIC Question Maker</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Step 3 — Upload to GitHub</div>
+        <ol>
+          <li>Go to your GitHub repository</li>
+          <li>Open <code>configs/</code> folder</li>
+          <li>Click <b>Add file → Upload files</b></li>
+          <li>Upload the downloaded JSON file</li>
+          <li>Commit changes</li>
+          <li>Click the file → Click <b>Raw</b> → Copy the URL</li>
+        </ol>
+      </div>
+      <div class="card">
+        <div class="card-title">Step 4 — Paste Raw URL & Save Test Set</div>
+        <div class="field">
+          <label>GitHub Raw URL</label>
+          <input class="input" type="text" id="pub-github-url" placeholder="https://raw.githubusercontent.com/username/ielts-sim/main/configs/...json">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-green" data-click="savePublishedSet()">💾 Save as Test Set & Activate</button>
+          <button class="btn btn-ghost" data-click="testConfigURL()">🧪 Test URL</button>
+        </div>
+        <div id="pub-test-result"></div>
+      </div>
+    </div>
+
+
+    <!-- MY ACCOUNT PANEL (sub-admins only) -->
+    <div id="p-account" class="panel hidden">
+      <h2 class="page-title">🔑 My Account</h2>
+      <p class="page-sub">Change the password you use to sign in to the admin panel.</p>
+      <div class="card">
+        <div class="card-title">Change Password</div>
+        <div class="field"><label>Current Password</label><input class="input" type="password" id="my-cur-pass" autocomplete="current-password"></div>
+        <div class="row2">
+          <div class="field"><label>New Password <span>(min. 8 characters)</span></label><input class="input" type="password" id="my-new-pass" autocomplete="new-password"></div>
+          <div class="field"><label>Confirm New Password</label><input class="input" type="password" id="my-conf-pass" autocomplete="new-password"></div>
+        </div>
+        <div class="btn-row"><button class="btn btn-blue" data-click="changeMyPassword()">🔑 Change Password</button></div>
+        <div id="my-pw-status" class="start-hidden"></div>
+        <div>Changing it signs you out on your other devices. Forgot your password? Ask the Owner to reset it from the Admins page.</div>
+      </div>
+    </div>
+
+    <!-- ADMIN ACCOUNTS PANEL (Owner only) -->
+    <div id="p-admins" class="panel hidden">
+      <h2 class="page-title">🛡️ Admin Accounts</h2>
+      <p class="page-sub">Only the Owner sees this page. Approve or reject sub-admin requests, choose which sections each sub-admin can open, and remove access at any time.</p>
+
+      <div class="card">
+        <div class="row between">
+          <div class="card-title m0">All Admins</div>
+          <div class="row">
+            <span class="sheets-status" id="admins-status"></span>
+            <button class="refresh-btn" data-click="loadAdmins()">🔄 Refresh</button>
+          </div>
+        </div>
+        <div id="admins-table-wrap"><div class="tbl-empty">Click Refresh to load admin accounts.</div></div>
+      </div>
+
+      <div class="card start-hidden" id="admin-perm-card">
+        <div class="card-title" id="admin-perm-title">Access</div>
+        <div id="admin-perm-info"></div>
+        <div class="perm-grid" id="admin-perm-grid"></div>
+        <div class="btn-row">
+          <button class="btn btn-green" id="admin-perm-save" data-click="savePermEditor()">💾 Save</button>
+          <button class="btn btn-ghost" data-click="closePermEditor()">Cancel</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">➕ Add a Sub-admin</div>
+        <p>
+          Accounts you create here are approved immediately. People who request access from the login page show up above as <b>Pending</b> until you approve them.
+        </p>
+        <div class="row2">
+          <div class="field"><label>Full Name</label><input class="input" type="text" id="new-sub-name" placeholder="e.g. Maria Santos"></div>
+          <div class="field"><label>Email (used to log in)</label><input class="input" type="email" id="new-sub-email" placeholder="name@email.com"></div>
+        </div>
+        <div class="field">
+          <label>Temporary Password <span>(min. 8 characters)</span></label>
+          <input class="input" type="password" id="new-sub-pass" placeholder="Share this with them privately">
+        </div>
+        <label>Can access</label>
+        <div class="perm-grid" id="new-sub-perms"></div>
+        <div class="btn-row">
+          <button class="btn btn-blue" data-click="createSubAdmin()">➕ Create Sub-admin</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PANEL -->
+    <div id="p-settings" class="panel hidden">
+      <h2 class="page-title">Settings</h2>
+      <p class="page-sub">Institution info shown on TRF and throughout the system.</p>
+      <div class="card">
+        <div class="card-title">Institution Details</div>
+        <div class="field">
+          <label>Institution Name</label>
+          <input class="input" type="text" id="inst-name" placeholder="e.g. IELTS Preparation Center">
+        </div>
+        <div class="field">
+          <label>Institution Address</label>
+          <input class="input" type="text" id="inst-addr" placeholder="e.g. Cebu City, Philippines">
+        </div>
+        <div class="field">
+          <label>TRF Footer Note</label>
+          <textarea class="textarea" id="trf-note" placeholder="e.g. This is a simulation result for preparation purposes only."></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-blue" data-click="saveSettingsForm()">💾 Save Settings</button>
+        </div>
+        <div id="settings-status" class="start-hidden">✅ Settings saved!</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔐 Admin Password</div>
+        <p>
+          Your password is verified on the server and never appears in the page source. Changing it here updates it immediately for all future logins. An email alert is sent on every login attempt and password change.
+        </p>
+        <div class="row2">
+          <div class="field">
+            <label>Current Password</label>
+            <input class="input" type="password" id="cur-admin-pass" placeholder="Enter current password">
+          </div>
+          <div class="field">
+            <label>New Password <span>(min. 6 characters)</span></label>
+            <input class="input" type="password" id="new-admin-pass" placeholder="Enter new password">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-blue" data-click="changeAdminPasswordForm()">🔑 Change Password</button>
+        </div>
+        <div id="pw-change-status" class="start-hidden"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📧 Login Notification Email</div>
+        <p>
+          This email receives alerts whenever someone attempts to log into the admin panel (success or failure), and whenever the password is changed.
+        </p>
+        <div class="field">
+          <label>Notification Email</label>
+          <input class="input" type="email" id="notify-email" placeholder="your@email.com">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-blue" data-click="saveNotifyEmail()">💾 Save Email</button>
+        </div>
+        <div id="email-save-status" class="start-hidden"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Apps Script URL</div>
+        <div class="field">
+          <label>Web App URL</label>
+          <input class="input" type="text" id="apps-script-url-input" value="https://script.google.com/macros/s/AKfycbwEcaHQwN-AXs31xAh46YCd1uw4HyxVZa6WF3DeBpCjzP8v7BkSjADQ838xDxFVtR2J/exec">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" data-click="testConnection()">🧪 Test Connection</button>
+        </div>
+        <div id="conn-status"></div>
+      </div>
+    </div>
+
+
+    <!-- GOOGLE DRIVE CONFIG PANEL -->
+    <div id="p-drive" class="panel hidden">
+      <h2 class="page-title">☁️ Google Drive Config</h2>
+      <p class="page-sub">Upload your config to Google Drive so all candidates auto-load the latest questions, audio, and passages — no matter what device they use.</p>
+
+      <div class="card">
+        <div class="card-title">Step 1 — Save & Upload Config</div>
+        <div>
+          <b>1.</b> Click <b>💾 Save Config</b> (top right) — downloads <code>ielts_config.json</code><br>
+          <b>2.</b> Go to <a href="https://drive.google.com" target="_blank">drive.google.com</a> → Upload the file<br>
+          <b>3.</b> Right-click the file → <b>Share</b> → <b>Anyone with the link</b> → <b>Viewer</b><br>
+          <b>4.</b> Click <b>Copy link</b> — paste it below
+        </div>
+        <div class="field">
+          <label>Google Drive Share Link</label>
+          <input type="text" id="drive-url-input"
+            placeholder="https://drive.google.com/file/d/XXXX/view?usp=sharing"
+            data-input="saveDriveURL(this.value)"
+            class="mono">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-blue" data-click="convertAndSaveDriveURL()">🔗 Convert & Save URL</button>
+          <button class="btn btn-ghost" data-click="testDriveURL()">🧪 Test Connection</button>
+        </div>
+        <div id="drive-status" class="start-hidden"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Step 2 — Active Config URL</div>
+        <div>
+          This is the URL that <b>simulation.html</b> and <b>profile.html</b> will fetch the config from. Copy this and set it in those files if needed, or it is saved automatically.
+        </div>
+        <div id="drive-active-url" class="mono">
+          No Drive URL saved yet.
+        </div>
+        <div>Note: question content is saved from the <b>Question Maker</b> page (💾 Save Config there). This page only manages the Drive link candidates fetch it from.</div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" data-click="copyDriveURL()">📋 Copy URL</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">How It Works</div>
+        <div>
+          <b>Without Drive:</b> Config stays in browser localStorage — only works on the admin's computer.<br>
+          <b>With Drive:</b> Config is fetched fresh from Google Drive every time a candidate opens the test — works on <b>any device, any browser</b>.<br><br>
+          <b>⚠️ Important:</b> Every time you change questions, audio URLs, or passages — re-save the config and re-upload to Google Drive (replace the old file). The URL stays the same.
+        </div>
+      </div>
+    </div>
+
+
+
+ </main>
+</div></div></div>
+<div class="toasts" id="toasts" aria-live="polite"></div><div id="print-root"></div>
+<script src="bandup-api.js"></script><script src="admin-ui.js"></script><script src="admin-app.js"></script>
+</body></html>
