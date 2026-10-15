@@ -16,8 +16,8 @@
   <button class="nav-item" type="button" id="sb-p-candidates" data-perm="candidates" data-click="showPanel('p-candidates')"><svg class="ico"><use href="#i-dot"/></svg>Candidates<span id="pending-badge" class="nav-badge start-hidden"></span></button>
   <button class="nav-item" type="button" id="sb-p-scores" data-click="showPanel('p-scores')" data-perm="scores"><svg class="ico"><use href="#i-dot"/></svg>Scores</button><button class="nav-item" type="button" id="sb-p-trf" data-click="showPanel('p-trf')" data-perm="trf"><svg class="ico"><use href="#i-dot"/></svg>TRF Viewer</button>
   <div class="nav-group">Grading</div><button class="nav-item" type="button" id="sb-p-grading" data-click="showPanel('p-grading')" data-perm="grading"><svg class="ico"><use href="#i-dot"/></svg>Grade Writing</button>
-  <div class="nav-group">Publish</div>
-  <button class="nav-item" type="button" id="sb-p-testsets" data-click="showPanel('p-testsets')" data-perm="testsets"><svg class="ico"><use href="#i-dot"/></svg>Test Sets</button><button class="nav-item" type="button" id="sb-p-answerkey" data-click="showPanel('p-answerkey')" data-perm="answerkey"><svg class="ico"><use href="#i-dot"/></svg>Answer Keys</button><button class="nav-item" type="button" id="sb-p-publish" data-click="showPanel('p-publish')" data-perm="publish"><svg class="ico"><use href="#i-dot"/></svg>Publish</button>
+  <div class="nav-group">Tests</div>
+  <button class="nav-item" type="button" id="sb-p-testsets" data-click="showPanel('p-testsets')" data-perm="testsets"><svg class="ico"><use href="#i-dot"/></svg>Test Sets</button><button class="nav-item" type="button" id="sb-p-answerkey" data-click="showPanel('p-answerkey')" data-perm="answerkey"><svg class="ico"><use href="#i-dot"/></svg>Answer Keys</button>
   <button class="nav-item" type="button" data-perm="questionmaker" data-click="goto('toeic-question-maker.html')"><svg class="ico"><use href="#i-box"/></svg>TOEIC Question Maker</button>
   <div class="nav-group">Config</div>
   <button class="nav-item" type="button" id="sb-p-settings" data-click="showPanel('p-settings')" data-owner-only><svg class="ico"><use href="#i-dot"/></svg>Settings</button><button class="nav-item" type="button" id="sb-p-account" data-click="showPanel('p-account')" data-sub-only><svg class="ico"><use href="#i-dot"/></svg>My Account</button>
@@ -399,62 +399,6 @@
       </div>
     </div>
 
-    <div id="p-publish" class="panel hidden">
-      <h2 class="page-title">Publish to GitHub</h2>
-      <p class="page-sub">Generate config JSON and upload to GitHub Pages for candidates to access.</p>
-      <div class="card">
-        <div class="card-title">Step 1 — Set Test Set Name</div>
-        <div class="field">
-          <label>Exam Type</label>
-          <select class="select" id="pub-exam-type">
-            <option value="IELTS">IELTS</option>
-            <option value="TOEIC">TOEIC</option>
-            <option value="TOEFL">TOEFL</option>
-            <option value="ESL">ESL</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Test Set Name (will be shown to candidates)</label>
-          <input class="input" type="text" id="pub-set-name" placeholder="e.g. Mock Test 1 — January 2025">
-          <div>For TOEIC, keep the word "TOEIC" in the name — <code>tests.html</code> uses it to send candidates to the TOEIC test screen instead of the IELTS one.</div>
-        </div>
-        <div class="field">
-          <label>Description</label>
-          <input class="input" type="text" id="pub-set-desc" placeholder="e.g. IELTS Academic simulation">
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Step 2 — Build your config</div>
-        <p class="page-sub">Questions are authored in the Question Makers. Use <b>Download Config JSON</b> there.</p>
-        <div class="btn-row"><button class="btn btn-blue" type="button" data-click="goto('question-maker.html')">Open Question Maker</button><button class="btn btn-blue" type="button" data-click="goto('toeic-question-maker.html')">Open TOEIC Question Maker</button></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Step 3 — Upload to GitHub</div>
-        <ol>
-          <li>Go to your GitHub repository</li>
-          <li>Open <code>configs/</code> folder</li>
-          <li>Click <b>Add file → Upload files</b></li>
-          <li>Upload the downloaded JSON file</li>
-          <li>Commit changes</li>
-          <li>Click the file → Click <b>Raw</b> → Copy the URL</li>
-        </ol>
-      </div>
-      <div class="card">
-        <div class="card-title">Step 4 — Paste Raw URL & Save Test Set</div>
-        <div class="field">
-          <label>GitHub Raw URL</label>
-          <input class="input" type="text" id="pub-github-url" placeholder="https://raw.githubusercontent.com/username/ielts-sim/main/configs/...json">
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-green" data-click="savePublishedSet()">💾 Save as Test Set & Activate</button>
-          <button class="btn btn-ghost" data-click="testConfigURL()">🧪 Test URL</button>
-        </div>
-        <div id="pub-test-result"></div>
-      </div>
-    </div>
-
-
-    <!-- MY ACCOUNT PANEL (sub-admins only) -->
     <div id="p-account" class="panel hidden">
       <h2 class="page-title">🔑 My Account</h2>
       <p class="page-sub">Change the password you use to sign in to the admin panel.</p>
