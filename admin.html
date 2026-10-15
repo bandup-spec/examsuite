@@ -20,7 +20,7 @@
   <button class="nav-item" type="button" id="sb-p-testsets" data-click="showPanel('p-testsets')" data-perm="testsets"><svg class="ico"><use href="#i-dot"/></svg>Test Sets</button><button class="nav-item" type="button" id="sb-p-answerkey" data-click="showPanel('p-answerkey')" data-perm="answerkey"><svg class="ico"><use href="#i-dot"/></svg>Answer Keys</button><button class="nav-item" type="button" id="sb-p-publish" data-click="showPanel('p-publish')" data-perm="publish"><svg class="ico"><use href="#i-dot"/></svg>Publish</button>
   <button class="nav-item" type="button" data-perm="questionmaker" data-click="goto('toeic-question-maker.html')"><svg class="ico"><use href="#i-box"/></svg>TOEIC Question Maker</button>
   <div class="nav-group">Config</div>
-  <button class="nav-item" type="button" id="sb-p-settings" data-click="showPanel('p-settings')" data-owner-only><svg class="ico"><use href="#i-dot"/></svg>Settings</button><button class="nav-item" type="button" id="sb-p-drive" data-click="showPanel('p-drive')" data-owner-only><svg class="ico"><use href="#i-dot"/></svg>Drive Config</button><button class="nav-item" type="button" id="sb-p-account" data-click="showPanel('p-account')" data-sub-only><svg class="ico"><use href="#i-dot"/></svg>My Account</button>
+  <button class="nav-item" type="button" id="sb-p-settings" data-click="showPanel('p-settings')" data-owner-only><svg class="ico"><use href="#i-dot"/></svg>Settings</button><button class="nav-item" type="button" id="sb-p-account" data-click="showPanel('p-account')" data-sub-only><svg class="ico"><use href="#i-dot"/></svg>My Account</button>
   <button class="nav-item" type="button" id="sb-p-admins" data-owner-only data-click="showPanel('p-admins')"><svg class="ico"><use href="#i-dot"/></svg>Admins<span id="admin-pending-badge" class="nav-badge start-hidden"></span></button>
   <div class="nav-group">Preview as candidate</div>
   <button class="nav-item" type="button" data-click="openPreview('tests.html')">Tests &amp; Simulations</button>
@@ -31,8 +31,7 @@
 <div class="scrim" id="scrim"></div>
 <div class="main">
  <header class="topbar"><button class="btn btn-ghost btn-icon menu-btn" id="menu-btn" type="button" aria-label="Menu"><svg class="ico"><use href="#i-menu"/></svg></button><h1 class="topbar-title" id="topbar-title">BandUp Admin</h1><span class="grow"></span>
-  <button class="btn btn-secondary btn-sm" type="button" data-perm="questionmaker" data-click="goto('question-maker.html')">Question Maker</button>
-  <button class="btn btn-secondary btn-sm" type="button" data-owner-only data-click="showPanel('p-drive')">Drive Link</button></header>
+  <button class="btn btn-secondary btn-sm" type="button" data-perm="questionmaker" data-click="goto('question-maker.html')">Question Maker</button></header>
  <main class="page" id="page">
 <!-- LIVE MONITOR PANEL -->
     <div id="p-monitor" class="panel">
@@ -407,7 +406,7 @@
         <div class="card-title">Step 1 — Set Test Set Name</div>
         <div class="field">
           <label>Exam Type</label>
-          <select class="select" id="pub-exam-type" data-change="onExamTypeChange()">
+          <select class="select" id="pub-exam-type">
             <option value="IELTS">IELTS</option>
             <option value="TOEIC">TOEIC</option>
             <option value="TOEFL">TOEFL</option>
@@ -424,20 +423,10 @@
           <input class="input" type="text" id="pub-set-desc" placeholder="e.g. IELTS Academic simulation">
         </div>
       </div>
-      <div class="card" id="pub-step2-ielts">
-        <div class="card-title">Step 2 — Download Config JSON</div>
-        <p>
-          This downloads a JSON file containing all questions, passages, answer key, and settings.
-          <b>Audio is NOT included</b> — YouTube URLs are stored in the config.
-        </p>
-        <button class="btn btn-blue" data-click="downloadConfigForGitHub()">⬇ Download Config JSON</button>
-      </div>
-      <div class="card start-hidden" id="pub-step2-toeic">
-        <div class="card-title">Step 2 — Build your TOEIC config</div>
-        <p>
-          TOEIC tests are authored separately, in the <b>TOEIC Question Maker</b> (CSV import for all 200 questions, then Download Config JSON + Send Answer Key to Sheets from there).
-        </p>
-        <button class="btn btn-blue" data-click="window.open('toeic-question-maker.html','_blank')">↗ Open TOEIC Question Maker</button>
+      <div class="card">
+        <div class="card-title">Step 2 — Build your config</div>
+        <p class="page-sub">Questions are authored in the Question Makers. Use <b>Download Config JSON</b> there.</p>
+        <div class="btn-row"><button class="btn btn-blue" type="button" data-click="goto('question-maker.html')">Open Question Maker</button><button class="btn btn-blue" type="button" data-click="goto('toeic-question-maker.html')">Open TOEIC Question Maker</button></div>
       </div>
       <div class="card">
         <div class="card-title">Step 3 — Upload to GitHub</div>
@@ -587,11 +576,7 @@
         <div id="email-save-status" class="start-hidden"></div>
       </div>
       <div class="card">
-        <div class="card-title">Apps Script URL</div>
-        <div class="field">
-          <label>Web App URL</label>
-          <input class="input" type="text" id="apps-script-url-input" value="https://script.google.com/macros/s/AKfycbwEcaHQwN-AXs31xAh46YCd1uw4HyxVZa6WF3DeBpCjzP8v7BkSjADQ838xDxFVtR2J/exec">
-        </div>
+        <div class="card-title">Server Connection</div>
         <div class="btn-row">
           <button class="btn btn-ghost" data-click="testConnection()">🧪 Test Connection</button>
         </div>
@@ -601,59 +586,7 @@
 
 
     <!-- GOOGLE DRIVE CONFIG PANEL -->
-    <div id="p-drive" class="panel hidden">
-      <h2 class="page-title">☁️ Google Drive Config</h2>
-      <p class="page-sub">Upload your config to Google Drive so all candidates auto-load the latest questions, audio, and passages — no matter what device they use.</p>
-
-      <div class="card">
-        <div class="card-title">Step 1 — Save & Upload Config</div>
-        <div>
-          <b>1.</b> Click <b>💾 Save Config</b> (top right) — downloads <code>ielts_config.json</code><br>
-          <b>2.</b> Go to <a href="https://drive.google.com" target="_blank">drive.google.com</a> → Upload the file<br>
-          <b>3.</b> Right-click the file → <b>Share</b> → <b>Anyone with the link</b> → <b>Viewer</b><br>
-          <b>4.</b> Click <b>Copy link</b> — paste it below
-        </div>
-        <div class="field">
-          <label>Google Drive Share Link</label>
-          <input type="text" id="drive-url-input"
-            placeholder="https://drive.google.com/file/d/XXXX/view?usp=sharing"
-            data-input="saveDriveURL(this.value)"
-            class="mono">
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-blue" data-click="convertAndSaveDriveURL()">🔗 Convert & Save URL</button>
-          <button class="btn btn-ghost" data-click="testDriveURL()">🧪 Test Connection</button>
-        </div>
-        <div id="drive-status" class="start-hidden"></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Step 2 — Active Config URL</div>
-        <div>
-          This is the URL that <b>simulation.html</b> and <b>profile.html</b> will fetch the config from. Copy this and set it in those files if needed, or it is saved automatically.
-        </div>
-        <div id="drive-active-url" class="mono">
-          No Drive URL saved yet.
-        </div>
-        <div>Note: question content is saved from the <b>Question Maker</b> page (💾 Save Config there). This page only manages the Drive link candidates fetch it from.</div>
-        <div class="btn-row">
-          <button class="btn btn-ghost" data-click="copyDriveURL()">📋 Copy URL</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">How It Works</div>
-        <div>
-          <b>Without Drive:</b> Config stays in browser localStorage — only works on the admin's computer.<br>
-          <b>With Drive:</b> Config is fetched fresh from Google Drive every time a candidate opens the test — works on <b>any device, any browser</b>.<br><br>
-          <b>⚠️ Important:</b> Every time you change questions, audio URLs, or passages — re-save the config and re-upload to Google Drive (replace the old file). The URL stays the same.
-        </div>
-      </div>
-    </div>
-
-
-
- </main>
+    </main>
 </div></div></div>
 <div class="toasts" id="toasts" aria-live="polite"></div><div id="print-root"></div>
 <script src="bandup-api.js"></script><script src="admin-ui.js"></script><script src="admin-app.js"></script>
