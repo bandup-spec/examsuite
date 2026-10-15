@@ -9,6 +9,14 @@
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .btn-blue{background:var(--brand);color:var(--on-brand)}.btn-green{background:var(--ok);color:#fff}.btn-red{background:var(--bad);color:#fff}.btn-gold{background:var(--gold);color:#fff}
 .btn-blue,.btn-green,.btn-red,.btn-gold{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:5px 12px;border:0;border-radius:8px;font-weight:600;font-size:.85rem}
+.btn[data-click*="toeic-question-maker.html"] {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+.btn[data-click*="toeic-question-maker.html"]:hover {
+  background-color: #333333;
+}
 .refresh-btn,.btn-ghost{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:5px 12px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface);color:var(--text-2);font-weight:600;font-size:.82rem}
 .refresh-btn:hover,.btn-ghost:hover{background:var(--surface-3)}
 .sheets-table{width:100%;border-collapse:collapse;font-size:.88rem}
