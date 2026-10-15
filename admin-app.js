@@ -282,16 +282,16 @@ window.onload = async () => {
 const PERM_DEFS = [
   ['monitor','🟢 Live Monitor'], ['candidates','👥 Candidates'], ['scores','📊 Scores'],
   ['trf','📄 TRF Viewer'], ['grading','✏️ Grade Writing'], ['testsets','📚 Test Sets'],
-  ['answerkey','🔑 Answer Keys'], ['publish','🚀 Publish'], ['questionmaker','🧠 Question Makers']
+  ['answerkey','🔑 Answer Keys'], ['questionmaker','🧠 Question Makers']
 ];
 const DEFAULT_SUB_PERMS = ['monitor','candidates','scores','trf','grading'];
 const PANEL_PERM = {
   'p-monitor':'monitor', 'p-candidates':'candidates', 'p-scores':'scores', 'p-trf':'trf',
-  'p-grading':'grading', 'p-testsets':'testsets', 'p-answerkey':'answerkey', 'p-publish':'publish'
+  'p-grading':'grading', 'p-testsets':'testsets', 'p-answerkey':'answerkey'
 };
 const OWNER_ONLY_PANELS = ['p-settings','p-admins'];
 const SUB_ONLY_PANELS = ['p-account'];
-const PANEL_ORDER = ['p-monitor','p-candidates','p-scores','p-trf','p-grading','p-testsets','p-answerkey','p-publish','p-settings','p-admins','p-account'];
+const PANEL_ORDER = ['p-monitor','p-candidates','p-scores','p-trf','p-grading','p-testsets','p-answerkey','p-settings','p-admins','p-account'];
 
 let ME = { role:'Owner', name:'', perms:[] };
 
@@ -565,7 +565,7 @@ async function loadTestSets() {
   } catch(e) { /* Sheets unavailable — use localStorage */ }
 
   if (!sets.length) {
-    wrap.innerHTML = '<div class="tbl-empty">No test sets yet. Create one in the Publish panel!</div>';
+    wrap.innerHTML = '<div class="tbl-empty">No test sets yet. Click + New Set to create one.</div>';
     return;
   }
 
@@ -679,55 +679,6 @@ async function activateSet(setID) {
 async function activateSetForm() { await activateSet(document.getElementById('set-id').value); }
 
 // ═══════════════════════════════════════
-
-// PUBLISH
-// ═══════════════════════════════════════
-async function testConfigURL() {
-  const url  = document.getElementById('pub-github-url').value.trim();
-  const wrap = document.getElementById('pub-test-result');
-  if (!url) { wrap.innerHTML='<span>Please enter a URL first.</span>'; return; }
-  wrap.innerHTML='⏳ Testing...';
-  try {
-    // GitHub raw URLs don't have CORS issues — fetch directly
-    const res = await fetch(url, { cache:'no-cache' });
-    if (!res.ok) { wrap.innerHTML=`<span>❌ HTTP ${res.status} — Check the URL</span>`; return; }
-    const cfg  = await res.json();
-    const meta = cfg._meta || {};
-    wrap.innerHTML=`<span>✅ Config OK! Set: <b>${escH(meta.setName||'(unnamed)')}</b>${meta.exportedAt?' — '+new Date(meta.exportedAt).toLocaleDateString():''}</span>`;
-  } catch(e) {
-    wrap.innerHTML=`<span>❌ ${e.message}<br><small>Make sure the URL is a raw GitHub URL (starts with raw.githubusercontent.com)</small></span>`;
-  }
-}
-
-async function savePublishedSet() {
-  const url  = document.getElementById('pub-github-url').value.trim();
-  const name = document.getElementById('pub-set-name').value.trim();
-  const desc = document.getElementById('pub-set-desc').value.trim();
-  const examType = document.getElementById('pub-exam-type').value || 'IELTS';
-  if (!url || !name) { alert('Please fill in the set name and GitHub URL.'); return; }
-  if (examType === 'TOEIC' && !/toeic/i.test(name)) {
-    if (!confirm('The test set name doesn\'t contain "TOEIC" — candidates will be routed to the IELTS test screen instead of TOEIC unless you add it. Save anyway?')) return;
-  }
-
-  const setID = 'SET-' + Date.now();
-
-  // Save locally first (always works, no server needed)
-  const localSets = JSON.parse(localStorage.getItem('ielts_test_sets') || '[]');
-  localSets.push({ setID, setName:name, configURL:url, status:'Active', createdAt:new Date().toISOString(), description:desc, examType });
-  localStorage.setItem('ielts_test_sets', JSON.stringify(localSets));
-  localStorage.setItem('ielts_active_set', JSON.stringify({ setID, setName:name, configURL:url }));
-  localStorage.setItem('ielts_drive_url', url);
-
-  // Try saving to Sheets too (optional — won't fail if not deployed yet)
-  try {
-    const data = await callSheets({ action:'saveTestSet', setID, setName:name, configURL:url, status:'Active', description:desc, examType });
-    if (data.success) {
-      await callSheets({ action:'setActiveSet', setID: data.setID || setID });
-    }
-  } catch(e) { /* Sheets optional — already saved locally */ }
-
-  toast(`✅ ${examType} test set saved & activated! Config URL stored.` + (examType==='TOEIC' ? ' Don\'t forget to send the answer key from the TOEIC Question Maker.' : ''));
-}
 
 async function saveTestSetForm() {
   const name   = document.getElementById('set-name').value.trim();
