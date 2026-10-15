@@ -3,7 +3,7 @@
 .m0{margin:0!important}.between{justify-content:space-between}
 .panel>.page-title{margin-bottom:4px}.panel>.page-sub{margin:0 0 18px}
 .panel>.card{padding:18px;margin-bottom:16px}.card>.card-title{margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em;font-size:.8rem;color:var(--brand)}
-.promo{background:linear-gradient(135deg,var(--navy),var(--navy-2));color:#110909;justify-content:space-between}
+.promo{background:linear-gradient(135deg,var(--navy),var(--navy-2));color:#fff;justify-content:space-between}
 .input-icon{flex:1 1 240px;max-width:420px}
 .row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}@media(max-width:640px){.row2{grid-template-columns:minmax(0,1fr)}}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
