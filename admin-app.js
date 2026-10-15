@@ -1,6 +1,3 @@
-function toggleHdrMenu(){
-  document.getElementById('hdr-actions').classList.toggle('open');
-}
 // CANDIDATES — load from Sheets
 // ═══════════════════════════════════════
 let _candidateRows = [];
@@ -251,38 +248,9 @@ function formatDate(val) {
 function exportScoresPDF() {
   const tbl = document.getElementById('scores-tbl');
   if (!tbl) { alert('Load scores first.'); return; }
-  const title = document.getElementById('pdf-title')?.value || 'BandUp Scores';
+  const title = 'BandUp Scores';
   printInPage(`<h2>${escH(title)} — Scores</h2>${tbl.outerHTML}`);
 }
-
-
-// STATE
-// ═══════════════════════════════════════
-let config = {
-  listening: {
-    sections: [
-      { from:1, to:10, audioName:'', audioData:'', imgData:'' },
-      { from:11, to:20, audioName:'', audioData:'', imgData:'' },
-      { from:21, to:30, audioName:'', audioData:'', imgData:'' },
-      { from:31, to:40, audioName:'', audioData:'', imgData:'' },
-    ],
-    questions: {} // {1:{text:'',type:'short',options:[],answer:''}, ...}
-  },
-  reading: {
-    passages: { 1:'', 2:'', 3:'' },
-    questions: {}
-  },
-  writing: {
-    tasks: {
-      1: { prompt:'', imgURL:'', minWords:150 },
-      2: { prompt:'', imgData:'', minWords:250 }
-    }
-  },
-  answerKey: { L:{}, R:{} }
-};
-
-let candidateResponses = null;
-
 
 
 // ═══════════════════════════════════════
@@ -296,10 +264,8 @@ window.onload = async () => {
   applyRoleUI();                 // first paint from the login session
   await refreshMeFromServer();   // then trust the server's answer
   applyRoleUI();
-  const saved = localStorage.getItem('ielts_admin_config');
-  if (saved) { try { config = JSON.parse(saved); } catch(e){} }
   renderPermGrid('new-sub-perms', DEFAULT_SUB_PERMS);
-  if (isOwner()) { initDrivePanel(); loadAdmins(true); }
+  if (isOwner()) { initOwnerData(); loadAdmins(true); }
   if (can('candidates')) loadCandidates(); // silent — populates the pending-approval badge on load
   if (!canOpenPanel('p-monitor')) {
     const first = firstAllowedPanel();
@@ -323,9 +289,9 @@ const PANEL_PERM = {
   'p-monitor':'monitor', 'p-candidates':'candidates', 'p-scores':'scores', 'p-trf':'trf',
   'p-grading':'grading', 'p-testsets':'testsets', 'p-answerkey':'answerkey', 'p-publish':'publish'
 };
-const OWNER_ONLY_PANELS = ['p-settings','p-drive','p-admins'];
+const OWNER_ONLY_PANELS = ['p-settings','p-admins'];
 const SUB_ONLY_PANELS = ['p-account'];
-const PANEL_ORDER = ['p-monitor','p-candidates','p-scores','p-trf','p-grading','p-testsets','p-answerkey','p-publish','p-settings','p-drive','p-admins','p-account'];
+const PANEL_ORDER = ['p-monitor','p-candidates','p-scores','p-trf','p-grading','p-testsets','p-answerkey','p-publish','p-settings','p-admins','p-account'];
 
 let ME = { role:'Owner', name:'', perms:[] };
 
@@ -466,16 +432,8 @@ function showPanel(id) {
   document.querySelectorAll('.nav-item').forEach(b => b.removeAttribute('aria-current'));
   document.getElementById(id).classList.remove('hidden');
   {const sb=document.getElementById('sb-'+id); if(sb) sb.setAttribute('aria-current','page'); if(window.closeSidebar) closeSidebar(); const t=document.querySelector('#'+id+' .page-title'); if(t) document.getElementById('topbar-title').textContent=t.textContent;}
-  // When switching to Reading panel, re-render the active passage Q list
-  if (id === 'p-reading') {
-    const activeBtn = document.querySelector('#p-reading .sec-tab.active');
-    const n = activeBtn ? ([...document.querySelectorAll('#p-reading .sec-tab')].indexOf(activeBtn) + 1) : 1;
-    qmRenderList('R', n);
-  }
   if (id === 'p-answerkey') akLoadSets();
   if (id === 'p-admins') loadAdmins();
-  // Auto-load Question Bank when navigating to it
-  if (id === 'p-qbank') renderQBank();
   // Auto-load monitor
   if (id === 'p-monitor' && !document.querySelector('#monitor-wrap table')) loadMonitor();
   // Auto-load candidates
@@ -485,82 +443,6 @@ function showPanel(id) {
   // Auto-load TRF candidates
   if (id === 'p-trf' && document.getElementById('trf-cand-sel').options.length <= 1) loadTRFCandidates();
 }
-
-// GOOGLE DRIVE CONFIG
-// ═══════════════════════════════════════
-function convertDriveURL(url) {
-  // Convert any Google Drive share URL to direct download URL
-  if (!url) return '';
-  // Already a direct/export URL
-  if (url.includes('export=download') || url.includes('uc?id=')) return url;
-  // Standard share link: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
-  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  if (match) return `https://drive.google.com/uc?export=download&id=${match[1]}`;
-  return url;
-}
-
-function saveDriveURL(val) {
-  // Just store raw input for now — convert on button click
-}
-
-function convertAndSaveDriveURL() {
-  const raw = document.getElementById('drive-url-input').value.trim();
-  if (!raw) { showDriveStatus('Please paste a Google Drive share link first.', 'err'); return; }
-  const converted = convertDriveURL(raw);
-  localStorage.setItem('ielts_drive_url', converted);
-  document.getElementById('drive-active-url').textContent = converted;
-  document.getElementById('drive-url-input').value = converted;
-  config._driveURL = converted;
-  localStorage.setItem('ielts_admin_config', JSON.stringify(config));
-  showDriveStatus('✅ URL converted and saved! Candidates will now fetch config from this URL.', 'ok');
-  toast('✅ Drive URL saved!');
-}
-
-async function testDriveURL() {
-  const url = localStorage.getItem('ielts_drive_url') || document.getElementById('drive-url-input').value.trim();
-  if (!url) { showDriveStatus('No URL set. Paste a Drive link first.', 'err'); return; }
-  showDriveStatus('⏳ Testing connection...', 'info');
-  try {
-    const res = await fetch(convertDriveURL(url));
-    if (res.ok) {
-      const text = await res.text();
-      try {
-        JSON.parse(text);
-        showDriveStatus('✅ Success! Config file is accessible and valid JSON. Candidates can now load questions.', 'ok');
-      } catch(e) {
-        showDriveStatus('⚠️ File is accessible but is not valid JSON. Make sure you uploaded the correct ielts_config.json file.', 'warn');
-      }
-    } else {
-      showDriveStatus(`❌ Could not access file (HTTP ${res.status}). Make sure sharing is set to "Anyone with the link".`, 'err');
-    }
-  } catch(e) {
-    showDriveStatus('❌ Network error: ' + e.message + '\n\nTip: Google Drive direct download links may be blocked by CORS on some browsers. Try uploading to a CORS-friendly host like GitHub Pages or Cloudflare R2.', 'err');
-  }
-}
-
-function copyDriveURL() {
-  const url = localStorage.getItem('ielts_drive_url') || '';
-  if (!url) { toast('No Drive URL saved yet.'); return; }
-  navigator.clipboard.writeText(url).then(()=>toast('URL copied!')).catch(()=>toast('Could not copy — select manually'));
-}
-
-function showDriveStatus(msg, type) {
-  const el = document.getElementById('drive-status');
-  el.style.display = 'block';
-  el.textContent = msg;
-  el.style.background = type==='ok'?'#f0faf4':type==='err'?'#fff5f5':type==='warn'?'#fffbe6':'#f0f5ff';
-  el.style.border = `1px solid ${type==='ok'?'#a8dbb8':type==='err'?'#f5b8b8':type==='warn'?'#ffe082':'#c0d0f0'}`;
-  el.style.color = type==='ok'?'var(--green)':type==='err'?'var(--red)':type==='warn'?'#7a5f1a':'var(--blue2)';
-}
-
-function initDrivePanel() {
-  const saved = localStorage.getItem('ielts_drive_url') || '';
-  if (saved) {
-    document.getElementById('drive-active-url').textContent = saved;
-    document.getElementById('drive-url-input').value = saved;
-  }
-}
-
 
 // GRADE WRITING
 // ═══════════════════════════════════════
@@ -628,10 +510,6 @@ function updateGradePreview() {
   document.getElementById('grade-overall').textContent = overall.toFixed(1);
   document.getElementById('grade-preview').style.display = 'block';
 }
-// Auto-update preview when bands change
-['grade-w1','grade-w2','grade-s'].forEach(id => {
-  setTimeout(()=>{ const el=document.getElementById(id); if(el) el.addEventListener('change',updateGradePreview); },1000);
-});
 
 async function submitGrade() {
   const subID = document.getElementById('grade-sub-id').value;
@@ -804,31 +682,6 @@ async function activateSetForm() { await activateSet(document.getElementById('se
 
 // PUBLISH
 // ═══════════════════════════════════════
-function downloadConfigForGitHub() {
-  if (typeof collectConfig === 'function') collectConfig();
-  const setName = document.getElementById('pub-set-name').value.trim() || 'Test Set';
-  const setDesc = document.getElementById('pub-set-desc').value.trim() || '';
-  const setID   = 'SET-'+Date.now();
-  const exportConfig = {
-    ...config,
-    _meta: { setID, setName, setDesc, exportedAt: new Date().toISOString() }
-  };
-  // Remove large audio data — YouTube URLs only
-  if (exportConfig.listening && exportConfig.listening.sections) {
-    exportConfig.listening.sections = exportConfig.listening.sections.map(s => ({
-      ...s,
-      audioData: '',  // Remove base64 audio — use audioURL instead
-    }));
-  }
-  const blob = new Blob([JSON.stringify(exportConfig, null, 2)], {type:'application/json'});
-  const a    = document.createElement('a');
-  const slug = setName.toLowerCase().replace(/[^a-z0-9]+/g,'_').substring(0,40);
-  a.href     = URL.createObjectURL(blob);
-  a.download = slug+'_'+new Date().toISOString().slice(0,10)+'.json';
-  a.click();
-  toast('✅ Config downloaded! Upload to GitHub configs/ folder.');
-}
-
 async function testConfigURL() {
   const url  = document.getElementById('pub-github-url').value.trim();
   const wrap = document.getElementById('pub-test-result');
@@ -844,12 +697,6 @@ async function testConfigURL() {
   } catch(e) {
     wrap.innerHTML=`<span>❌ ${e.message}<br><small>Make sure the URL is a raw GitHub URL (starts with raw.githubusercontent.com)</small></span>`;
   }
-}
-
-function onExamTypeChange() {
-  const type = document.getElementById('pub-exam-type').value;
-  document.getElementById('pub-step2-ielts').style.display = type === 'TOEIC' ? 'none' : 'block';
-  document.getElementById('pub-step2-toeic').style.display = type === 'TOEIC' ? 'block' : 'none';
 }
 
 async function savePublishedSet() {
@@ -1006,7 +853,7 @@ async function testConnection() {
   } catch(e) { wrap.textContent='❌ '+e.message; wrap.style.color='var(--red)'; }
 }
 
-function initDrivePanel() {
+function initOwnerData() {
   loadSettingsForm();
   // Load active set info
   callSheets({action:'getActiveSet'}).then(d=>{
@@ -2174,4 +2021,3 @@ async function openClearHistory(candidateID) {
   refresh(true);
   (candidateID ? $('ch-confirm') : $('ch-cid')).focus();
 }
-
