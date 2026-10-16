@@ -86,7 +86,7 @@ function renderCandidateTable(rows, highlight) {
       <td>${escH(r[3])}</td>
       <td>${escH(r[4])}</td>
       <td>
-        <select data-id="${escH(r[0])}" onchange="setCandCourse(this.dataset.id,this.value)">
+        <select data-id="${escH(r[0])}" data-change="setCandCourse(this.dataset.id,this.value)">
           ${['IELTS','TOEIC','TOEFL','ESL','ALL'].map(c => `<option value="${c}" ${((r[9]||'IELTS')===c)?'selected':''}>${c==='ALL'?'⭐ ALL (special)':c}</option>`).join('')}
         </select>
       </td>
