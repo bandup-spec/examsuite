@@ -2,6 +2,7 @@
 // ═══════════════════════════════════════
 let _candidateRows = [];
 let _scoreRows = [];
+let _setPolicies = {};   // setID -> maxAttempts (0 = unlimited)
 
 async function loadCandidates() {
   const wrap = document.getElementById('cand-table-wrap');
@@ -147,6 +148,11 @@ async function loadScores() {
     const data = await callSheets({ action: 'getScores' });
     if (!data.success) throw new Error(data.message || 'Failed');
     _scoreRows = data.rows || [];
+    try {
+      const ts = await callSheets({ action:'getTestSets' });
+      _setPolicies = {};
+      (ts.sets || []).forEach(x => { _setPolicies[x.setID] = +x.maxAttempts || 0; });
+    } catch(e) { _setPolicies = {}; }
     status.className = 'sheets-status ok';
     status.textContent = `✅ ${_scoreRows.length} submissions`;
     document.getElementById('scores-search').value = '';
@@ -164,6 +170,22 @@ function filterScores() {
     ? _scoreRows.filter(r => String(r[2]||'').toLowerCase().includes(q) || String(r[3]||'').toLowerCase().includes(q))
     : _scoreRows;
   renderScoresTable(filtered, q);
+}
+
+function allowBtn(r) {
+  if (!(_setPolicies[r[4]] > 0)) return '';   // only tests with an attempt limit need this
+  return ` <button class="btn btn-ghost" title="Let this candidate take this test one more time" data-cid="${escH(r[2])}" data-set="${escH(r[4])}" data-name="${escH(r[3])}" data-click="allowAnotherAttempt()">➕ Attempt</button>`;
+}
+
+async function allowAnotherAttempt() {
+  const btn = this, cid = btn.dataset.cid, setID = btn.dataset.set, nm = btn.dataset.name || cid;
+  if (!confirm('Allow ' + nm + ' (' + cid + ') one more attempt at this test?')) return;
+  btn.disabled = true;
+  try {
+    const res = await callSheets({ action:'grantAttempt', candidateID: cid, setID, delta: 1 });
+    toast(res && res.success ? '✅ ' + nm + ': ' + res.message : '⚠️ ' + ((res && res.message) || 'Could not allow another attempt'));
+  } catch(e) { toast('⚠️ ' + (e.message || 'Could not allow another attempt')); }
+  btn.disabled = false;
 }
 
 function renderScoresTable(rows, highlight) {
@@ -213,7 +235,7 @@ function renderScoresTable(rows, highlight) {
         <td><span class="band-badge">${escH(String(r[26]||'—'))}</span></td>
         <td colspan="2">— (TOEIC has no Writing/Speaking) —</td>
         <td><span class="band-badge band-high">${escH(String(r[27]||'—'))} / 990</span></td>
-        <td><button class="btn btn-ghost" data-id="${escH(r[0])}" data-click="viewCandidateAnswers(this.dataset.id)">👁 Answers</button></td>${delCell(r)}
+        <td><button class="btn btn-ghost" data-id="${escH(r[0])}" data-click="viewCandidateAnswers(this.dataset.id)">👁 Answers</button>${allowBtn(r)}</td>${delCell(r)}
       </tr>`;
       return;
     }
@@ -232,7 +254,7 @@ function renderScoresTable(rows, highlight) {
       <td><span class="band-badge">${escH(String(r[12]||'—'))}</span></td>
       <td><span class="band-badge">${escH(String(r[13]||'—'))}</span></td>
       <td><span class="band-badge ${bandClass(overall)}">${overall||'—'}</span></td>
-      <td><button class="btn btn-ghost" data-id="${escH(r[0])}" data-click="viewCandidateAnswers(this.dataset.id)">👁 Answers</button></td>${delCell(r)}
+      <td><button class="btn btn-ghost" data-id="${escH(r[0])}" data-click="viewCandidateAnswers(this.dataset.id)">👁 Answers</button>${allowBtn(r)}</td>${delCell(r)}
     </tr>`;
   });
   html += '</tbody></table></div>';
@@ -569,7 +591,7 @@ async function loadTestSets() {
     return;
   }
 
-  let html = '<div><table class="sheets-table"><thead><tr><th>Set Name</th><th>Type</th><th>Status</th><th>Answer Key</th><th>Config URL</th><th>Created</th><th>Actions</th></tr></thead><tbody>';
+  let html = '<div><table class="sheets-table"><thead><tr><th>Set Name</th><th>Type</th><th>Status</th><th>Answer Key</th><th>Retakes / Review</th><th>Config URL</th><th>Created</th><th>Actions</th></tr></thead><tbody>';
   sets.forEach(s => {
     const isActive = s.setID === activeID || s.status === 'Active';
     const examType = ['IELTS','TOEIC','TOEFL','ESL'].includes((s.examType||'IELTS').toUpperCase()) ? (s.examType||'IELTS').toUpperCase() : 'IELTS';
@@ -578,6 +600,7 @@ async function loadTestSets() {
       <td>${examType==='TOEIC'?'<span class="band-badge">💼 TOEIC</span>':(examType==='IELTS'?'<span class="band-badge">🎓 IELTS</span>':'<span class="band-badge">📘 '+escH(examType)+'</span>')}</td>
       <td>${isActive?'<span class="band-badge band-high">⚡ ACTIVE</span>':`<span class="band-badge">${escH(s.status||'')}</span>`}</td>
       <td id="ak-status-${escH(s.setID)}">⏳ checking...</td>
+      <td>${(+s.maxAttempts||0)===0?'♾️ Unlimited':'🔒 '+(+s.maxAttempts)+(+s.maxAttempts===1?' attempt':' attempts')}<br><span>Review: ${({off:'off',full:'with answers'})[s.reviewMode]||'✓/✗ marks'}</span></td>
       <td>${s.configURL?`<a href="${escH(s.configURL)}" target="_blank">View ↗</a>`:'—'}</td>
       <td>${formatDate(s.createdAt)}</td>
       <td>
@@ -642,10 +665,18 @@ function showNewSetForm() {
   document.getElementById('set-url').value='';
   document.getElementById('set-status').value='Active';
   document.getElementById('set-exam-type').value='IELTS';
+  document.getElementById('set-attempts').value='0';
+  document.getElementById('set-review').value='marks';
   document.getElementById('set-form-title').textContent='New Test Set';
   document.getElementById('activate-btn').style.display='none';
   document.getElementById('set-form-card').style.display='block';
   document.getElementById('set-form-card').scrollIntoView({behavior:'smooth'});
+}
+
+function _setAttemptsValue(n) {
+  const sel = document.getElementById('set-attempts');
+  if (![...sel.options].some(o => +o.value === n)) sel.add(new Option(n + ' attempts', String(n)));
+  sel.value = String(n);
 }
 
 function editSet(s) {
@@ -657,6 +688,8 @@ function editSet(s) {
   document.getElementById('set-url').value=s.configURL||'';
   document.getElementById('set-status').value=s.status||'Active';
   document.getElementById('set-exam-type').value=['IELTS','TOEIC','TOEFL','ESL'].includes((s.examType||'IELTS').toUpperCase())?(s.examType||'IELTS').toUpperCase():'IELTS';
+  _setAttemptsValue(+s.maxAttempts||0);
+  document.getElementById('set-review').value=['off','marks','full'].includes(s.reviewMode)?s.reviewMode:'marks';
   document.getElementById('set-form-title').textContent='Edit: '+s.setName;
   document.getElementById('activate-btn').style.display='inline-flex';
   document.getElementById('set-form-card').style.display='block';
@@ -704,7 +737,17 @@ async function saveTestSetForm() {
     await callSheets({ action:'saveTestSet', setID, setName:name, configURL:url, status, description:desc, examType });
   } catch(e) { /* optional */ }
 
-  toast('✅ Test set saved!');
+  // Retake / review policy (stored on the server so it cannot be bypassed from the browser)
+  const maxAttempts = parseInt(document.getElementById('set-attempts').value, 10) || 0;
+  const reviewMode  = document.getElementById('set-review').value || 'marks';
+  let policyMsg = '';
+  try {
+    const pr = await callSheets({ action:'setSetPolicy', setID, maxAttempts, reviewMode });
+    if (!pr || !pr.success) policyMsg = (pr && pr.message) || 'not saved';
+  } catch(e) { policyMsg = e.message || 'not saved'; }
+
+  if (policyMsg) toast('⚠️ Set saved, but the retake/review setting was not: ' + policyMsg);
+  else toast('✅ Test set saved!');
   document.getElementById('set-form-card').style.display='none';
   loadTestSets();
 }
