@@ -377,6 +377,7 @@ async function syncDraftToSheets(){
       }
       return;
     }
+    if (res && res.locked) return;
     lastSyncedSnapshot = snapshot;
   } catch(e) { /* best-effort — local autosave already covers the common case */ }
 }
@@ -391,6 +392,7 @@ async function restoreAnswersFromServer(localSavedAt){
   try {
     const res = await callSheets({ action: 'getDraft', candidateID, testSetID: activeTestSet.setID });
     if (!res || !res.success || !res.found) return;
+    if (res.status === 'submitted') return; // previous attempt was already handed in — start fresh
     const serverTime = res.updatedAt ? new Date(res.updatedAt).getTime() : 0;
     if (serverTime <= (localSavedAt || 0)) return;
     const l = JSON.parse(res.lAnswers || '{}');
@@ -789,6 +791,7 @@ async function doSubmitTest(autoSubmit){
   let result = null;
   let sheetsFailed = false;
   let sessionKicked = false;
+  let lockedOut = false;
   try {
     result = await callSheets({
       action: 'saveScore',
@@ -802,9 +805,17 @@ async function doSubmitTest(autoSubmit){
       readingAnswers: JSON.stringify(readingAnswers)
     });
     if (result && result.sessionInvalid) sessionKicked = true;
+    else if (result && result.locked) lockedOut = true;
     else if (!result || !result.success) sheetsFailed = true;
   } catch(e) { sheetsFailed = true; }
 
+  if (lockedOut) {
+    showToast('🔒 This test allows only a limited number of attempts and yours are used up, so this one was not saved. Ask your teacher for another attempt.', 'danger', 10000);
+    submitBtn.textContent = 'Not submitted';
+    clearStageTimer('listening'); clearStageTimer('reading'); clearAutosave();
+    setTimeout(() => { window.location.href = 'tests.html'; }, 6000);
+    return;
+  }
   if (sessionKicked) {
     showToast('🚪 Could not submit — your account was logged in on another device. Please log in again.', 'danger', 10000);
     submitBtn.textContent = 'Not submitted';
@@ -862,8 +873,26 @@ function escH(str){ return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&
 // ═══════════════════════════════════════
 // BOOT
 // ═══════════════════════════════════════
+// Retake limit: the server is the real gatekeeper (saveDraft/saveScore refuse a locked test); this just
+// tells the candidate up front instead of letting them type a whole test that cannot be saved.
+async function guardAttemptLimit_(){
+  try {
+    const cd = JSON.parse(sessionStorage.getItem('candidateData')||'{}');
+    const sel = JSON.parse(sessionStorage.getItem('selectedTestSet')||'{}');
+    if (!cd.candidateID || !sel.setID) return true;
+    const res = await callSheets({ action:'getAttemptStatus', candidateID: cd.candidateID, testSetID: sel.setID });
+    if (res && res.success && res.allowed === false) {
+      alert('You have already completed this test and have no attempts left.\nAsk your teacher if you need another attempt.');
+      window.location.href = 'tests.html';
+      return false;
+    }
+  } catch(e) { /* offline — the server still enforces it on submit */ }
+  return true;
+}
+
 (async function boot(){
   initUser();
+  if (!(await guardAttemptLimit_())) return;
   const localSavedAt = loadAutosave();
   loadPlayedAudio();
   const ok = await loadConfig();
