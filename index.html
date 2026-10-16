@@ -145,6 +145,9 @@
   .pw-strength.weak{background:var(--red);width:33%}
   .pw-strength.fair{background:var(--gold);width:66%}
   .pw-strength.strong{background:var(--green);width:100%}
+  .terms-check{display:flex;align-items:flex-start;gap:8px;font-size:0.78rem;color:var(--ink2);line-height:1.5;margin:4px 0 12px;cursor:pointer}
+  .terms-check input{margin-top:3px;width:auto;flex:none;cursor:pointer}
+  .terms-check a{color:var(--blue2);text-decoration:underline}
   .hidden{display:none!important}
 
   /* CONFIG WARNING */
@@ -321,6 +324,7 @@
               <button class="pw-toggle" onclick="togglePw('adminReqConfirm',this)" type="button">Show</button>
             </div>
           </div>
+          <label class="terms-check"><input type="checkbox" id="agreeReg"> <span>By signing up, you agree to our <a href="#terms" target="_blank" rel="noopener">Terms of Service</a> and <a href="#privacy" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
           <div class="error-msg" id="err-adminreq"></div>
           <div class="success-msg" id="suc-adminreq"></div>
           <button class="btn-primary" id="btn-adminreq" onclick="handleAdminRequest()">
@@ -418,6 +422,7 @@
             </select>
             <div style="font-size:0.75rem;color:var(--ink3,#8888aa);margin-top:4px">This locks which tests you can take. Ask the admin if this needs to change later.</div>
           </div>
+          <label class="terms-check"><input type="checkbox" id="agreeAdm"> <span>By signing up, you agree to our <a href="#terms" target="_blank" rel="noopener">Terms of Service</a> and <a href="#privacy" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
           <div class="error-msg" id="err-register"></div>
           <div class="success-msg" id="suc-register"></div>
           <button class="btn-primary" id="btn-register" onclick="handleRegisterSendOTP()">
@@ -733,6 +738,7 @@ async function handleAdminRequest() {
   const pass    = document.getElementById('adminReqPass').value;
   const confirm = document.getElementById('adminReqConfirm').value;
   hideErr('err-adminreq');
+  if (!document.getElementById('agreeAdm').checked) { showErr('err-adminreq','Please agree to the Terms of Service and Privacy Policy to continue.'); return; }
   if (!name)                                   { showErr('err-adminreq','Please enter your full name.'); return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('err-adminreq','Please enter a valid email address.'); return; }
   if (pass.length < 8)                         { showErr('err-adminreq','Password must be at least 8 characters.'); return; }
@@ -740,11 +746,11 @@ async function handleAdminRequest() {
 
   setLoading('btn-adminreq','spin-adminreq','btn-adminreq-txt',true,'Send Request →');
   try {
-    const data = await callSheets({ action:'requestAdminAccess', fullName:name, email, password:pass });
+    const data = await callSheets({ action:'registerAdmin', fullName:name, email, password:pass });
     if (data.success) {
       showSuc('suc-adminreq', '✅ ' + (data.message || 'Request sent!'));
       document.getElementById('btn-adminreq').style.display = 'none';
-      ['adminReqName','adminReqEmail','adminReqPass','adminReqConfirm'].forEach(id => document.getElementById(id).value = '');
+      ['adminReqName','adminReqEmail','adminReqPass','adminReqConfirm'].forEach(id => document.getElementById(id).value = ''); document.getElementById('agreeAdm').checked=false;
       setTimeout(()=>{
         goTo('step-admin-request','step1');
         document.getElementById('btn-adminreq').style.display = '';
@@ -773,16 +779,16 @@ async function verifyAdmin() {
 
   try {
     const data = adminMode === 'sub'
-      ? await callSheets({ action:'verifyAdmin', email: subEmail, password: pass })
+      ? await callSheets({ action:'adminLogin', email: subEmail, password: pass })
       : await callSheets({ action:'verifyAdmin', password: pass });
     if (data.success) {
-      const sub = adminMode === 'sub' || data.role === 'SubAdmin';
+      const sub = adminMode === 'sub' && data.admin;
       sessionStorage.setItem('adminToken', data.adminToken || '');
       sessionStorage.setItem('userRole','Admin');
       sessionStorage.setItem('adminRole', sub ? 'SubAdmin' : 'Owner');
-      sessionStorage.setItem('adminName', sub ? (data.adminName || '') : 'Owner');
-      sessionStorage.setItem('adminPerms', JSON.stringify(sub ? (data.permissions || []) : []));
-      sessionStorage.setItem('candidateName', sub ? (data.adminName || 'ADMIN') : 'SYSTEM ADMIN');
+      sessionStorage.setItem('adminName', sub ? (data.admin.fullName || '') : 'Owner');
+      sessionStorage.setItem('adminPerms', JSON.stringify(sub ? (data.admin.permissions || []) : []));
+      sessionStorage.setItem('candidateName', sub ? (data.admin.fullName || 'ADMIN') : 'SYSTEM ADMIN');
       sessionStorage.setItem('candidateID','000000');
       window.location.href = 'admin.html';
     } else {
@@ -835,6 +841,7 @@ async function handleRegisterSendOTP() {
   const confirm = document.getElementById('confirmPass').value;
 
   hideErr('err-register');
+  if (!document.getElementById('agreeReg').checked) { showErr('err-register','Please agree to the Terms of Service and Privacy Policy to continue.'); return; }
   if (!name||!dob||!gender||!nat)      { showErr('err-register','Please fill in all fields.'); return; }
   if (!email || !email.includes('@'))  { showErr('err-register','Please enter a valid email address.'); return; }
   if (pass.length < 6)                 { showErr('err-register','Password must be at least 6 characters.'); return; }
