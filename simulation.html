@@ -81,6 +81,13 @@
   .dm-label{display:none}
   .hdr-menu-tools .dm-label{display:inline}
   @media(max-width:780px){.hdr-menu-dropdown{right:8px;min-width:230px}}
+  /* narrow phones: keep the header's three groups from running into each other */
+  @media(max-width:480px){
+    .hdr{column-gap:6px;padding:0 10px;grid-template-columns:auto minmax(0,1fr) auto}
+    .hdr-center{min-width:0;text-align:center}
+    .hdr-center .timer-pending{font-size:0.62rem !important;line-height:1.15;letter-spacing:0.03em !important;white-space:normal}
+    .hdr-info-toggle{font-size:0.7rem}
+  }
   .hdr-menu-dropdown .btn-profile{width:100%;justify-content:center}
   @media(max-width:900px){
     .hdr-right{gap:8px}
