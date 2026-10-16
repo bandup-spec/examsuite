@@ -228,6 +228,11 @@
   .matching-options-box{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;background:var(--paper2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:0.85rem;color:var(--ink2)}
   .submit-btn{margin:0 16px 16px;padding:11px;background:var(--green);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;width:calc(100% - 32px);transition:all 0.15s}
   .submit-btn:hover{opacity:0.9}
+
+  /* ---- Anti-copy: questions/passages can't be selected; answer fields stay fully usable ---- */
+  body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+  @media print{body{display:none!important}}
   #toast-wrap{position:fixed;top:66px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
   .toast{pointer-events:auto;min-width:260px;max-width:min(90vw,420px);padding:12px 16px;border-radius:9px;font-size:0.85rem;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,0.2);display:flex;align-items:center;gap:10px;animation:toastIn 0.25s ease-out;color:#fff}
   .toast.info{background:var(--blue2)}
@@ -2413,6 +2418,50 @@ async function beginTest() {
   new MutationObserver(check).observe(document.documentElement, { attributes:true, attributeFilter:['lang','class'], childList:true, subtree:true });
   setInterval(check, 2000);
   window.addEventListener('load', check);
+})();
+</script>
+<script>
+/* ---- Anti-copy guard ----
+   Blocks copy / cut / drag / select-all / right-click / print on the questions, passages and
+   writing prompts. Answer boxes (input / textarea) are left alone so candidates can type,
+   edit, and copy/paste inside their own answers normally.
+   This is a deterrent only: it cannot stop screenshots, DevTools or view-source. */
+(function(){
+  function inAnswerField(el){
+    return !!(el && el.closest && el.closest('input, textarea, [contenteditable="true"]'));
+  }
+  var lastWarn = 0;
+  function warn(){
+    var now = Date.now();
+    if (now - lastWarn < 4000) return;
+    lastWarn = now;
+    if (typeof showToast === 'function') showToast('Copying test content is disabled.', 'info', 2500);
+  }
+  function block(e){
+    if (inAnswerField(e.target) || inAnswerField(document.activeElement)) return;
+    e.preventDefault();
+    if (e.clipboardData) { try { e.clipboardData.setData('text/plain', ''); } catch(_){} }
+    if (e.type === 'copy' || e.type === 'cut' || e.type === 'contextmenu') warn();
+  }
+  ['copy','cut','dragstart','selectstart','contextmenu'].forEach(function(t){
+    document.addEventListener(t, block, true);
+  });
+  document.addEventListener('keydown', function(e){
+    if (inAnswerField(e.target)) return;
+    if (!(e.ctrlKey || e.metaKey)) return;
+    var k = (e.key || '').toLowerCase();
+    if (k === 'c' || k === 'x' || k === 'a' || k === 'p' || k === 's' || k === 'u') {
+      e.preventDefault();
+      if (k === 'c' || k === 'x') warn();
+    }
+  }, true);
+  // Clear any selection that slips through (e.g. via extensions) when it's not inside an answer box
+  document.addEventListener('selectionchange', function(){
+    var sel = window.getSelection && window.getSelection();
+    if (!sel || sel.isCollapsed) return;
+    var n = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement);
+    if (!inAnswerField(n) && !inAnswerField(document.activeElement)) sel.removeAllRanges();
+  });
 })();
 </script>
 </body>
