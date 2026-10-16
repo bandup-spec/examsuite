@@ -1017,5 +1017,32 @@ async function guardAttemptLimit_(){
   showStartGate();
 })();
 </script>
+<script>
+/* ---- No autosuggest on answer boxes ----
+   Turns off the browser's remembered-text dropdown (and auto-correct / auto-capitalise) on every
+   answer field, including the ones the page builds later as questions load.
+   Spell-check underlines are left as they were. */
+(function(){
+  var SEL = 'input:not([type]), input[type="text"], input[type="search"], input[type="email"], input[type="tel"], input[type="url"], input[type="number"], textarea';
+  function harden(el){
+    if (el.__acOff) return;
+    el.__acOff = true;
+    el.setAttribute('autocomplete', 'off');
+    el.setAttribute('autocorrect', 'off');
+    el.setAttribute('autocapitalize', 'off');
+  }
+  function scan(root){
+    if (!root || root.nodeType !== 1) return;
+    if (root.matches && root.matches(SEL)) harden(root);
+    var list = root.querySelectorAll ? root.querySelectorAll(SEL) : [];
+    for (var i = 0; i < list.length; i++) harden(list[i]);
+  }
+  scan(document.documentElement);
+  new MutationObserver(function(muts){
+    for (var i = 0; i < muts.length; i++)
+      for (var j = 0; j < muts[i].addedNodes.length; j++) scan(muts[i].addedNodes[j]);
+  }).observe(document.documentElement, { childList: true, subtree: true });
+})();
+</script>
 </body>
 </html>
