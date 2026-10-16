@@ -210,7 +210,7 @@ function loadAutosave(){
   } catch(e){}
   return 0;
 }
-function clearAutosave(){ try{ localStorage.removeItem(autosaveKey()); }catch(e){} }
+function clearAutosave(){ try{ localStorage.removeItem(autosaveKey()); localStorage.removeItem(audioProgKey()); localStorage.removeItem(audioStorageKey()); }catch(e){} }
 
 // ═══════════════════════════════════════
 // GATE SCREENS
@@ -343,7 +343,8 @@ function getSyncJitter_() {
 }
 let lastSyncedSnapshot = '';
 async function syncDraftToSheets(){
-  const snapshot = JSON.stringify(answers);
+  const audioPayload = { p: audioProgress, d: playedAudioKeys };
+  const snapshot = JSON.stringify({ answers, audioPayload });
   if (snapshot === lastSyncedSnapshot) return; // nothing changed — save the quota
 
   // Split by absolute number so the admin monitor can show Listening/Reading
@@ -366,7 +367,7 @@ async function syncDraftToSheets(){
       testSetID: activeTestSet.setID || '',
       lAnswers: JSON.stringify(listeningPart),
       rAnswers: JSON.stringify(readingPart),
-      writingVals: '{}'
+      writingVals: JSON.stringify({ _audio: audioPayload })
     });
     if (res && res.sessionInvalid) {
       if (!window._sessionKickedOut) {
@@ -393,6 +394,7 @@ async function restoreAnswersFromServer(localSavedAt){
     const res = await callSheets({ action: 'getDraft', candidateID, testSetID: activeTestSet.setID });
     if (!res || !res.success || !res.found) return;
     if (res.status === 'submitted') return; // previous attempt was already handed in — start fresh
+    try { const wv = JSON.parse(res.writingVals || '{}'); if (wv._audio) mergeAudioState_(wv._audio); } catch(e){}
     const serverTime = res.updatedAt ? new Date(res.updatedAt).getTime() : 0;
     if (serverTime <= (localSavedAt || 0)) return;
     const l = JSON.parse(res.lAnswers || '{}');
@@ -516,38 +518,110 @@ function getYoutubeID(url){
 }
 
 let playedAudioKeys = {};
+// ── Continue playback ──────────────────────────────────────────────────────
+// Tracks how far the candidate has listened to each clip. If the window is closed, the page is
+// refreshed, or the question list is re-rendered mid-clip, the clip offers "Continue" from that
+// point (never earlier) — no fresh full listen, and no losing the rest of the clip either.
+let audioProgress = {};   // clipKey -> { t: seconds listened up to, tracked: true once a real position is known }
+const ytStarted_ = {};    // YouTube clips the candidate pressed Play on during this page load
+const ytDur_ = {};        // last known duration per YouTube clip
+let progFlushAt_ = 0;
+
 function audioStorageKey(){ return `toeic_played_audio_${getCandidateID()}_${activeTestSet.setID||'default'}`; }
+function audioProgKey(){ return `toeic_audio_progress_${getCandidateID()}_${activeTestSet.setID||'default'}`; }
 function loadPlayedAudio(){
   try { const raw = localStorage.getItem(audioStorageKey()); if(raw) playedAudioKeys = JSON.parse(raw); } catch(e){}
 }
+function loadAudioProgress(){
+  try { const raw = localStorage.getItem(audioProgKey()); if(raw) audioProgress = JSON.parse(raw) || {}; } catch(e){}
+}
+function flushAudioProgress_(){
+  try { localStorage.setItem(audioProgKey(), JSON.stringify(audioProgress)); } catch(e){}
+}
 function markAudioPlayed_(key){
   playedAudioKeys[key] = true;
+  delete audioProgress[key];
   try { localStorage.setItem(audioStorageKey(), JSON.stringify(playedAudioKeys)); } catch(e){}
+  flushAudioProgress_();
+}
+function recordAudioProgress_(key, t){
+  if(playedAudioKeys[key] || !(t >= 0)) return;
+  const p = audioProgress[key] || (audioProgress[key] = {t:0, tracked:false});
+  p.tracked = true;
+  if(t > p.t) p.t = t;                       // the saved position only ever moves forward
+  const now = Date.now();
+  if(now - progFlushAt_ > 1000){ progFlushAt_ = now; flushAudioProgress_(); }
+}
+// Merge playback state pulled from the server (cross-device resume): keep the furthest position per clip.
+function mergeAudioState_(a){
+  if(!a || typeof a !== 'object') return;
+  const p = a.p || {}, d = a.d || {};
+  Object.keys(d).forEach(k => { if(d[k]) playedAudioKeys[k] = true; });
+  Object.keys(p).forEach(k => {
+    if(playedAudioKeys[k] || !p[k]) return;
+    const t = Number(p[k].t) || 0, cur = audioProgress[k];
+    if(!cur) audioProgress[k] = {t, tracked: !!p[k].tracked};
+    else { if(t > cur.t) cur.t = t; cur.tracked = cur.tracked || !!p[k].tracked; }
+  });
+  Object.keys(playedAudioKeys).forEach(k => { delete audioProgress[k]; });
+  try { localStorage.setItem(audioStorageKey(), JSON.stringify(playedAudioKeys)); } catch(e){}
+  flushAudioProgress_();
+}
+function fmtAudioTime_(sec){
+  sec = Math.max(0, Math.floor(sec||0));
+  return Math.floor(sec/60) + ':' + String(sec%60).padStart(2,'0');
+}
+window.addEventListener('pagehide', flushAudioProgress_);
+document.addEventListener('visibilitychange', () => { if(document.hidden) flushAudioProgress_(); });
+
+function getYoutubeID(url){
+  if(!url) return null;
+  let m = url.match(/youtu\.be\/([A-Za-z0-9_-]{6,})/);
+  if(m) return m[1];
+  m = url.match(/[?&]v=([A-Za-z0-9_-]{6,})/);
+  if(m) return m[1];
+  m = url.match(/youtube\.com\/embed\/([A-Za-z0-9_-]{6,})/);
+  if(m) return m[1];
+  return null;
 }
 function audioKeyFor_(url){
   let h = 0;
   for (let i=0;i<url.length;i++){ h = ((h<<5)-h+url.charCodeAt(i))|0; }
   return 'a'+Math.abs(h);
 }
+function playedBoxHTML_(msg){ return `<div class="audio-played-box">${msg}</div>`; }
+function showPlayedBox_(key){
+  const wrap = document.getElementById('wrap-'+key);
+  if(wrap) wrap.outerHTML = playedBoxHTML_('✓ Audio played — plays once only, as in the real test.');
+}
 
 function renderAudioPlayer(url){
   if(!url) return '';
   const key = audioKeyFor_(url);
   if(playedAudioKeys[key]){
-    return `<div class="audio-played-box">✓ Audio already played for this question — plays once only, as in the real test.</div>`;
+    return playedBoxHTML_('✓ Audio already played for this question — plays once only, as in the real test.');
   }
   const ytID = getYoutubeID(url);
+  const prog = audioProgress[key];
+  // YouTube clip that was started but never reported a real position: we can't tell how much was heard,
+  // so it counts as played (same one-listen rule as before).
+  if(ytID && prog && !prog.tracked){
+    markAudioPlayed_(key);
+    return playedBoxHTML_('✓ Audio already played for this question — plays once only, as in the real test.');
+  }
+  const resumeAt = prog && prog.t > 0 ? Math.floor(prog.t) : 0;
+  const label = resumeAt > 0 ? `▶ Continue Audio (from ${fmtAudioTime_(resumeAt)})` : '▶ Play Audio (plays once)';
   if(ytID){
     // controls=0 hides YouTube's native seek bar/controls entirely — the
     // only way to play it is via our own one-time button below.
     return `<div class="audio-lock-wrap" id="wrap-${key}">
-      <iframe id="yt-${key}" width="100%" height="70" src="https://www.youtube.com/embed/${ytID}?enablejsapi=1&controls=0&modestbranding=1&rel=0" frameborder="0" allow="autoplay; encrypted-media" style="border-radius:8px;pointer-events:none"></iframe>
-      <button type="button" class="audio-play-btn" onclick="playYoutubeOnce_('${key}', this)">▶ Play Audio (plays once)</button>
+      <iframe id="yt-${key}" width="100%" height="70" src="https://www.youtube.com/embed/${ytID}?enablejsapi=1&controls=0&modestbranding=1&rel=0" frameborder="0" allow="autoplay; encrypted-media" onload="ytListen_('${key}')" style="border-radius:8px;pointer-events:none"></iframe>
+      <button type="button" class="audio-play-btn" onclick="playYoutubeOnce_('${key}', this)">${label}</button>
     </div>`;
   }
   return `<div class="audio-lock-wrap" id="wrap-${key}">
     <audio id="native-${key}" src="${escH(url)}" preload="none"></audio>
-    <button type="button" class="audio-play-btn" onclick="playNativeOnce_('${key}', this)">▶ Play Audio (plays once)</button>
+    <button type="button" class="audio-play-btn" onclick="playNativeOnce_('${key}', this)">${label}</button>
     <div class="audio-progress-track" id="prog-${key}" style="display:none"><div class="audio-progress-fill" id="progfill-${key}"></div></div>
   </div>`;
 }
@@ -556,39 +630,80 @@ function playNativeOnce_(key, btn){
   if(playedAudioKeys[key]) return;
   const audio = document.getElementById('native-'+key);
   if(!audio) return;
+  const startAt = (audioProgress[key] && audioProgress[key].t) || 0;
   btn.disabled = true;
   btn.textContent = '🔊 Playing...';
+  if(!audioProgress[key]) audioProgress[key] = {t:0, tracked:true};
+  flushAudioProgress_();
   const track = document.getElementById('prog-'+key);
   const fill = document.getElementById('progfill-'+key);
   track.style.display = 'block';
+  // Jump to where the candidate left off as soon as the file's length is known
+  let seekRetried = false;
+  const seekToSaved = () => { if(startAt > 0){ try { audio.currentTime = startAt; } catch(e){} } };
+  if(audio.readyState >= 1) seekToSaved(); else audio.addEventListener('loadedmetadata', seekToSaved, {once:true});
   audio.addEventListener('timeupdate', () => {
+    // If the server ignored the seek and playback restarted from the beginning, push it forward once more
+    if(startAt > 0 && !seekRetried && audio.currentTime < startAt - 1){ seekRetried = true; seekToSaved(); return; }
     if(audio.duration) fill.style.width = (audio.currentTime/audio.duration*100) + '%';
+    recordAudioProgress_(key, audio.currentTime);
   });
   audio.addEventListener('ended', () => {
     markAudioPlayed_(key);
-    const wrap = document.getElementById('wrap-'+key);
-    if(wrap) wrap.outerHTML = `<div class="audio-played-box">✓ Audio played — plays once only, as in the real test.</div>`;
+    showPlayedBox_(key);
   });
   audio.play().catch(()=>{
     btn.disabled = false;
-    btn.textContent = '▶ Play Audio (plays once)';
+    btn.textContent = startAt > 0 ? `▶ Continue Audio (from ${fmtAudioTime_(startAt)})` : '▶ Play Audio (plays once)';
     alert('Could not play this audio file. Please check the file URL.');
   });
 }
+
+// YouTube embeds report their position through the iframe's postMessage channel once we ask to "listen".
+function ytPost_(key, obj){
+  const f = document.getElementById('yt-'+key);
+  if(f && f.contentWindow){ try { f.contentWindow.postMessage(JSON.stringify(obj), '*'); } catch(e){} }
+}
+function ytListen_(key){ ytPost_(key, {event:'listening', id:key, channel:'widget'}); }
 
 function playYoutubeOnce_(key, btn){
   if(playedAudioKeys[key]) return;
   const iframe = document.getElementById('yt-'+key);
   if(!iframe) return;
+  const startAt = (audioProgress[key] && audioProgress[key].t) || 0;
   btn.disabled = true;
   btn.textContent = '🔊 Playing (one-time)...';
-  iframe.contentWindow.postMessage(JSON.stringify({event:'command', func:'playVideo', args:[]}), '*');
-  // YouTube's postMessage API needs the full IFrame API script loaded to
-  // reliably report "ended" — to keep this lightweight we lock right after
-  // triggering play instead. Native controls are hidden (controls=0), so
-  // this one trigger is the only way the candidate can interact with it.
-  markAudioPlayed_(key);
+  ytStarted_[key] = true;
+  if(!audioProgress[key]) audioProgress[key] = {t:0, tracked:false};
+  flushAudioProgress_();
+  ytListen_(key);
+  if(startAt > 0) ytPost_(key, {event:'command', func:'seekTo', args:[startAt, true]});
+  ytPost_(key, {event:'command', func:'playVideo', args:[]});
+  // Keep asking YouTube to report its position until the first update arrives
+  let tries = 0;
+  const iv = setInterval(() => {
+    const q = audioProgress[key];
+    if(playedAudioKeys[key] || (q && q.tracked) || ++tries > 10 || !document.getElementById('yt-'+key)){ clearInterval(iv); return; }
+    ytListen_(key);
+  }, 1000);
 }
+
+window.addEventListener('message', function(ev){
+  if(typeof ev.data !== 'string' || !/^https:\/\/(www\.)?youtube(-nocookie)?\.com$/.test(ev.origin)) return;
+  let d; try { d = JSON.parse(ev.data); } catch(e){ return; }
+  if(!d || !d.info) return;
+  const f = Array.from(document.querySelectorAll('iframe[id^="yt-"]')).find(x => x.contentWindow === ev.source);
+  if(!f) return;
+  const key = f.id.slice(3);
+  if(!ytStarted_[key] || playedAudioKeys[key]) return;
+  const info = d.info;
+  if(typeof info.duration === 'number' && info.duration > 0) ytDur_[key] = info.duration;
+  if(typeof info.currentTime === 'number' && info.currentTime > 0) recordAudioProgress_(key, info.currentTime);
+  const dur = ytDur_[key] || 0;
+  const ended = info.playerState === 0 ||
+    (dur > 0 && typeof info.currentTime === 'number' && info.currentTime >= dur - 0.5);
+  if(ended){ markAudioPlayed_(key); showPlayedBox_(key); }
+});
 
 function itemQHeader(num){
   return `<div class="item-q-row">
@@ -895,6 +1010,7 @@ async function guardAttemptLimit_(){
   if (!(await guardAttemptLimit_())) return;
   const localSavedAt = loadAutosave();
   loadPlayedAudio();
+  loadAudioProgress();
   const ok = await loadConfig();
   if(!ok) return;
   await restoreAnswersFromServer(localSavedAt);
