@@ -951,6 +951,12 @@ function renderAnnouncements() {
   `).join('');
 }
 
+// Link to the answer-review page for one attempt (the page itself explains if the teacher turned review off).
+function reviewLink(r) {
+  if (!r[0]) return '';
+  return `<div style="margin-top:10px;text-align:center"><a class="btn-sm" style="text-decoration:none;display:inline-block" href="review.html?sub=${encodeURIComponent(r[0])}">📖 Review my answers</a></div>`;
+}
+
 function renderIELTSAttemptCard(r, idx) {
   const date     = r[1] ? new Date(r[1]).toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}) : '—';
   const setName  = r[5] || '—';
@@ -1001,6 +1007,7 @@ function renderIELTSAttemptCard(r, idx) {
       <div class="wc-chip"><b>${w2wc}</b>Task 2 words</div>
     </div>
     ${notes ? `<div class="instructor-note"><b>💬 Instructor Feedback</b><br>${escH(notes)}</div>` : ''}
+    ${reviewLink(r)}
   </div>`;
 }
 
@@ -1033,6 +1040,7 @@ function renderTOEICAttemptCard(r, idx) {
       </div>
     </div>
     <div class="overall-banner"><div><div class="overall-label">Total Score</div></div><div class="overall-score">${total} <span style="font-size:0.9rem;opacity:0.7">/ 990</span></div></div>
+    ${reviewLink(r)}
   </div>`;
 }
 
