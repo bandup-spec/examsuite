@@ -160,6 +160,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_ZVEYRaWmtQKFTiBQJhbpig_LUCt6vNH';
     if (a === 'getDraft')          return { success: true, found: false };
     if (a === 'getCandidateScores') return { success: true, rows: [] };
     if (a === 'checkSession')      return { success: true, valid: true };
+    if (a === 'getAttemptStatus')  return { success: true, allowed: true, used: 0 };     // an admin preview is never locked out
     if (a === 'saveDraft')         return { success: true, savedAt: new Date().toISOString() };    // background autosave: pretend
     return { success: false, preview: true, message: 'This is an admin preview — nothing is saved or changed.' };
   }
