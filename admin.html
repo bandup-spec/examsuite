@@ -349,6 +349,27 @@
             </select>
           </div>
         </div>
+        <div class="row2">
+          <div class="field">
+            <label>Attempts allowed per candidate</label>
+            <select class="select" id="set-attempts">
+              <option value="0">Unlimited (candidates may retake)</option>
+              <option value="1">1 — once only (locked after submitting)</option>
+              <option value="2">2 attempts</option>
+              <option value="3">3 attempts</option>
+              <option value="5">5 attempts</option>
+            </select>
+            <div class="hint">Only a submitted score uses an attempt. You can allow one more for a single candidate from the Scores tab. Candidates who already took a once-only test are locked straight away.</div>
+          </div>
+          <div class="field">
+            <label>Answer review in the candidate's profile</label>
+            <select class="select" id="set-review">
+              <option value="marks">Their answers with ✓ / ✗</option>
+              <option value="full">Their answers + the correct answers</option>
+              <option value="off">Off — no review</option>
+            </select>
+          </div>
+        </div>
         <div class="field">
           <label>Config URL (GitHub raw URL)</label>
           <input class="input" type="text" id="set-url" placeholder="https://raw.githubusercontent.com/...">
