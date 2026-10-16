@@ -1335,7 +1335,7 @@ function refreshSectionNextBtn() {
     for (let i=from;i<=to;i++) { total++; if (answered.L && answered.L[i]) done++; }
     const allDone = total > 0 && done === total;
     if (curLSec < 4) {
-      nextBtn.textContent = (allDone ? '✓ ' : '') + 'Next Section →' + (allDone ? '' : ` (${done}/${total} answered)`);
+      nextBtn.textContent = (allDone ? '✓ ' : '') + 'Next Section →';
       nextBtn.style.background = allDone ? '#1a7a4c' : 'var(--blue,#1a4d8f)';
     }
   } else if (cur === 'R') {
@@ -1347,7 +1347,7 @@ function refreshSectionNextBtn() {
     for (let i=from;i<=to;i++) { total++; if (answered.R && answered.R[i]) done++; }
     const allDone = total > 0 && done === total;
     nextBtn.textContent = curPassage < 3
-      ? (allDone ? '✓ ' : '') + 'Next Passage →' + (allDone ? '' : ` (${done}/${total} answered)`)
+      ? (allDone ? '✓ ' : '') + 'Next Passage →'
       : 'Done — Continue to Writing →';
     if (curPassage < 3) nextBtn.style.background = allDone ? '#1a7a4c' : 'var(--blue,#1a4d8f)';
   }
