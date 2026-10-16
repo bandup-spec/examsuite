@@ -284,7 +284,24 @@
   .trf-footer-doc{text-align:center;font-size:0.68rem;color:var(--ink3);border-top:1px solid var(--border);padding-top:12px;line-height:1.6}
   .trf-stamp{display:inline-block;border:2px solid var(--gold);border-radius:50%;width:60px;height:60px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;opacity:0.3}
 
-  #photo-file{display:none}
+  #photo-file,#photo-camera-file{display:none}
+  /* Photo source chooser + camera capture */
+  .photo-src-overlay,.cam-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:210;align-items:center;justify-content:center;padding:20px}
+  .photo-src-overlay.open,.cam-overlay.open{display:flex}
+  .photo-src-box,.cam-box{background:var(--paper);color:var(--ink);border-radius:12px;padding:22px;width:320px;max-width:100%;text-align:center;box-shadow:0 12px 32px rgba(0,0,0,0.3)}
+  .photo-src-opt{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;margin-bottom:10px;border:1px solid var(--border);border-radius:8px;background:var(--paper2);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;text-align:left;transition:all 0.15s}
+  .photo-src-opt:hover{border-color:var(--blue2);background:var(--paper3)}
+  .photo-src-opt .ico{font-size:1.3rem}
+  .cam-view{width:250px;height:250px;margin:0 auto 12px;border-radius:50%;overflow:hidden;position:relative;background:#000;border:3px solid var(--gold)}
+  .cam-view video{width:100%;height:100%;object-fit:cover;display:block}
+  .cam-view video.mirror{transform:scaleX(-1)}
+  .cam-msg{font-size:0.78rem;color:var(--ink2);margin-bottom:12px;min-height:1.2em;line-height:1.4}
+  .cam-msg.err{color:var(--red)}
+  .cam-actions{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap}
+  .cam-shutter{width:52px;height:52px;border-radius:50%;border:3px solid var(--gold);background:#fff;cursor:pointer;padding:0;position:relative;transition:transform 0.1s}
+  .cam-shutter:after{content:'';position:absolute;inset:4px;border-radius:50%;background:var(--blue)}
+  .cam-shutter:active{transform:scale(0.92)}
+  .cam-shutter:disabled{opacity:0.4;cursor:not-allowed}
   .hidden{display:none!important}
 
   @media print{
@@ -529,12 +546,36 @@
     <div>
       <div class="card">
         <div class="photo-wrap">
-          <div class="photo-circle" onclick="document.getElementById('photo-file').click()" title="Click to change photo">
+          <div class="photo-circle" onclick="openPhotoChooser()" title="Click to change photo">
             <img id="profile-photo-img" src="" alt="" style="display:none">
             <div class="photo-ph" id="photo-placeholder">👤</div>
             <div class="photo-ov"><span>Change Photo</span></div>
           </div>
           <input type="file" id="photo-file" accept="image/*" onchange="handlePhotoUpload(this)">
+          <input type="file" id="photo-camera-file" accept="image/*" capture="user" onchange="handlePhotoUpload(this)">
+          <div class="photo-src-overlay" id="photo-src-overlay" onclick="if(event.target===this)closePhotoChooser()">
+            <div class="photo-src-box">
+              <div class="photo-crop-title">Profile photo</div>
+              <button class="photo-src-opt" onclick="choosePhotoCamera()"><span class="ico">📷</span>Take a photo</button>
+              <button class="photo-src-opt" onclick="choosePhotoUpload()"><span class="ico">🖼️</span>Upload from device</button>
+              <div class="photo-crop-actions" style="margin-top:6px">
+                <button class="photo-crop-btn cancel" onclick="closePhotoChooser()">Cancel</button>
+              </div>
+            </div>
+          </div>
+          <div class="cam-overlay" id="cam-overlay">
+            <div class="cam-box">
+              <div class="photo-crop-title">Take a photo</div>
+              <div class="cam-view"><video id="cam-video" autoplay playsinline muted></video></div>
+              <div class="cam-msg" id="cam-msg">Starting camera…</div>
+              <div class="cam-actions">
+                <button class="photo-crop-btn cancel" onclick="closeCamera()">Cancel</button>
+                <button class="cam-shutter" id="cam-shutter" onclick="capturePhoto()" title="Capture" disabled></button>
+                <button class="photo-crop-btn cancel" id="cam-switch" onclick="switchCamera()" style="display:none">🔄 Flip</button>
+              </div>
+              <button class="photo-crop-btn cancel" id="cam-fallback" onclick="useNativeCamera()" style="display:none;margin-top:12px">Use device camera app</button>
+            </div>
+          </div>
           <div class="photo-crop-overlay" id="photo-crop-overlay">
             <div class="photo-crop-box">
               <div class="photo-crop-title">Adjust photo</div>
@@ -1345,6 +1386,112 @@ function downloadAllTRFs() {
   a.download = `AllResults_${cd.candidateID}.html`;
   a.click();
 }
+
+// ─── PHOTO SOURCE: camera or upload ───
+let camStream = null;
+let camFacing = 'user'; // 'user' = front, 'environment' = back
+
+function openPhotoChooser()  { document.getElementById('photo-src-overlay').classList.add('open'); }
+function closePhotoChooser() { document.getElementById('photo-src-overlay').classList.remove('open'); }
+
+function choosePhotoUpload() {
+  closePhotoChooser();
+  document.getElementById('photo-file').click();
+}
+
+function choosePhotoCamera() {
+  closePhotoChooser();
+  // getUserMedia needs HTTPS (or localhost); otherwise fall back to the device's own camera app
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    document.getElementById('photo-camera-file').click();
+    return;
+  }
+  document.getElementById('cam-overlay').classList.add('open');
+  startCamera();
+}
+
+function setCamMsg(text, isErr) {
+  const m = document.getElementById('cam-msg');
+  m.textContent = text;
+  m.className = 'cam-msg' + (isErr ? ' err' : '');
+}
+
+function stopCameraStream() {
+  if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+  const v = document.getElementById('cam-video');
+  v.srcObject = null;
+}
+
+async function startCamera() {
+  stopCameraStream();
+  const video   = document.getElementById('cam-video');
+  const shutter = document.getElementById('cam-shutter');
+  shutter.disabled = true;
+  document.getElementById('cam-fallback').style.display = 'none';
+  setCamMsg('Starting camera…');
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: camFacing, width: { ideal: 1280 }, height: { ideal: 1280 } },
+      audio: false
+    });
+    // The overlay may have been closed while the permission prompt was open
+    if (!document.getElementById('cam-overlay').classList.contains('open')) { stopCameraStream(); return; }
+    video.srcObject = camStream;
+    video.classList.toggle('mirror', camFacing === 'user'); // selfie preview feels natural mirrored
+    await video.play();
+    shutter.disabled = false;
+    setCamMsg('Center your face in the circle, then tap the button.');
+    try {
+      const devs = await navigator.mediaDevices.enumerateDevices();
+      document.getElementById('cam-switch').style.display =
+        devs.filter(d => d.kind === 'videoinput').length > 1 ? '' : 'none';
+    } catch(e) {}
+  } catch(err) {
+    let msg = 'Could not start the camera.';
+    if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError'))
+      msg = 'Camera access was blocked. Allow camera permission for this site in your browser settings, then try again.';
+    else if (err && (err.name === 'NotFoundError' || err.name === 'OverconstrainedError'))
+      msg = 'No camera was found on this device.';
+    else if (err && err.name === 'NotReadableError')
+      msg = 'The camera is being used by another app.';
+    setCamMsg(msg, true);
+    document.getElementById('cam-fallback').style.display = 'inline-block';
+  }
+}
+
+function switchCamera() {
+  camFacing = camFacing === 'user' ? 'environment' : 'user';
+  startCamera();
+}
+
+function closeCamera() {
+  stopCameraStream();
+  document.getElementById('cam-overlay').classList.remove('open');
+}
+
+function useNativeCamera() {
+  closeCamera();
+  document.getElementById('photo-camera-file').click();
+}
+
+function capturePhoto() {
+  const video = document.getElementById('cam-video');
+  if (!video.videoWidth) return;
+  // Capture the same centered square the circle preview shows
+  const side = Math.min(video.videoWidth, video.videoHeight);
+  const sx = (video.videoWidth - side) / 2, sy = (video.videoHeight - side) / 2;
+  const out = Math.min(side, 1000);
+  const c = document.createElement('canvas');
+  c.width = out; c.height = out;
+  const ctx = c.getContext('2d');
+  if (camFacing === 'user') { ctx.translate(out, 0); ctx.scale(-1, 1); } // match the mirrored preview
+  ctx.drawImage(video, sx, sy, side, side, 0, 0, out, out);
+  const dataUrl = c.toDataURL('image/jpeg', 0.92);
+  closeCamera();
+  openPhotoCrop(dataUrl); // same crop/zoom + save flow as uploads
+}
+
+document.addEventListener('visibilitychange', () => { if (document.hidden) closeCamera(); });
 
 // ─── PHOTO ───
 function handlePhotoUpload(input) {
