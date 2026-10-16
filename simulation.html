@@ -1032,6 +1032,7 @@ async function syncDraftToSheets(attempt) {
     });
 
     if (res && res.sessionInvalid) { handleSessionInvalid_(); return; }
+    if (res && res.locked) return; // attempts used up — nothing more to autosave
 
     if (res && res.success === false && /server is busy/i.test(res.message || '')) {
       // LockService couldn't get in — this draft is NOT saved yet.
@@ -2104,6 +2105,7 @@ async function submitTest(autoSubmit){
     btn.textContent='Saving...'; btn.disabled=true;
     let sheetsFailed = false;
     let sessionKicked = false;
+    let lockedOut = false;
     try {
       const res = await callSheets({
         action:'saveScore',
@@ -2120,13 +2122,18 @@ async function submitTest(autoSubmit){
       });
       if (res && res.sessionInvalid) {
         sessionKicked = true;
+      } else if (res && res.locked) {
+        lockedOut = true;
       } else if (!res || !res.success) {
         sheetsFailed = true;
       }
     } catch(e){
       sheetsFailed = true;
     } finally {
-      if (sessionKicked) {
+      if (lockedOut) {
+        showToast('🔒 This test allows only a limited number of attempts and yours are used up, so this one was not saved. Ask your teacher for another attempt.', 'danger', 10000);
+        btn.textContent='Not submitted'; btn.disabled=true;
+      } else if (sessionKicked) {
         showToast('🚪 Could not submit — your account was logged in on another device. Please log in again.', 'danger', 10000);
         btn.textContent='Not submitted'; btn.disabled=true;
       } else {
@@ -2134,6 +2141,10 @@ async function submitTest(autoSubmit){
       }
     }
 
+    if (lockedOut) {
+      setTimeout(() => { window.location.href = 'tests.html'; }, 6000);
+      return; // nothing was saved and there is nothing to back up
+    }
     if (sessionKicked) {
       setTimeout(() => { window.location.href = 'index.html'; }, 3500);
       return; // skip the backup-download and cleanup below — the finally block above already ran
@@ -2180,6 +2191,23 @@ async function submitTest(autoSubmit){
 
 function escH(str){ return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+// Retake limit: the server is the real gatekeeper (saveDraft/saveScore refuse a locked test); this just
+// tells the candidate up front instead of letting them type a whole test that cannot be saved.
+async function guardAttemptLimit_(){
+  try {
+    const cd = JSON.parse(sessionStorage.getItem('candidateData')||'{}');
+    const sel = JSON.parse(sessionStorage.getItem('selectedTestSet')||'{}');
+    if (!cd.candidateID || !sel.setID) return true;
+    const res = await callSheets({ action:'getAttemptStatus', candidateID: cd.candidateID, testSetID: sel.setID });
+    if (res && res.success && res.allowed === false) {
+      alert('You have already completed this test and have no attempts left.\nAsk your teacher if you need another attempt.');
+      window.location.href = 'tests.html';
+      return false;
+    }
+  } catch(e) { /* offline — the server still enforces it on submit */ }
+  return true;
+}
+
 window.onload = async () => {
   initAccessibilityPrefs(); // apply saved font size / dark mode before anything else renders
 
@@ -2190,6 +2218,7 @@ window.onload = async () => {
   if (!sessionStorage.getItem('selectedTestSet')) {
     window.location.href = 'tests.html'; return;
   }
+  if (!(await guardAttemptLimit_())) return;
 
   try {
     await loadConfig();
