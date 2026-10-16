@@ -72,6 +72,15 @@
   /* Dropdown for Tests/Profile links — opened by the burger button, on every screen size */
   .hdr-menu-dropdown{display:none;position:absolute;top:40px;right:20px;flex-direction:column;gap:8px;background:var(--blue);padding:12px;border-radius:0 0 8px 8px;box-shadow:0 8px 20px rgba(0,0,0,0.25);z-index:80;min-width:160px}
   .hdr-menu-dropdown.open{display:flex}
+  /* phone: text-size slider + dark mode move into the burger menu (see placeHdrTools()) */
+  .hdr-menu-tools{display:flex;flex-direction:column;gap:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.2)}
+  .hdr-menu-tools:empty{display:none}
+  .hdr-menu-tools .font-size-ctrl{width:100%;gap:10px}
+  .hdr-menu-tools .fs-slider{flex:1;width:auto;min-width:0}
+  .hdr-menu-tools .btn-profile{width:100%;justify-content:center}
+  .dm-label{display:none}
+  .hdr-menu-tools .dm-label{display:inline}
+  @media(max-width:780px){.hdr-menu-dropdown{right:8px;min-width:230px}}
   .hdr-menu-dropdown .btn-profile{width:100%;justify-content:center}
   @media(max-width:900px){
     .hdr-right{gap:8px}
@@ -271,10 +280,10 @@
              oninput="setFontSize(this.value)" aria-label="Text size">
       <span class="fs-icon fs-icon-lg">A</span>
     </div>
-    <button class="btn-profile" id="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</button>
+    <button class="btn-profile" id="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode"><span id="dm-icon">🌙</span><span class="dm-label">Dark mode</span></button>
     <button class="hdr-burger" onclick="toggleHdrMenu()" aria-label="Menu">☰</button>
   </div>
-  <div class="hdr-menu-dropdown" id="hdr-menu-dropdown">
+  <div class="hdr-menu-dropdown" id="hdr-menu-dropdown"><div class="hdr-menu-tools" id="hdr-menu-tools"></div>
     <button class="btn-profile" onclick="window.location.href='tests.html'">← Tests</button>
     <button class="btn-profile" onclick="window.location.href='profile.html'">👤 My Profile</button>
   </div>
@@ -433,8 +442,8 @@ function initAccessibilityPrefs() {
   const darkOn = localStorage.getItem('ielts_dark_mode') === '1';
   if (darkOn) {
     document.body.classList.add('dark-mode');
-    const btn = document.getElementById('dark-mode-toggle');
-    if (btn) btn.textContent = '☀️';
+    const dmIcon = document.getElementById('dm-icon');
+    if (dmIcon) dmIcon.textContent = '☀️';
   }
 
   // Animations — no dedicated toggle button on the exam screen itself (to
@@ -482,9 +491,26 @@ function setFontSize(pct) {
 function toggleDarkMode() {
   const isDark = document.body.classList.toggle('dark-mode');
   localStorage.setItem('ielts_dark_mode', isDark ? '1' : '0');
-  const btn = document.getElementById('dark-mode-toggle');
-  if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+  const dmIcon = document.getElementById('dm-icon');
+  if (dmIcon) dmIcon.textContent = isDark ? '☀️' : '🌙';
 }
+
+// On phones the header has no room for the text-size slider and the dark-mode button, so they live inside the
+// burger menu there. The very same elements are moved (not copied), so their handlers and saved settings keep working.
+function placeHdrTools() {
+  const phone = window.matchMedia('(max-width:780px)').matches;
+  const tools = document.getElementById('hdr-menu-tools');
+  const right = document.querySelector('.hdr-right');
+  const fs = document.querySelector('.font-size-ctrl');
+  const dm = document.getElementById('dark-mode-toggle');
+  const burger = document.querySelector('.hdr-burger');
+  if (!tools || !right || !fs || !dm || !burger) return;
+  if (phone) { tools.appendChild(fs); tools.appendChild(dm); }
+  else { right.insertBefore(fs, burger); right.insertBefore(dm, burger); }
+}
+window.addEventListener('resize', placeHdrTools);
+window.addEventListener('orientationchange', placeHdrTools);
+document.addEventListener('DOMContentLoaded', placeHdrTools);
 
 // ══════════════════════════════════════
 // UNIFIED AUDIO PLAYER
