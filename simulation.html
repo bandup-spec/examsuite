@@ -973,6 +973,9 @@ let audioPlaybackState = { queuePos: 0, time: 0, started: false };
 let pendingAudioResume = null;
 let audioSeekOnPlay = 0; // seconds to jump to the moment playback starts, for resume
 
+window.addEventListener('pagehide', () => { try { if (audioSessionStarted) updateProgress(); saveAnswersLocal(); } catch(e) {} });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { try { if (audioSessionStarted) updateProgress(); saveAnswersLocal(); } catch(e) {} } });
+
 function saveAnswersLocal() {
   try {
     localStorage.setItem(getAutosaveStorageKey(), JSON.stringify({ lAnswers, rAnswers, writingVals, audio: audioPlaybackState, savedAt: Date.now() }));
@@ -1456,11 +1459,21 @@ function playAudio(){
     progressInterval = setInterval(updateProgress, 400);
   } else if (currentAudioMode === 'file') {
     const el = document.getElementById('audio-el');
+    let resumeTarget = 0;
     if (audioSeekOnPlay > 0) {
       const seekTo = audioSeekOnPlay;
+      resumeTarget = seekTo;
       audioSeekOnPlay = 0;
       const doSeek = () => { el.currentTime = seekTo; el.removeEventListener('loadedmetadata', doSeek); };
       if (el.readyState >= 1) el.currentTime = seekTo; else el.addEventListener('loadedmetadata', doSeek);
+    }
+    if (resumeTarget > 0) {
+      let retried = false;
+      const guard = () => {
+        if (el.currentTime >= resumeTarget - 1) { el.removeEventListener('timeupdate', guard); return; }
+        if (!retried) { retried = true; try { el.currentTime = resumeTarget; } catch(e) {} }
+      };
+      el.addEventListener('timeupdate', guard);
     }
     el.play();
     progressInterval = setInterval(updateProgress, 400);
@@ -1536,16 +1549,23 @@ function proceedToReadingNow_() {
   switchSection('R');
 }
 
+// The saved listening position never moves backwards within the same audio item — if a seek on resume is
+// ignored (host without range support) or the YouTube player briefly reports 0:00, the saved point survives.
+function furthestAudioTime_(t){
+  return (audioPlaybackState.started && audioPlaybackState.queuePos === queuePos && audioPlaybackState.time > t)
+    ? audioPlaybackState.time : t;
+}
+
 function updateProgress(){
   let pct = 0;
   if (currentAudioMode === 'youtube' && ytReady && ytPlayer && ytPlayer.getDuration) {
     const dur = ytPlayer.getDuration();
     if (dur > 0) pct = (ytPlayer.getCurrentTime() / dur) * 100;
-    audioPlaybackState = { queuePos, time: ytPlayer.getCurrentTime() || 0, started: audioSessionStarted };
+    audioPlaybackState = { queuePos, time: furthestAudioTime_(ytPlayer.getCurrentTime() || 0), started: audioSessionStarted };
   } else if (currentAudioMode === 'file') {
     const el = document.getElementById('audio-el');
     if (el.duration) pct = (el.currentTime / el.duration) * 100;
-    audioPlaybackState = { queuePos, time: el.currentTime || 0, started: audioSessionStarted };
+    audioPlaybackState = { queuePos, time: furthestAudioTime_(el.currentTime || 0), started: audioSessionStarted };
   }
   document.getElementById('audio-prog').style.width = Math.min(100, pct) + '%';
 }
@@ -2342,6 +2362,10 @@ async function beginTest() {
       if (pendingAudioResume && pendingAudioResume.queuePos < continuousQueue.length) {
         queuePos = pendingAudioResume.queuePos;
         audioSeekOnPlay = pendingAudioResume.time || 0;
+        // Carry the restored position into the live state right away: every autosave / server sync writes
+        // audioPlaybackState, so without this an answer typed before pressing Play would overwrite the
+        // saved resume point with 0:00 and a second refresh would lose it.
+        audioPlaybackState = { queuePos, time: audioSeekOnPlay, started: true };
       }
       const firstItem = continuousQueue[queuePos];
       loadAudioForSection(sections[firstItem.idx], firstItem.idx + 1);
@@ -2462,6 +2486,33 @@ async function beginTest() {
     var n = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement);
     if (!inAnswerField(n) && !inAnswerField(document.activeElement)) sel.removeAllRanges();
   });
+})();
+</script>
+<script>
+/* ---- No autosuggest on answer boxes ----
+   Turns off the browser's remembered-text dropdown (and auto-correct / auto-capitalise) on every
+   answer field, including the ones the page builds later as questions load.
+   Spell-check underlines are left as they were. */
+(function(){
+  var SEL = 'input:not([type]), input[type="text"], input[type="search"], input[type="email"], input[type="tel"], input[type="url"], input[type="number"], textarea';
+  function harden(el){
+    if (el.__acOff) return;
+    el.__acOff = true;
+    el.setAttribute('autocomplete', 'off');
+    el.setAttribute('autocorrect', 'off');
+    el.setAttribute('autocapitalize', 'off');
+  }
+  function scan(root){
+    if (!root || root.nodeType !== 1) return;
+    if (root.matches && root.matches(SEL)) harden(root);
+    var list = root.querySelectorAll ? root.querySelectorAll(SEL) : [];
+    for (var i = 0; i < list.length; i++) harden(list[i]);
+  }
+  scan(document.documentElement);
+  new MutationObserver(function(muts){
+    for (var i = 0; i < muts.length; i++)
+      for (var j = 0; j < muts[i].addedNodes.length; j++) scan(muts[i].addedNodes[j]);
+  }).observe(document.documentElement, { childList: true, subtree: true });
 })();
 </script>
 </body>
