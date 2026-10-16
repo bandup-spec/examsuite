@@ -1962,20 +1962,22 @@ async function openClearHistory(candidateID) {
   const ids = [...new Set(_scoreRows.map(r => r[2]).filter(Boolean))].sort();
   const ov = document.createElement('div');
   ov.id = 'clear-history-modal';
-  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
-  ov.innerHTML = `<div>
-    <h3>🗑️ Delete score history</h3>
-    <p>Permanently removes test results. The candidate's account is not touched. <b>Tip:</b> use “Export PDF” on the Scores page first if you may need a copy.</p>
-    <div class="field"><label>Candidate ID</label>
-      <input type="text" id="ch-cid" list="ch-cid-list" placeholder="e.g. CWA-01234" autocomplete="off">
-      <datalist id="ch-cid-list">${ids.map(i => `<option value="${escH(i)}">`).join('')}</datalist></div>
-    <div class="field"><label>Which results?</label><select id="ch-set"><option value="">All of this candidate's tests</option></select></div>
-    <div id="ch-preview"></div>
-    <div class="field"><label>Type <b>DELETE</b> to confirm</label><input type="text" id="ch-confirm" autocomplete="off" placeholder="DELETE"></div>
-    <div id="ch-msg"></div>
-    <div>
+  ov.className = 'overlay';
+  ov.innerHTML = `<div class="dialog" role="dialog" aria-modal="true">
+    <div class="dialog-head"><div class="dialog-icon bad">🗑️</div><div class="dialog-title">Delete score history</div></div>
+    <div class="dialog-body stack">
+      <p class="muted">Permanently removes test results. The candidate's account is not touched. <b>Tip:</b> use “Export PDF” on the Scores page first if you may need a copy.</p>
+      <div class="field"><label>Candidate ID</label>
+        <input class="input" type="text" id="ch-cid" list="ch-cid-list" placeholder="e.g. CWA-01234" autocomplete="off">
+        <datalist id="ch-cid-list">${ids.map(i => `<option value="${escH(i)}">`).join('')}</datalist></div>
+      <div class="field"><label>Which results?</label><select class="select" id="ch-set"><option value="">All of this candidate's tests</option></select></div>
+      <div id="ch-preview" class="muted"></div>
+      <div class="field"><label>Type <b>DELETE</b> to confirm</label><input class="input" type="text" id="ch-confirm" autocomplete="off" placeholder="DELETE"></div>
+      <div id="ch-msg"></div>
+    </div>
+    <div class="dialog-foot">
       <button class="btn btn-ghost" id="ch-cancel">Cancel</button>
-      <button class="btn btn-red" id="ch-go" disabled>🗑️ Delete permanently</button></div></div>`;
+      <button class="btn btn-danger" id="ch-go" disabled>🗑️ Delete permanently</button></div></div>`;
   document.body.appendChild(ov);
   const $ = id => ov.querySelector('#' + id);
   const matching = () => {
