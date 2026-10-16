@@ -200,7 +200,7 @@
     <span>🔒</span>
     <span>You're registered for <b id="course-lock-label">IELTS</b> — only <b id="course-lock-label2">IELTS</b> tests are shown here. Ask the admin if this needs to change.</span>
   </div>
-  <div class="type-grid" style="display:none">
+  <div class="type-grid" id="type-grid">
     <button class="type-card active" data-type="all" onclick="filterByType('all',this)">
       <span class="type-icon">📋</span>
       <span>All Tests</span>
@@ -240,6 +240,15 @@
     <div style="margin-bottom:20px">
       <div class="page-title" id="filter-heading">Available Tests</div>
       <div class="page-desc" id="filter-desc">Select a test set to begin. Tests are listed by date.</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:0.82rem;color:var(--ink2)">
+        <label for="sort-sel" style="font-weight:600">Sort by</label>
+        <select id="sort-sel" onchange="changeSort(this.value)" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:0.82rem">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="name">Name (A–Z)</option>
+          <option value="todo">Not taken first</option>
+        </select>
+      </div>
     </div>
     <div id="tests-wrap">
       <div class="loading-state">
@@ -431,17 +440,37 @@ function filterByType(type, btn) {
   document.getElementById('filter-heading').textContent = heading;
   document.getElementById('filter-desc').textContent = desc;
 
-  const filtered = type === 'all' ? allActiveSets : allActiveSets.filter(s => inferType(s) === type);
-  renderTests(filtered);
+  applyView();
 }
+
+// category filter + sort, applied together
+let currentSort = 'newest';
+function sortedSets(list) {
+  const arr = list.slice();
+  if (currentSort === 'oldest') arr.sort((a,b) => new Date(a.createdAt||0) - new Date(b.createdAt||0));
+  else if (currentSort === 'name') arr.sort((a,b) => String(a.setName||'').localeCompare(String(b.setName||''), undefined, {numeric:true, sensitivity:'base'}));
+  else if (currentSort === 'todo') arr.sort((a,b) => (myTakenSets.includes(a.setID)?1:0) - (myTakenSets.includes(b.setID)?1:0) || new Date(b.createdAt||0) - new Date(a.createdAt||0));
+  else arr.sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+  return arr;
+}
+function applyView() {
+  const list = currentFilter === 'all' ? allActiveSets : allActiveSets.filter(s => inferType(s) === currentFilter);
+  renderTests(sortedSets(list));
+}
+function changeSort(v) { currentSort = v; applyView(); }
 
 function updateCounts() {
   const types = ['IELTS','TOEIC','TOEFL','Placement','Level-Up'];
   document.getElementById('cnt-all').textContent = allActiveSets.length;
   types.forEach(t => {
     const el = document.getElementById('cnt-' + t);
-    if (el) el.textContent = allActiveSets.filter(s => inferType(s) === t).length;
+    if (el) {
+      const n = allActiveSets.filter(s => inferType(s) === t).length;
+      el.textContent = n;
+      el.closest('.type-card').style.display = n ? '' : 'none';   // only show categories that have tests
+    }
   });
+  document.getElementById('type-grid').style.display = allActiveSets.length ? '' : 'none';
 }
 
 function renderLatestPanel(sets) {
