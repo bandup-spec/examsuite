@@ -1187,6 +1187,136 @@ function loadTRFAttempts() {
   sel.dataset.matchedRows = JSON.stringify(candScores);
 }
 
+
+// ── TOEIC-style score certificate (separate from the IELTS TRF) ──
+function isToeicRow(row) { return String((row && row[24]) || '').toUpperCase() === 'TOEIC'; }
+
+function toeicAbilities(kind, sc) {
+  const n = parseInt(sc, 10);
+  if (isNaN(n)) return ['Score not available for this attempt.'];
+  const L = [
+    [160, ['Can understand very short, simple spoken exchanges on familiar topics.', 'Can pick out single words and numbers when spoken slowly and clearly.']],
+    [275, ['Can understand the main idea of short conversations and announcements on everyday topics.', 'Can find specific facts when they are stated directly.']],
+    [395, ['Can understand main points and many details in conversations, talks and announcements.', 'Can follow most workplace topics, including some indirect answers.']],
+    [496, ['Can understand details across longer talks, even when ideas are paraphrased or implied.', 'Can handle complex, fast or indirect workplace conversations with little difficulty.']]
+  ];
+  const R = [
+    [160, ['Can understand short, simple notices and messages on familiar topics.', 'Can recognise basic vocabulary and simple sentence patterns.']],
+    [275, ['Can understand the main idea of short texts such as emails, notices and forms.', 'Can find information that is stated directly.']],
+    [385, ['Can understand most workplace texts and make simple inferences.', 'Can link information across a text and use a fairly wide vocabulary.']],
+    [496, ['Can understand complex texts, connect information across several sources, and infer meaning.', 'Can handle uncommon vocabulary and difficult grammar with ease.']]
+  ];
+  const t = kind === 'L' ? L : R;
+  for (const [max, txt] of t) if (n < max) return txt;
+  return t[t.length - 1][1];
+}
+
+function buildTOEICTRFHtml(row, candidateRows, photoBase64) {
+  photoBase64 = (typeof photoBase64 === 'string' && /^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(photoBase64)) ? photoBase64 : '';
+  const cid = row[2] || '—', fname = row[3] || '—', testSet = row[5] || 'TOEIC Simulation Test';
+  const dateStr = formatDate(row[1]);
+  const lRaw = row[6] || 0, rRaw = row[8] || 0;
+  const lSc = row[25] || '—', rSc = row[26] || '—', total = row[27] || '—';
+  const candRow = (candidateRows || []).find(r => r[0] === cid) || [];
+  const dob = candRow[2] ? formatDate(candRow[2]) : '—';
+  const instEl = document.getElementById('inst-name');
+  const inst = (instEl && instEl.value) || 'BandUp Center';
+  const certNo = row[0] || `SIM-${cid}`;
+  const pct = v => { const n = parseInt(v, 10); return isNaN(n) ? 0 : Math.max(0, Math.min(100, Math.round((n - 5) / 490 * 100))); };
+  const li = k => toeicAbilities(k === 'L' ? 'L' : 'R', k === 'L' ? lSc : rSc).map(t => `<li>${escH(t)}</li>`).join('');
+
+  return `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<title>BandUp TOEIC Simulation Score Certificate — ${escH(fname)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',Arial,sans-serif;background:#fff;color:#1a1a2e;font-size:10pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{size:A4 portrait;margin:12mm}
+  @media print{.no-print{display:none!important}}
+  .page{position:relative;max-width:740px;margin:0 auto;padding:10px 0 24px;overflow:hidden}
+  .wm{position:absolute;top:34%;left:0;right:0;text-align:center;font-size:92pt;font-weight:800;letter-spacing:.12em;color:rgba(0,47,95,.07);transform:rotate(-30deg);pointer-events:none;z-index:0}
+  .page>*:not(.wm){position:relative;z-index:1}
+  .top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:0}
+  .brand{font-family:'Source Serif 4',serif;font-size:24pt;font-weight:700;color:#002f5f;line-height:1}
+  .brand span{color:#c8a84b}
+  .brand small{display:block;font-family:'DM Sans',sans-serif;font-size:7pt;letter-spacing:.14em;text-transform:uppercase;color:#6b6b88;font-weight:600;margin-top:3px}
+  .title{background:#f5c518;border-radius:34px 34px 0 0;padding:8px 30px 6px;text-align:center}
+  .title .t1{font-size:8.5pt;font-weight:800;letter-spacing:.07em}
+  .title .t2{font-size:13pt;font-weight:800;letter-spacing:.05em}
+  .card{display:grid;grid-template-columns:1.25fr 1fr auto;gap:18px;border:3px solid #f5c518;background:#fffbe8;padding:16px}
+  .left{display:flex;gap:14px}
+  .photo{width:92px;height:112px;flex:none;border:2px solid #002f5f;background:#f2f0ec;display:flex;align-items:center;justify-content:center;font-size:30pt;overflow:hidden}
+  .photo img{width:100%;height:100%;object-fit:cover}
+  .det{flex:1;min-width:0}
+  .det small,.sc small{display:block;font-size:6.5pt;color:#6b6b88;text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-top:2px}
+  .nm{font-weight:800;font-size:12pt;border-bottom:1.5px solid #222;padding-bottom:3px;margin-bottom:9px;overflow-wrap:anywhere}
+  .r2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;font-size:9pt}
+  .r2 b{display:block;border-bottom:1.5px solid #222;padding-bottom:2px;overflow-wrap:anywhere}
+  .right{display:flex;flex-direction:column;gap:14px;justify-content:center}
+  .lbl{display:inline-block;background:#f5c518;font-size:8pt;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 12px}
+  .val{font-family:'Source Serif 4',serif;font-size:22pt;font-weight:700;color:#002f5f;line-height:1.1;margin:3px 0}
+  .bar{height:10px;background:linear-gradient(90deg,#eee,#aaa);position:relative}
+  .bar i{position:absolute;left:0;top:0;bottom:0;width:var(--w);background:#002f5f}
+  .scale{display:flex;justify-content:space-between;font-size:7pt;color:#6b6b88;margin-top:2px}
+  .tot{text-align:center;align-self:center}
+  .tot-val{width:96px;height:96px;border:3px solid #1a1a2e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:25pt;font-weight:800;margin:8px auto 4px;background:#fff}
+  .tot small{font-size:7.5pt;color:#6b6b88}
+  .inst{font-size:9pt;margin:10px 0 2px}
+  .inst b{font-size:10pt}
+  .cert{font-size:7pt;color:#6b6b88;margin-bottom:14px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+  .col{border:1px solid #cfd6e6;padding-bottom:12px;font-size:8.5pt;line-height:1.5}
+  .col h4{padding:7px 12px;text-align:center;letter-spacing:.14em;text-transform:uppercase;font-size:10pt;margin-bottom:10px}
+  .cl h4{background:#8fa3d6}.cr h4{background:#8cbfb4}
+  .col>*:not(h4){margin-left:12px;margin-right:12px}
+  .raw{font-weight:700;color:#002f5f;margin-bottom:5px}
+  .col ul{padding-left:18px;margin-top:5px}
+  .how{font-size:8pt;background:#fffbe8;border:1px solid #f1dd8a;padding:9px 12px;margin-bottom:10px;line-height:1.5}
+  .sig{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin:26px 0 14px}
+  .sig div{border-top:1px solid #222;padding-top:4px;font-size:7.5pt;color:#6b6b88;text-align:center}
+  .note{font-size:7.5pt;color:#555;text-align:center;border-top:1px solid #ddd;padding-top:8px;line-height:1.5}
+  .btn-print{display:block;margin:0 auto 14px;padding:9px 22px;background:#002f5f;color:#fff;border:0;border-radius:7px;font:600 10pt 'DM Sans',sans-serif;cursor:pointer}
+</style></head><body>
+<button class="btn-print no-print" onclick="window.print()">🖨 Print / Save as PDF</button>
+<div class="page">
+  <div class="top">
+    <div class="brand">Band<span>Up</span><small>Simulation Test Platform</small></div>
+    <div class="title"><div class="t1">TOEIC-style Listening &amp; Reading</div><div class="t2">SIMULATION SCORE CERTIFICATE</div></div>
+  </div>
+  <div class="card">
+    <div class="left">
+      <div class="photo">${photoBase64 ? `<img src="${photoBase64}" alt="">` : '👤'}</div>
+      <div class="det">
+        <div class="nm">${escH(fname)}<small>Name</small></div>
+        <div class="r2"><div><b>${escH(cid)}</b><small>Candidate ID</small></div><div><b>${escH(dob)}</b><small>Date of Birth</small></div></div>
+        <div class="r2"><div><b>${escH(dateStr)}</b><small>Test Date</small></div><div><b>${escH(testSet)}</b><small>Test</small></div></div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="sc"><div class="lbl">Listening</div><div class="val">${escH(String(lSc))}</div><div class="bar"><i style="--w:${pct(lSc)}%"></i></div><div class="scale"><span>5</span><span>495</span></div></div>
+      <div class="sc"><div class="lbl">Reading</div><div class="val">${escH(String(rSc))}</div><div class="bar"><i style="--w:${pct(rSc)}%"></i></div><div class="scale"><span>5</span><span>495</span></div></div>
+    </div>
+    <div class="tot"><div class="lbl">Total Score</div><div class="tot-val">${escH(String(total))}</div><small>out of 990</small></div>
+  </div>
+  <div class="inst"><small>Client / Institution:</small> <b>${escH(inst)}</b></div>
+  <div class="cert">Certificate No. ${escH(String(certNo))}</div>
+
+  <div class="cols">
+    <div class="col cl"><h4>Listening</h4>
+      <div class="raw">${escH(String(lRaw))} / 100 correct</div>
+      <p>At a scaled score of about ${escH(String(lSc))}, test takers typically can:</p><ul>${li('L')}</ul></div>
+    <div class="col cr"><h4>Reading</h4>
+      <div class="raw">${escH(String(rRaw))} / 100 correct</div>
+      <p>At a scaled score of about ${escH(String(rSc))}, test takers typically can:</p><ul>${li('R')}</ul></div>
+  </div>
+  <div class="how"><b>How to read this certificate:</b> Listening and Reading are each reported from 5 to 495 and add up to a total of 10 to 990. The ability statements are general guidance for practice, not a prediction of an official result.</div>
+  <div class="sig"><div>Administrator's signature</div><div>Centre stamp</div></div>
+  <div class="note">This is a SIMULATION result for preparation purposes only. It is NOT an official TOEIC score certificate and is not issued by or affiliated with the test owner.</div>
+</div>
+</body></html>`;
+}
+
 // Build the TRF HTML string (standalone, self-contained)
 function buildTRFHtml(row, candidateRows, photoBase64) {
   // only ever inject a real image data-URL (never arbitrary text) into the report
@@ -1504,14 +1634,14 @@ function renderAdminTRF() {
     <div>
       <div>${escH(row[2]||'—')} · ${formatDate(row[0])}</div>
       <div>
-        ${[['L',lBand],['R',rBand],['W',wBand],['S',sBand]].map(([l,v])=>`
+        ${(isToeicRow(row) ? [['L',row[25]||'—'],['R',row[26]||'—']] : [['L',lBand],['R',rBand],['W',wBand],['S',sBand]]).map(([l,v])=>`
           <div>
             <div>${l}</div>
             <div>${escH(String(v))}</div>
           </div>`).join('')}
         <div>
-          <div>Overall</div>
-          <div>${escH(String(overall))}</div>
+          <div>${isToeicRow(row) ? 'Total' : 'Overall'}</div>
+          <div>${escH(String(isToeicRow(row) ? (row[27]||'—') : overall))}</div>
         </div>
       </div>
     </div>
@@ -1539,7 +1669,7 @@ async function openTRFPopup() {
   popup.document.write('<p>⏳ Preparing report…</p>');
   let photo = '';
   try { const d = await callSheets({ action:'getCandidatePhoto', candidateID: row[2] }); if (d.success) photo = d.photoBase64 || ''; } catch (e) { /* prints without a photo */ }
-  const html = buildTRFHtml(row, _candidateRows.length ? _candidateRows : [], photo);
+  const html = isToeicRow(row) ? buildTOEICTRFHtml(row, _candidateRows.length ? _candidateRows : [], photo) : buildTRFHtml(row, _candidateRows.length ? _candidateRows : [], photo);
   popup.document.open();
   popup.document.write(html);
   popup.document.close();
