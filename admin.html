@@ -19,6 +19,8 @@
   <div class="nav-group">Tests</div>
   <button class="nav-item" type="button" id="sb-p-testsets" data-click="showPanel('p-testsets')" data-perm="testsets"><svg class="ico"><use href="#i-dot"/></svg>Test Sets</button><button class="nav-item" type="button" id="sb-p-answerkey" data-click="showPanel('p-answerkey')" data-perm="answerkey"><svg class="ico"><use href="#i-dot"/></svg>Answer Keys</button>
   <button class="nav-item" type="button" data-perm="questionmaker" data-click="goto('toeic-question-maker.html')"><svg class="ico"><use href="#i-box"/></svg>TOEIC Question Maker</button>
+  <div class="nav-group">Communicate</div>
+  <button class="nav-item" type="button" id="sb-p-announcements" data-click="showPanel('p-announcements')" data-perm="announcements"><svg class="ico"><use href="#i-dot"/></svg>Announcements</button>
   <div class="nav-group">Config</div>
   <button class="nav-item" type="button" id="sb-p-settings" data-click="showPanel('p-settings')" data-owner-only><svg class="ico"><use href="#i-dot"/></svg>Settings</button><button class="nav-item" type="button" id="sb-p-account" data-click="showPanel('p-account')" data-sub-only><svg class="ico"><use href="#i-dot"/></svg>My Account</button>
   <button class="nav-item" type="button" id="sb-p-admins" data-owner-only data-click="showPanel('p-admins')"><svg class="ico"><use href="#i-dot"/></svg>Admins<span id="admin-pending-badge" class="nav-badge start-hidden"></span></button>
@@ -371,10 +373,10 @@
           </div>
         </div>
         <div class="field">
-          <label>Config URL from Supabase's Buckets</label>
+          <label>Config URL (GitHub raw URL)</label>
           <input class="input" type="text" id="set-url" placeholder="https://raw.githubusercontent.com/...">
           <div>
-            Get this from Supabase: Storage->Buckets and then click the three-dot icon and "Get signed URL"
+            Get this from GitHub: open the JSON file → click "Raw" → copy URL
           </div>
         </div>
         <div class="btn-row">
@@ -416,6 +418,56 @@
         <div class="row">
           <button class="btn btn-blue" data-click="akSave()">💾 Save Answer Key</button>
           <button class="btn btn-ghost" data-click="akLoad()">↺ Reload saved key</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANNOUNCEMENTS PANEL -->
+    <div id="p-announcements" class="panel hidden">
+      <h2 class="page-title">Announcements</h2>
+      <p class="page-sub">Post notices that candidates see on their profile page. You can change or remove your own posts; the Owner can manage all of them.</p>
+      <div class="card">
+        <div class="row between">
+          <div class="card-title m0">All Announcements <span id="ann-count" class="muted"></span></div>
+          <div class="row">
+            <button class="refresh-btn" data-click="loadAnnouncements()">🔄 Refresh</button>
+            <button class="btn btn-blue" data-click="newAnn()">+ New Announcement</button>
+          </div>
+        </div>
+        <div id="ann-wrap"><div class="tbl-empty">Loading…</div></div>
+      </div>
+      <div class="card start-hidden" id="ann-form-card">
+        <div class="card-title" id="ann-form-title">New Announcement</div>
+        <input type="hidden" id="ann-id">
+        <div class="field">
+          <label>Title</label>
+          <input class="input" type="text" id="ann-title" maxlength="120" placeholder="e.g. IELTS mock test this Saturday">
+        </div>
+        <div class="field">
+          <label>Message <span id="ann-count-body" class="muted"></span></label>
+          <textarea class="textarea" id="ann-body" rows="6" maxlength="4000" data-input="annCount()" placeholder="Write the announcement. Web addresses (https://…) become clickable links."></textarea>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>Who sees it</label>
+            <select class="select" id="ann-audience">
+              <option value="ALL">Everyone</option>
+              <option value="IELTS">IELTS candidates</option>
+              <option value="TOEIC">TOEIC candidates</option>
+              <option value="TOEFL">TOEFL candidates</option>
+              <option value="ESL">ESL candidates</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Hide automatically after (optional)</label>
+            <input class="input" type="date" id="ann-expires">
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="ann-pinned"> <span>📌 Pin to the top of the list</span></label>
+        <div id="ann-msg" class="muted"></div>
+        <div class="row">
+          <button class="btn btn-blue" id="ann-save-btn" data-click="saveAnn()">📢 Post</button>
+          <button class="btn btn-ghost" data-click="hide('ann-form-card')">Cancel</button>
         </div>
       </div>
     </div>
