@@ -83,13 +83,6 @@
 
   .page{max-width:940px;margin:0 auto;padding:0 16px 24px;width:100%}
   .grid{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start;margin-top:16px}
-  @media(max-width:760px){
-    .grid{grid-template-columns:1fr}
-    .fb-cover{height:150px}
-    .fb-id{flex-direction:column;align-items:center;text-align:center;margin-top:-70px;gap:10px}
-    .photo-circle{width:140px;height:140px}
-    .tabs{overflow-x:auto}
-  }
 
   .card{background:var(--paper);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:0}
 
@@ -135,6 +128,13 @@
   .tab-btn{padding:16px 18px;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:0.92rem;font-weight:600;color:var(--ink3);cursor:pointer;border-bottom:3px solid transparent;transition:background 0.15s,color 0.15s;white-space:nowrap}
   .tab-btn:hover{background:var(--paper2)}
   .tab-btn.active{color:var(--blue2);border-bottom-color:var(--blue2)}
+  @media(max-width:760px){
+    .grid{grid-template-columns:1fr}
+    .fb-cover{height:150px}
+    .fb-id{flex-direction:column;align-items:flex-start;text-align:left;margin-top:-70px;gap:10px;padding:0 20px 14px}
+    .photo-circle{width:140px;height:140px}
+    .tabs{overflow-x:auto}
+  }
   .tab-content{padding:20px;display:none}
   .tab-content.active{display:block}
 
