@@ -342,7 +342,21 @@
   .trf-footer-doc{text-align:center;font-size:0.68rem;color:var(--ink3);border-top:1px solid var(--border);padding-top:12px;line-height:1.6}
   .trf-stamp{display:inline-block;border:2px solid var(--gold);border-radius:50%;width:60px;height:60px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;opacity:0.3}
 
-  #photo-file{display:none}
+  #photo-file,#cover-file{display:none}
+  .fb-cover{position:relative;background-size:cover;background-position:center}
+  .cover-btn{position:absolute;right:12px;bottom:12px;background:var(--paper);color:var(--ink);border:1px solid var(--border);border-radius:3px;padding:6px 12px;font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer}
+  .cover-btn:hover{background:var(--paper2)}
+  #cover-reset-btn{right:128px}
+  .about-body{padding:8px 18px 16px}
+  .about-text{font-size:0.88rem;color:var(--ink);line-height:1.5;margin-bottom:10px;white-space:pre-wrap;word-break:break-word}
+  .about-text.empty{color:var(--ink3)}
+  #about-input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:3px;background:var(--input-bg,var(--paper));color:var(--ink);font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:vertical}
+  .about-count{font-size:0.72rem;color:var(--ink3);text-align:right;margin:4px 0 8px}
+  .about-actions{display:flex;gap:8px;justify-content:flex-end}
+  .about-btn{padding:6px 14px;border:1px solid var(--border);border-radius:3px;background:var(--paper2);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer}
+  .about-btn:hover{background:var(--paper3)}
+  .about-btn-primary{background:var(--blue2);border-color:var(--blue2);color:#fff}
+  .about-btn-primary:hover{background:var(--blue2);opacity:0.9}
   .hidden{display:none!important}
 
   @media print{
@@ -584,7 +598,11 @@
 
   <!-- COVER + IDENTITY + TABS -->
   <div class="fb-head">
-    <div class="fb-cover"></div>
+    <div class="fb-cover" id="fb-cover">
+      <button class="cover-btn hidden" id="cover-reset-btn" onclick="resetCover()">Remove cover</button>
+      <button class="cover-btn" onclick="document.getElementById('cover-file').click()">Change cover</button>
+      <input type="file" id="cover-file" accept="image/*" onchange="handleCoverUpload(this)">
+    </div>
     <div class="fb-id">
       <div class="photo-wrap">
         <div class="photo-circle" onclick="document.getElementById('photo-file').click()" title="Click to change photo">
@@ -633,6 +651,24 @@
           <div class="d-row"><span class="d-label">Best Band</span><span class="d-val" id="p-best">—</span></div>
           <div class="d-row" id="p-best-toeic-row" style="display:none"><span class="d-label">Best TOEIC</span><span class="d-val" id="p-best-toeic">—</span></div>
           <div class="d-row"><span class="d-label">Last Test</span><span class="d-val" id="p-last">—</span></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">About</div>
+        <div class="about-body">
+          <div id="about-view">
+            <div id="about-text" class="about-text"></div>
+            <button class="about-btn" id="about-edit-btn" onclick="editAbout()">Edit</button>
+          </div>
+          <div id="about-edit" class="hidden">
+            <textarea id="about-input" rows="3" maxlength="200" oninput="aboutCount()" placeholder="Write a short bio"></textarea>
+            <div class="about-count" id="about-count">0/200</div>
+            <div class="about-actions">
+              <button class="about-btn" onclick="cancelAbout()">Cancel</button>
+              <button class="about-btn about-btn-primary" onclick="saveAbout()">Save</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -787,12 +823,90 @@ function proceedToTest() {
   window.location.href = 'tests.html';
 }
 
+// ─── ABOUT (bio) + COVER PHOTO ───
+// Saved in this browser only (same approach as the target band goal), so they
+// show on this device. Syncing across devices would need a backend field.
+function bioKey()   { return 'bio_'   + (candidateData.candidateID || 'guest'); }
+function coverKey() { return 'cover_' + (candidateData.candidateID || 'guest'); }
+function loadAbout() {
+  const t = document.getElementById('about-text');
+  let v = '';
+  try { v = localStorage.getItem(bioKey()) || ''; } catch (e) {}
+  t.textContent = v || 'Add a short bio so others know a bit about you.';
+  t.classList.toggle('empty', !v);
+  document.getElementById('about-edit-btn').textContent = v ? 'Edit' : 'Add bio';
+}
+function editAbout() {
+  let v = '';
+  try { v = localStorage.getItem(bioKey()) || ''; } catch (e) {}
+  document.getElementById('about-input').value = v;
+  aboutCount();
+  document.getElementById('about-view').classList.add('hidden');
+  document.getElementById('about-edit').classList.remove('hidden');
+  document.getElementById('about-input').focus();
+}
+function aboutCount() {
+  document.getElementById('about-count').textContent = document.getElementById('about-input').value.length + '/200';
+}
+function cancelAbout() {
+  document.getElementById('about-edit').classList.add('hidden');
+  document.getElementById('about-view').classList.remove('hidden');
+}
+function saveAbout() {
+  const v = document.getElementById('about-input').value.trim().slice(0, 200);
+  try { v ? localStorage.setItem(bioKey(), v) : localStorage.removeItem(bioKey()); }
+  catch (e) { alert('Could not save your bio in this browser.'); return; }
+  loadAbout();
+  cancelAbout();
+}
+function applyCover(url) {
+  const c = document.getElementById('fb-cover');
+  c.style.backgroundImage = url ? 'url(' + url + ')' : '';
+  document.getElementById('cover-reset-btn').classList.toggle('hidden', !url);
+}
+function loadCover() {
+  let v = '';
+  try { v = localStorage.getItem(coverKey()) || ''; } catch (e) {}
+  applyCover(v);
+}
+function handleCoverUpload(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  if (!/^image\//.test(file.type)) { alert('Please choose an image file.'); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const W = 1200, H = 300;                       // matches the cover's wide shape
+      const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+      const ctx = cv.getContext('2d');
+      const scale = Math.max(W / img.width, H / img.height);   // fill, then centre-crop
+      const w = img.width * scale, h = img.height * scale;
+      ctx.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+      const url = cv.toDataURL('image/jpeg', 0.8);
+      try { localStorage.setItem(coverKey(), url); }
+      catch (e) { alert('That image is too large to save in this browser. Try a smaller one.'); return; }
+      applyCover(url);
+    };
+    img.onerror = () => alert('Could not read that image.');
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+function resetCover() {
+  try { localStorage.removeItem(coverKey()); } catch (e) {}
+  applyCover('');
+}
+
 function renderProfile() {
   document.getElementById('p-name').textContent        = candidateData.fullName    || '—';
   document.getElementById('p-id').textContent          = 'ID: '+(candidateData.candidateID||'—');
   document.getElementById('p-dob').textContent         = formatDate(candidateData.dob)       || '—';
   document.getElementById('p-gender').textContent      = candidateData.gender      || '—';
   document.getElementById('p-nationality').textContent = candidateData.nationality || '—';
+  loadAbout();
+  loadCover();
 }
 
 // ─── PROGRESS ───
