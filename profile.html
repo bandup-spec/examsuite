@@ -824,38 +824,37 @@ function renderProgress() {
   // </div>`;
 
   // Trend chart (IELTS band trend — only meaningful across IELTS attempts)
-if (ieltsScores.length > 1) {
-  html += `<div class="trend-wrap"><div class="trend-title">Band Score Trend</div>`;
-  ieltsScores.forEach((r,i) => {
-    const overall = parseFloat(r[14]) || parseFloat(r[7]) || 0;
-    const pct     = (overall/9)*100;
-    // Use CSS theme variables instead of hardcoded hex values
-    const color   = overall >= 7 ? 'var(--green)' : overall >= 5.5 ? 'var(--gold)' : 'var(--red)';
-    html += `<div class="trend-row">
-      <div class="trend-label">Attempt ${i+1}</div>
-      <div class="trend-bar-wrap"><div class="trend-bar" style="width:${pct}%;background:${color}">${overall||''}</div></div>
-      <div class="trend-val">${overall||'—'}</div>
-    </div>`;
-  });
-  html += `</div>`;
-}
+  if (ieltsScores.length > 1) {
+    html += `<div class="trend-wrap"><div class="trend-title">Band Score Trend</div>`;
+    ieltsScores.forEach((r,i) => {
+      const overall = parseFloat(r[14]) || parseFloat(r[7]) || 0;
+      const pct     = (overall/9)*100;
+      const color   = overall>=7?'#2e7d4f':overall>=5.5?'#c8a84b':'#c0392b';
+      html += `<div class="trend-row">
+        <div class="trend-label">Attempt ${i+1}</div>
+        <div class="trend-bar-wrap"><div class="trend-bar" style="width:${pct}%;background:${color}">${overall||''}</div></div>
+        <div class="trend-val">${overall||'—'}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
 
-// TOEIC total-score trend (separate chart, different scale — 10-990)
-if (toeicScores.length > 1) {
-  html += `<div class="trend-wrap"><div class="trend-title">TOEIC Total Score Trend</div>`;
-  toeicScores.forEach((r,i) => {
-    const total = parseInt(r[27]) || 0;
-    const pct   = (total/990)*100;
-    // Use CSS theme variables instead of hardcoded hex values
-    const color = total >= 785 ? 'var(--green)' : total >= 550 ? 'var(--gold)' : 'var(--red)';
-    html += `<div class="trend-row">
-      <div class="trend-label">Attempt ${i+1}</div>
-      <div class="trend-bar-wrap"><div class="trend-bar" style="width:${pct}%;background:${color}">${total||''}</div></div>
-      <div class="trend-val">${total||'—'}</div>
-    </div>`;
-  });
-  html += `</div>`;
-}
+  // TOEIC total-score trend (separate chart, different scale — 10-990)
+  if (toeicScores.length > 1) {
+    html += `<div class="trend-wrap"><div class="trend-title">TOEIC Total Score Trend</div>`;
+    toeicScores.forEach((r,i) => {
+      const total = parseInt(r[27]) || 0;
+      const pct   = (total/990)*100;
+      const color = total>=785?'#2e7d4f':total>=550?'#c8a84b':'#c0392b';
+      html += `<div class="trend-row">
+        <div class="trend-label">Attempt ${i+1}</div>
+        <div class="trend-bar-wrap"><div class="trend-bar" style="width:${pct}%;background:${color}">${total||''}</div></div>
+        <div class="trend-val">${total||'—'}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
   // Attempt cards — newest first
   myScores.slice().reverse().forEach((r,i) => {
     const idx = myScores.length - i;
