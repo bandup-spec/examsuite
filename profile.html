@@ -344,12 +344,14 @@
 
   #photo-file,#cover-file{display:none}
   .fb-cover{position:relative;background-size:cover;background-position:center}
-  .cover-btn{position:absolute;right:12px;bottom:12px;background:var(--paper);color:var(--ink);border:1px solid var(--border);border-radius:3px;padding:6px 12px;font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer}
+  .cover-btn{position:absolute;z-index:5;right:12px;bottom:12px;background:var(--paper);color:var(--ink);border:1px solid var(--border);border-radius:3px;padding:6px 12px;font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer}
   .cover-btn:hover{background:var(--paper2)}
   #cover-reset-btn{right:128px}
   .about-body{padding:8px 18px 16px}
   .about-text{font-size:0.88rem;color:var(--ink);line-height:1.5;margin-bottom:10px;white-space:pre-wrap;word-break:break-word}
   .about-text.empty{color:var(--ink3)}
+  .about-note{font-size:0.72rem;color:var(--ink3);margin:-4px 0 8px}
+  .about-note:empty{display:none}
   #about-input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:3px;background:var(--input-bg,var(--paper));color:var(--ink);font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:vertical}
   .about-count{font-size:0.72rem;color:var(--ink3);text-align:right;margin:4px 0 8px}
   .about-actions{display:flex;gap:8px;justify-content:flex-end}
@@ -659,6 +661,7 @@
         <div class="about-body">
           <div id="about-view">
             <div id="about-text" class="about-text"></div>
+            <div id="about-note" class="about-note"></div>
             <button class="about-btn" id="about-edit-btn" onclick="editAbout()">Edit</button>
           </div>
           <div id="about-edit" class="hidden">
@@ -852,12 +855,37 @@ function cancelAbout() {
   document.getElementById('about-edit').classList.add('hidden');
   document.getElementById('about-view').classList.remove('hidden');
 }
-function saveAbout() {
+async function saveAbout() {
   const v = document.getElementById('about-input').value.trim().slice(0, 200);
   try { v ? localStorage.setItem(bioKey(), v) : localStorage.removeItem(bioKey()); }
   catch (e) { alert('Could not save your bio in this browser.'); return; }
   loadAbout();
   cancelAbout();
+  const note = document.getElementById('about-note');
+  note.textContent = '';
+  if (!candidateData.candidateID || candidateData.candidateID === 'PREVIEW') return;
+  try {
+    const res = await callSheets({ action:'updateBio', candidateID: candidateData.candidateID, bio: v });
+    if (!res || !res.success) note.textContent = 'Saved on this device only.';
+  } catch (e) { note.textContent = 'Saved on this device only.'; }
+}
+// Load the saved bio from the account. If the account has none yet but this browser does,
+// send it up so an earlier bio is not lost. Any failure just keeps the browser copy.
+async function syncAboutFromServer() {
+  if (!candidateData.candidateID || candidateData.candidateID === 'PREVIEW') return;
+  try {
+    const res = await callSheets({ action:'getBio', candidateID: candidateData.candidateID });
+    if (!res || !res.success) return;
+    const server = String(res.bio || '');
+    let local = '';
+    try { local = localStorage.getItem(bioKey()) || ''; } catch (e) {}
+    if (server) {
+      try { localStorage.setItem(bioKey(), server); } catch (e) {}
+      loadAbout();
+    } else if (local) {
+      await callSheets({ action:'updateBio', candidateID: candidateData.candidateID, bio: local });
+    }
+  } catch (e) { /* offline or not set up yet: keep the browser copy */ }
 }
 function applyCover(url) {
   const c = document.getElementById('fb-cover');
@@ -907,6 +935,7 @@ function renderProfile() {
   document.getElementById('p-nationality').textContent = candidateData.nationality || '—';
   loadAbout();
   loadCover();
+  syncAboutFromServer();
 }
 
 // ─── PROGRESS ───
