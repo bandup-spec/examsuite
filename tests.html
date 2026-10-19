@@ -25,15 +25,15 @@
   body.dark-mode .test-card{background:var(--paper)}
 
   .font-size-ctrl{display:flex;gap:2px;align-items:center}
-  .fs-btn{padding:5px 11px;border:1px solid rgba(255,255,255,0.25);border-radius:5px;color:rgba(255,255,255,0.85);background:transparent;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;line-height:1}
+  .fs-btn{padding:5px 11px;border:1px solid rgba(255,255,255,0.25);border-radius:3px;color:rgba(255,255,255,0.85);background:transparent;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;line-height:1}
   .fs-btn:hover{background:rgba(255,255,255,0.12)}
-  .fs-btn:first-child{border-radius:5px 0 0 5px}
-  .fs-btn:last-child{border-radius:0 5px 5px 0;border-left:none}
+  .fs-btn:first-child{border-radius:3px 0 0 3px}
+  .fs-btn:last-child{border-radius:0 3px 3px 0;border-left:none}
 
   /* ─── SETTINGS POPOVER ─── */
   .settings-wrap{position:relative}
   .icon-btn{display:flex;align-items:center;gap:6px}
-  .settings-panel{display:none;position:absolute;top:calc(100% + 10px);right:0;background:var(--paper);color:var(--ink);border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.25);padding:16px;width:230px;z-index:200}
+  .settings-panel{display:none;position:absolute;top:calc(100% + 10px);right:0;background:var(--paper);color:var(--ink);border:1px solid var(--border);border-radius:4px;box-shadow:0 10px 30px rgba(0,0,0,0.25);padding:16px;width:230px;z-index:200}
   .settings-panel.open{display:block}
   .settings-row{display:flex;align-items:center;justify-content:space-between;font-size:0.85rem;margin-bottom:14px}
   .settings-row:last-child{margin-bottom:0}
@@ -49,10 +49,10 @@
   .fs-labels{display:flex;justify-content:space-between;font-size:0.7rem;color:var(--ink3);padding:0 2px}
   body{font-family:'DM Sans',sans-serif;background:var(--paper2);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden}
 
-  .hdr{background:var(--blue);color:#fff;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;border-bottom:3px solid var(--gold);position:relative}
+  .hdr{background:var(--blue);color:#fff;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;border-bottom:3px solid var(--gold);position:sticky;top:0;z-index:100}
   .hdr-burger{display:block;background:transparent;border:none;color:#fff;font-size:1.4rem;cursor:pointer;padding:4px 8px;line-height:1}
   /* Dropdown for Settings/Profile/Logout — opened by the burger button, on every screen size */
-  .hdr-menu-dropdown{display:none;position:absolute;top:56px;right:24px;flex-direction:column;gap:8px;background:var(--blue);padding:12px;border-radius:0 0 8px 8px;box-shadow:0 8px 20px rgba(0,0,0,0.25);z-index:80;min-width:170px}
+  .hdr-menu-dropdown{display:none;position:absolute;top:56px;right:24px;flex-direction:column;gap:8px;background:var(--blue);padding:12px;border-radius:0 0 4px 4px;box-shadow:0 8px 20px rgba(0,0,0,0.25);z-index:80;min-width:170px}
   .hdr-menu-dropdown.open{display:flex}
   .hdr-menu-dropdown .btn-hdr{width:100%;justify-content:flex-start}
   .hdr-menu-dropdown .settings-wrap{width:100%}
@@ -66,14 +66,14 @@
   .hdr-badge{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:4px;padding:3px 10px;font-size:0.75rem;color:rgba(255,255,255,0.8)}
   .candidate-info{font-size:0.8rem;color:rgba(255,255,255,0.7);display:flex;align-items:center;gap:16px}
   .candidate-info b{color:#fff}
-  .btn-hdr{padding:5px 14px;border:1px solid rgba(255,255,255,0.3);border-radius:5px;color:rgba(255,255,255,0.85);background:transparent;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s}
+  .btn-hdr{padding:5px 14px;border:1px solid rgba(255,255,255,0.3);border-radius:3px;color:rgba(255,255,255,0.85);background:transparent;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s}
   .btn-hdr:hover{background:rgba(255,255,255,0.12)}
 
   .page{max-width:760px;margin:0 auto;padding:36px 20px;width:100%;flex:1}
   .page-title{font-family:'Source Serif 4',serif;font-size:1.5rem;font-weight:600;color:var(--blue);margin-bottom:6px}
   .page-desc{font-size:0.88rem;color:var(--ink3);margin-bottom:28px}
 
-  .test-card{background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:22px 24px;margin-bottom:14px;display:flex;align-items:center;gap:18px;transition:transform 0.18s cubic-bezier(0.16,1,0.3,1),box-shadow 0.18s ease,border-color 0.18s ease;cursor:pointer;animation:testCardIn 0.35s cubic-bezier(0.16,1,0.3,1) backwards}
+  .test-card{background:var(--paper);border:1px solid var(--border);border-radius:4px;padding:22px 24px;margin-bottom:14px;display:flex;align-items:center;gap:18px;transition:transform 0.18s cubic-bezier(0.16,1,0.3,1),box-shadow 0.18s ease,border-color 0.18s ease;cursor:pointer;animation:testCardIn 0.35s cubic-bezier(0.16,1,0.3,1) backwards}
   .test-card:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,0.09);border-color:var(--blue2)}
   .test-card:active{transform:translateY(0) scale(0.995)}
   .test-card:nth-of-type(1){animation-delay:0.03s} .test-card:nth-of-type(2){animation-delay:0.08s}
@@ -89,7 +89,7 @@
     transition-duration:0.001s !important; transition-delay:0s !important;
   }
   .test-card:hover{border-color:var(--blue2);box-shadow:0 4px 16px rgba(0,47,95,0.08);transform:translateY(-1px)}
-  .test-icon{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--blue2));display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;color:var(--gold)}
+  .test-icon{width:48px;height:48px;border-radius:4px;background:linear-gradient(135deg,var(--blue),var(--blue2));display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;color:var(--gold)}
   .test-info{flex:1;min-width:0}
   .test-name{font-family:'Source Serif 4',serif;font-size:1.05rem;font-weight:600;color:var(--blue);margin-bottom:3px}
   .test-desc{font-size:0.82rem;color:var(--ink3);margin-bottom:6px}
@@ -98,7 +98,7 @@
   .test-status{font-size:0.68rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 9px;border-radius:4px}
   .status-active{background:#e8f5e9;color:var(--green)}
   .status-taken{background:#fff9e6;color:#7a5f1a}
-  .btn-start{padding:9px 18px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:all 0.15s;flex-shrink:0}
+  .btn-start{padding:9px 18px;background:var(--blue);color:#fff;border:none;border-radius:4px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:all 0.15s;flex-shrink:0}
   .btn-start:hover{background:var(--blue2)}
   .btn-start.taken{background:var(--paper3);color:var(--ink2)}
 
@@ -121,7 +121,7 @@
   .type-card:hover{color:var(--blue);border-bottom-color:var(--blue2)}
   .type-card.active{color:var(--blue);border-bottom-color:var(--gold)}
   .type-card .type-icon{font-size:1rem}
-  .type-card .type-count{background:var(--paper3);border-radius:10px;padding:1px 7px;font-size:0.66rem;font-weight:700;color:var(--ink3)}
+  .type-card .type-count{background:var(--paper3);border-radius:4px;padding:1px 7px;font-size:0.66rem;font-weight:700;color:var(--ink3)}
   .type-card.active .type-count,.type-card:hover .type-count{background:rgba(0,47,95,0.1);color:var(--blue)}
 
   /* MAIN LIST + LATEST PANEL — 2-column layout below the type grid */
@@ -129,20 +129,20 @@
   @media(max-width:900px){.tests-layout{grid-template-columns:1fr}.latest-panel{display:none}}
 
   /* RIGHT PANEL - LATEST TEST */
-  .latest-panel{height:fit-content;position:sticky;top:20px}
+  .latest-panel{height:fit-content;position:sticky;top:76px}
   @media(max-width:900px){.latest-panel{display:none}}
-  .latest-card{background:var(--paper);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+  .latest-card{background:var(--paper);border:1px solid var(--border);border-radius:4px;overflow:hidden}
   .latest-hdr{background:linear-gradient(135deg,var(--blue) 0%,var(--blue2) 100%);padding:16px;color:#fff}
   .latest-hdr-label{font-size:0.65rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
   .latest-hdr-title{font-family:'Source Serif 4',serif;font-size:1rem;font-weight:600;line-height:1.3}
   .latest-hdr-desc{font-size:0.75rem;color:rgba(255,255,255,0.65);margin-top:4px}
   .latest-body{padding:14px}
   .latest-meta-row{display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--ink3);margin-bottom:7px}
-  .latest-stat{background:var(--paper2);border-radius:6px;padding:8px 10px;text-align:center;margin-bottom:8px}
+  .latest-stat{background:var(--paper2);border-radius:3px;padding:8px 10px;text-align:center;margin-bottom:8px}
   .latest-stat-val{font-family:'Source Serif 4',serif;font-size:1.3rem;font-weight:600;color:var(--blue)}
   .latest-stat-lbl{font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3)}
   .latest-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
-  .btn-latest-start{width:100%;padding:10px;background:var(--gold);color:var(--blue);border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.15s}
+  .btn-latest-start{width:100%;padding:10px;background:var(--gold);color:var(--blue);border:none;border-radius:4px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.15s}
   .btn-latest-start:hover{opacity:0.88}
   .latest-empty{padding:28px 16px;text-align:center;color:var(--ink3);font-size:0.82rem}
   .latest-empty span{display:block;font-size:1.8rem;margin-bottom:8px}
@@ -196,7 +196,7 @@
   <!-- Course lock badge — replaces the old "browse by type" filter grid,
        since a candidate is now locked to one course and switching types
        would just show an empty list. -->
-  <div id="course-lock-badge" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#f4f1ea;border-radius:8px;margin-bottom:16px;font-size:0.85rem;color:#1a1a2e;">
+  <div id="course-lock-badge" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#f4f1ea;border-radius:4px;margin-bottom:16px;font-size:0.85rem;color:#1a1a2e;">
     <span>🔒</span>
     <span>You're registered for <b id="course-lock-label">IELTS</b> — only <b id="course-lock-label2">IELTS</b> tests are shown here. Ask the admin if this needs to change.</span>
 </div>
@@ -240,9 +240,10 @@
     <div style="margin-bottom:20px">
       <div class="page-title" id="filter-heading">Available Tests</div>
       <div class="page-desc" id="filter-desc">Select a test set to begin. Tests are listed by date.</div>
-      <div style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:0.82rem;color:var(--ink2)">
+      <div style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:0.82rem;color:var(--ink2);flex-wrap:wrap">
+        <input type="search" id="test-search" placeholder="Search tests" aria-label="Search tests" oninput="changeSearch(this.value)" autocomplete="off" style="padding:6px 10px;border:1px solid var(--border);border-radius:4px;background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:0.82rem;flex:1 1 160px;max-width:260px">
         <label for="sort-sel" style="font-weight:600">Sort by</label>
-        <select id="sort-sel" onchange="changeSort(this.value)" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:0.82rem">
+        <select id="sort-sel" onchange="changeSort(this.value)" style="padding:6px 10px;border:1px solid var(--border);border-radius:4px;background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:0.82rem">
           <option value="newest">Newest first</option>
           <option value="oldest">Oldest first</option>
           <option value="name">Name (A–Z)</option>
@@ -453,11 +454,15 @@ function sortedSets(list) {
   else arr.sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
   return arr;
 }
+let searchQuery = '';
 function applyView() {
-  const list = currentFilter === 'all' ? allActiveSets : allActiveSets.filter(s => inferType(s) === currentFilter);
+  let list = currentFilter === 'all' ? allActiveSets : allActiveSets.filter(s => inferType(s) === currentFilter);
+  const q = searchQuery.trim().toLowerCase();
+  if (q) list = list.filter(s => String(s.setName||'').toLowerCase().includes(q));
   renderTests(sortedSets(list));
 }
 function changeSort(v) { currentSort = v; applyView(); }
+function changeSearch(v) { searchQuery = v; applyView(); }
 
 function updateCounts() {
   const types = ['IELTS','TOEIC','TOEFL','Placement','Level-Up'];
@@ -520,6 +525,14 @@ function renderLatestPanel(sets) {
 function renderTests(sets) {
   const wrap = document.getElementById('tests-wrap');
 
+  if (!sets.length && searchQuery.trim()) {
+    wrap.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-title">No tests match your search</div>
+      <div class="empty-desc">Try a different name or clear the search box.</div>
+    </div>`;
+    return;
+  }
   if (!sets.length) {
     wrap.innerHTML = `<div class="empty-state">
       <div class="empty-icon">📋</div>
