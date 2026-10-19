@@ -156,6 +156,12 @@
   .announcement-title{font-family:'Source Serif 4',serif;font-weight:600;font-size:0.95rem;color:var(--blue)}
   .announcement-date{font-size:0.72rem;color:var(--ink3);white-space:nowrap}
   .announcement-body{font-size:0.85rem;color:var(--ink2);line-height:1.6;white-space:pre-wrap}
+  .announcement-body a{color:var(--blue2);text-decoration:underline;word-break:break-all}
+  .announcement-card.pinned{border-color:var(--gold);background:var(--paper)}
+  .ann-pin{display:inline-block;font-size:0.66rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#7a5f1a;background:#fff9e6;border:1px solid #f5d87a;border-radius:4px;padding:1px 6px;margin-right:6px;vertical-align:middle}
+  .ann-new{display:inline-block;font-size:0.66rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#fff;background:var(--red);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+  .ann-by{font-size:0.72rem;color:var(--ink3);margin-top:8px}
+  .tab-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:6px;vertical-align:middle}
   .empty-icon{font-size:2.5rem;margin-bottom:10px}
   .grading-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:0.72rem;font-weight:700;background:#fff9e6;color:#7a5f1a;border:1px solid #f5d87a}
 
@@ -238,6 +244,45 @@
   .inline-msg.ok{display:block;color:var(--green);background:#f5fbf7;border:1px solid #a8dbb8}
   .inline-msg.err{display:block;color:var(--red);background:#fff5f5;border:1px solid #f5b8b8}
 
+
+  /* TOEIC-style simulation report */
+  .toeic-trf{position:relative}
+  .toeic-wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7rem;font-weight:800;letter-spacing:.15em;color:rgba(0,47,95,.06);transform:rotate(-30deg);pointer-events:none;z-index:0}
+  .toeic-trf .trf-inner{position:relative;z-index:1}
+  .tt-head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+  .tt-title{background:#f5c518;border-radius:30px 30px 0 0;padding:8px 26px 6px;text-align:center;color:#1a1a2e}
+  .tt-title-1{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .tt-title-2{font-size:1.05rem;font-weight:800;letter-spacing:.05em}
+  .tt-card{display:grid;grid-template-columns:1.2fr 1fr auto;gap:18px;border:3px solid #f5c518;background:#fffbe8;padding:16px;border-radius:4px}
+  .tt-left{display:flex;gap:14px}
+  .tt-photo{width:84px;height:100px;flex:none;border:2px solid var(--blue);background:var(--paper2);display:flex;align-items:center;justify-content:center;font-size:2rem;overflow:hidden}
+  .tt-photo img{width:100%;height:100%;object-fit:cover}
+  .tt-details{flex:1;min-width:0}
+  .tt-details small,.tt-score small{display:block;font-size:.62rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+  .tt-name{font-weight:700;font-size:1.05rem;border-bottom:1px solid #333;padding-bottom:3px;margin-bottom:8px;overflow-wrap:anywhere}
+  .tt-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;font-size:.82rem;overflow-wrap:anywhere}
+  .tt-row2 b{display:block;border-bottom:1px solid #333;padding-bottom:2px}
+  .tt-right{display:flex;flex-direction:column;gap:14px;justify-content:center;min-width:0}
+  .tt-lbl{display:inline-block;background:#f5c518;color:#1a1a2e;font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 10px}
+  .tt-val{font-family:'Source Serif 4',serif;font-size:1.7rem;font-weight:700;color:var(--blue);line-height:1.1;margin:4px 0}
+  .tt-bar{height:10px;background:linear-gradient(90deg,#eee,#bbb);border-radius:2px;position:relative;overflow:hidden}
+  .tt-bar i{position:absolute;left:0;top:0;bottom:0;width:var(--w);background:var(--blue)}
+  .tt-scale{display:flex;justify-content:space-between;font-size:.62rem;color:var(--ink3);margin-top:2px}
+  .tt-total{text-align:center;align-self:center}
+  .tt-total-val{width:92px;height:92px;border:3px solid #1a1a2e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.9rem;font-weight:800;color:#1a1a2e;margin:8px auto 4px;background:#fff}
+  .tt-scale-1{font-size:.65rem;color:var(--ink3)}
+  .tt-inst{font-size:.78rem;color:var(--ink2);margin:8px 0 16px}
+  .tt-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+  .tt-col{border:1px solid #cfd6e6;padding:0 0 12px;font-size:.8rem;line-height:1.5}
+  .tt-col h4{margin:0 0 8px;padding:7px 12px;text-align:center;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;color:#1a1a2e}
+  .tt-col-l h4{background:#8fa3d6}.tt-col-r h4{background:#8cbfb4}
+  .tt-col>*:not(h4){margin-left:12px;margin-right:12px}
+  .tt-raw{font-weight:700;color:var(--blue);margin-bottom:4px}
+  .tt-col ul{padding-left:18px}
+  .tt-how{font-size:.74rem;color:var(--ink2);background:#fffbe8;border:1px solid #f1dd8a;padding:10px 12px;margin-bottom:12px}
+  @media (max-width:700px){.tt-card{grid-template-columns:1fr}.tt-cols{grid-template-columns:1fr}.toeic-wm{font-size:3.5rem}}
+  body.dark-mode .toeic-trf{color:#1a1a2e}
+  @media print{.tt-card,.tt-lbl,.tt-col h4,.tt-bar i{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
   /* OFFICIAL TRF STYLES */
   .trf-doc{background:#fff;border:1px solid #ccc;border-radius:4px;padding:0;overflow:hidden;font-family:'DM Sans',sans-serif}
   .trf-top-bar{background:var(--blue);height:8px}
@@ -284,24 +329,7 @@
   .trf-footer-doc{text-align:center;font-size:0.68rem;color:var(--ink3);border-top:1px solid var(--border);padding-top:12px;line-height:1.6}
   .trf-stamp{display:inline-block;border:2px solid var(--gold);border-radius:50%;width:60px;height:60px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;opacity:0.3}
 
-  #photo-file,#photo-camera-file{display:none}
-  /* Photo source chooser + camera capture */
-  .photo-src-overlay,.cam-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:210;align-items:center;justify-content:center;padding:20px}
-  .photo-src-overlay.open,.cam-overlay.open{display:flex}
-  .photo-src-box,.cam-box{background:var(--paper);color:var(--ink);border-radius:12px;padding:22px;width:320px;max-width:100%;text-align:center;box-shadow:0 12px 32px rgba(0,0,0,0.3)}
-  .photo-src-opt{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;margin-bottom:10px;border:1px solid var(--border);border-radius:8px;background:var(--paper2);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;text-align:left;transition:all 0.15s}
-  .photo-src-opt:hover{border-color:var(--blue2);background:var(--paper3)}
-  .photo-src-opt .ico{font-size:1.3rem}
-  .cam-view{width:250px;height:250px;margin:0 auto 12px;border-radius:50%;overflow:hidden;position:relative;background:#000;border:3px solid var(--gold)}
-  .cam-view video{width:100%;height:100%;object-fit:cover;display:block}
-  .cam-view video.mirror{transform:scaleX(-1)}
-  .cam-msg{font-size:0.78rem;color:var(--ink2);margin-bottom:12px;min-height:1.2em;line-height:1.4}
-  .cam-msg.err{color:var(--red)}
-  .cam-actions{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap}
-  .cam-shutter{width:52px;height:52px;border-radius:50%;border:3px solid var(--gold);background:#fff;cursor:pointer;padding:0;position:relative;transition:transform 0.1s}
-  .cam-shutter:after{content:'';position:absolute;inset:4px;border-radius:50%;background:var(--blue)}
-  .cam-shutter:active{transform:scale(0.92)}
-  .cam-shutter:disabled{opacity:0.4;cursor:not-allowed}
+  #photo-file{display:none}
   .hidden{display:none!important}
 
   @media print{
@@ -546,36 +574,12 @@
     <div>
       <div class="card">
         <div class="photo-wrap">
-          <div class="photo-circle" onclick="openPhotoChooser()" title="Click to change photo">
+          <div class="photo-circle" onclick="document.getElementById('photo-file').click()" title="Click to change photo">
             <img id="profile-photo-img" src="" alt="" style="display:none">
             <div class="photo-ph" id="photo-placeholder">👤</div>
             <div class="photo-ov"><span>Change Photo</span></div>
           </div>
           <input type="file" id="photo-file" accept="image/*" onchange="handlePhotoUpload(this)">
-          <input type="file" id="photo-camera-file" accept="image/*" capture="user" onchange="handlePhotoUpload(this)">
-          <div class="photo-src-overlay" id="photo-src-overlay" onclick="if(event.target===this)closePhotoChooser()">
-            <div class="photo-src-box">
-              <div class="photo-crop-title">Profile photo</div>
-              <button class="photo-src-opt" onclick="choosePhotoCamera()"><span class="ico">📷</span>Take a photo</button>
-              <button class="photo-src-opt" onclick="choosePhotoUpload()"><span class="ico">🖼️</span>Upload from device</button>
-              <div class="photo-crop-actions" style="margin-top:6px">
-                <button class="photo-crop-btn cancel" onclick="closePhotoChooser()">Cancel</button>
-              </div>
-            </div>
-          </div>
-          <div class="cam-overlay" id="cam-overlay">
-            <div class="cam-box">
-              <div class="photo-crop-title">Take a photo</div>
-              <div class="cam-view"><video id="cam-video" autoplay playsinline muted></video></div>
-              <div class="cam-msg" id="cam-msg">Starting camera…</div>
-              <div class="cam-actions">
-                <button class="photo-crop-btn cancel" onclick="closeCamera()">Cancel</button>
-                <button class="cam-shutter" id="cam-shutter" onclick="capturePhoto()" title="Capture" disabled></button>
-                <button class="photo-crop-btn cancel" id="cam-switch" onclick="switchCamera()" style="display:none">🔄 Flip</button>
-              </div>
-              <button class="photo-crop-btn cancel" id="cam-fallback" onclick="useNativeCamera()" style="display:none;margin-top:12px">Use device camera app</button>
-            </div>
-          </div>
           <div class="photo-crop-overlay" id="photo-crop-overlay">
             <div class="photo-crop-box">
               <div class="photo-crop-title">Adjust photo</div>
@@ -973,23 +977,41 @@ function skillBarPending(label) {
 }
 
 // ─── ANNOUNCEMENTS ───
+// escape first, then turn plain web addresses into safe links
+function linkify(text) {
+  return escH(text).replace(/(https?:\/\/[^\s<>"']*[^\s<>"'.,;:!?)])/g,
+    u => `<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>`);
+}
+function annSeenKey() { return 'bandup_ann_seen_' + ((candidateData && candidateData.candidateID) || ''); }
+function annLastSeen() { try { return parseInt(localStorage.getItem(annSeenKey()), 10) || 0; } catch (e) { return 0; } }
+function annMarkSeen() {
+  try { const m = Math.max(0, ...announcements.map(a => +a.id || 0)); localStorage.setItem(annSeenKey(), String(m)); } catch (e) {}
+  const d = document.getElementById('ann-tab-dot'); if (d) d.remove();
+}
 function renderAnnouncements() {
   const wrap = document.getElementById('announcements-content');
   if (!announcements.length) {
     wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">📢</div>No announcements right now.<br>Check back later for updates.</div>';
     return;
   }
-  // Newest first
-  const sorted = announcements.slice().sort((a,b) => new Date(b.date||0) - new Date(a.date||0));
+  const seen = annLastSeen();
+  // pinned first, then newest first (the server already sorts this way; sort again so the order never depends on it)
+  const sorted = announcements.slice().sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0) || new Date(b.date||0) - new Date(a.date||0));
   wrap.innerHTML = sorted.map(a => `
-    <div class="announcement-card">
+    <div class="announcement-card${a.pinned ? ' pinned' : ''}">
       <div class="announcement-hdr">
-        <div class="announcement-title">${escH(a.title||'Announcement')}</div>
+        <div class="announcement-title">${a.pinned ? '<span class="ann-pin">📌 Pinned</span>' : ''}${escH(a.title||'Announcement')}${(+a.id||0) > seen ? '<span class="ann-new">New</span>' : ''}</div>
         ${a.date ? `<div class="announcement-date">${formatDate(a.date)}</div>` : ''}
       </div>
-      <div class="announcement-body">${escH(a.body||'')}</div>
+      <div class="announcement-body">${linkify(a.body||'')}</div>
+      ${a.author ? `<div class="ann-by">Posted by ${escH(a.author)}</div>` : ''}
     </div>
   `).join('');
+  // red dot on the tab until the candidate opens it
+  const unread = announcements.some(a => (+a.id||0) > seen);
+  const tab = document.querySelector('.tab-btn[onclick*="announcements"]');
+  if (tab && unread && !document.getElementById('ann-tab-dot')) tab.insertAdjacentHTML('beforeend', '<span class="tab-dot" id="ann-tab-dot" title="New announcements"></span>');
+  if (document.getElementById('tab-announcements').classList.contains('active')) annMarkSeen();
 }
 
 // Link to the answer-review page for one attempt (the page itself explains if the teacher turned review off).
@@ -1088,6 +1110,7 @@ function renderTOEICAttemptCard(r, idx) {
 // ─── TRF ───
 function renderTRFSelect() {
   const sel = document.getElementById('trf-attempt-sel');
+  if (!sel) return;   // this page has no TRF tab
   sel.innerHTML = '<option value="">— Select attempt —</option>';
   myScores.forEach((r,i) => {
     const date = r[1] ? new Date(r[1]).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}) : 'Attempt '+(i+1);
@@ -1100,12 +1123,33 @@ function renderTRFSelect() {
 }
 
 function renderTRF() {
+  if (!document.getElementById('trf-attempt-sel')) return;
   const idx  = document.getElementById('trf-attempt-sel').value;
   const wrap = document.getElementById('trf-wrap');
   if (idx===''||!myScores[idx]) { wrap.innerHTML='<div class="no-trf">Select an attempt to view the report.</div>'; return; }
   const r = myScores[idx];
   if (isTOEIC(r)) { renderTOEICReport(r); return; }
   renderIELTSTRF(r);
+}
+
+function toeicStrengths(kind, sc) {
+  const n = parseInt(sc, 10);
+  if (isNaN(n)) return ['Score not available for this attempt.'];
+  const L = [
+    [160, ['Can understand very short, simple spoken exchanges on familiar topics.', 'Can pick out single words and numbers when spoken slowly and clearly.']],
+    [275, ['Can understand the main idea of short conversations and announcements on everyday topics.', 'Can find specific facts when they are stated directly.']],
+    [395, ['Can understand main points and many details in conversations, talks and announcements.', 'Can follow most workplace topics, including some indirect answers.']],
+    [496, ['Can understand details across longer talks, even when ideas are paraphrased or implied.', 'Can handle complex, fast or indirect workplace conversations with little difficulty.']]
+  ];
+  const R = [
+    [160, ['Can understand short, simple notices and messages on familiar topics.', 'Can recognise basic vocabulary and simple sentence patterns.']],
+    [275, ['Can understand the main idea of short texts such as emails, notices and forms.', 'Can find information that is stated directly.']],
+    [385, ['Can understand most workplace texts and make simple inferences.', 'Can link information across a text and use a fairly wide vocabulary.']],
+    [496, ['Can understand complex texts, connect information across several sources, and infer meaning.', 'Can handle uncommon vocabulary and difficult grammar with ease.']]
+  ];
+  const t = kind === 'L' ? L : R;
+  for (const [max, txt] of t) if (n < max) return txt;
+  return t[t.length - 1][1];
 }
 
 function buildTOEICTRFHtml(r, idx) {
@@ -1116,40 +1160,80 @@ function buildTOEICTRFHtml(r, idx) {
   const rdScore = r[8]||0, rdScaled = r[26]||'—';
   const total = r[27]||'—';
   const instName = settings.institution_name || 'BandUp Center';
+  const instAddr = settings.institution_address || '';
   const footerNote = settings.trf_footer_note || 'This is a simulation test result for preparation purposes only.';
+  const photoSrc = candidateData.photoBase64 || localStorage.getItem('photo_'+cd.candidateID) || '';
+  const pct = v => { const n = parseInt(v,10); return isNaN(n) ? 0 : Math.max(0, Math.min(100, Math.round((n-5)/490*100))); };
+  const bullets = (k, sc) => toeicStrengths(k, sc).map(t => `<li>${escH(t)}</li>`).join('');
 
-  return `<div class="trf-doc" id="trf-printable">
+  return `<div class="trf-doc toeic-trf" id="trf-printable">
     <div class="trf-top-bar"></div>
     <div class="trf-inner">
-      <div style="text-align:center;margin-bottom:20px">
-        <div style="font-family:'Source Serif 4',serif;font-size:1.3rem;font-weight:600;color:var(--blue)">${escH(instName)}</div>
-        <div style="font-size:0.8rem;color:var(--ink3);margin-top:2px">TOEIC Listening &amp; Reading — Score Report</div>
+      <div class="tt-head">
+        <div>
+          <div class="trf-logo-main">BandUp</div>
+          <div class="trf-logo-sub">Simulation Test Platform</div>
+        </div>
+        <div class="tt-title">
+          <div class="tt-title-1">TOEIC-style Listening &amp; Reading</div>
+          <div class="tt-title-2">SIMULATION SCORE REPORT</div>
+        </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.85rem;margin-bottom:20px;border-top:1px solid #ddd;border-bottom:1px solid #ddd;padding:12px 0">
-        <div><b>Candidate:</b> ${escH(cd.fullName||'—')}</div>
-        <div><b>Candidate ID:</b> ${escH(cd.candidateID||'—')}</div>
-        <div><b>Test:</b> ${escH(setName)}</div>
-        <div><b>Date:</b> ${date}</div>
+
+      <div class="tt-card">
+        <div class="tt-left">
+          <div class="tt-photo">${photoSrc?`<img src="${photoSrc}" alt="Candidate photo">`:'👤'}</div>
+          <div class="tt-details">
+            <div class="tt-name">${escH(cd.fullName||'—')}<small>Name</small></div>
+            <div class="tt-row2">
+              <div><b>${escH(cd.candidateID||'—')}</b><small>Candidate ID</small></div>
+              <div><b>${escH(formatDate(cd.dob)||'—')}</b><small>Date of Birth</small></div>
+            </div>
+            <div class="tt-row2">
+              <div><b>${date}</b><small>Test Date</small></div>
+              <div><b>${escH(setName)}</b><small>Test</small></div>
+            </div>
+          </div>
+        </div>
+        <div class="tt-right">
+          <div class="tt-score">
+            <div class="tt-lbl">Listening</div>
+            <div class="tt-val">${lScaled}</div>
+            <div class="tt-bar"><i style="--w:${pct(lScaled)}%"></i></div>
+            <div class="tt-scale"><span>5</span><span>495</span></div>
+          </div>
+          <div class="tt-score">
+            <div class="tt-lbl">Reading</div>
+            <div class="tt-val">${rdScaled}</div>
+            <div class="tt-bar"><i style="--w:${pct(rdScaled)}%"></i></div>
+            <div class="tt-scale"><span>5</span><span>495</span></div>
+          </div>
+        </div>
+        <div class="tt-total"><div class="tt-lbl">Total Score</div><div class="tt-total-val">${total}</div><div class="tt-scale-1">out of 990</div></div>
       </div>
-      <div class="trf-bands" style="grid-template-columns:repeat(3,1fr)">
-        <div class="trf-band-cell">
-          <div class="trf-band-label">Listening</div>
-          <div class="trf-band-score" style="font-size:1.8rem">${lScaled}</div>
-          <div class="trf-band-raw">${lScore}/100 correct</div>
+      <div class="tt-inst">${escH(instName)}${instAddr?' · '+escH(instAddr):''}</div>
+
+      <div class="tt-cols">
+        <div class="tt-col tt-col-l">
+          <h4>Listening</h4>
+          <div class="tt-raw">${lScore} / 100 correct</div>
+          <p>At a scaled score of about ${lScaled}, test takers typically can:</p>
+          <ul>${bullets('L', lScaled)}</ul>
         </div>
-        <div class="trf-band-cell">
-          <div class="trf-band-label">Reading</div>
-          <div class="trf-band-score" style="font-size:1.8rem">${rdScaled}</div>
-          <div class="trf-band-raw">${rdScore}/100 correct</div>
+        <div class="tt-col tt-col-r">
+          <h4>Reading</h4>
+          <div class="tt-raw">${rdScore} / 100 correct</div>
+          <p>At a scaled score of about ${rdScaled}, test takers typically can:</p>
+          <ul>${bullets('R', rdScaled)}</ul>
         </div>
-        <div class="trf-band-cell">
-          <div class="trf-band-label">Total Score</div>
-          <div class="trf-band-score">${total}</div>
-          <div class="trf-band-raw">out of 990</div>
-        </div>
+      </div>
+
+      <div class="tt-how">
+        <b>How to read this report:</b> Listening and Reading are each reported from 5 to 495 and add up to a total of 10 to 990.
+        The ability statements are general guidance for practice, not a prediction of an official result.
       </div>
       <div class="validity-note">
-        This is a SIMULATION result for preparation purposes only and is NOT an official TOEIC Score Report.<br>
+        This is a SIMULATION result for preparation purposes only. It is NOT an official TOEIC score report and is not issued by or affiliated with the test owner.<br>
         ${escH(footerNote)}
       </div>
     </div>
@@ -1387,112 +1471,6 @@ function downloadAllTRFs() {
   a.click();
 }
 
-// ─── PHOTO SOURCE: camera or upload ───
-let camStream = null;
-let camFacing = 'user'; // 'user' = front, 'environment' = back
-
-function openPhotoChooser()  { document.getElementById('photo-src-overlay').classList.add('open'); }
-function closePhotoChooser() { document.getElementById('photo-src-overlay').classList.remove('open'); }
-
-function choosePhotoUpload() {
-  closePhotoChooser();
-  document.getElementById('photo-file').click();
-}
-
-function choosePhotoCamera() {
-  closePhotoChooser();
-  // getUserMedia needs HTTPS (or localhost); otherwise fall back to the device's own camera app
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    document.getElementById('photo-camera-file').click();
-    return;
-  }
-  document.getElementById('cam-overlay').classList.add('open');
-  startCamera();
-}
-
-function setCamMsg(text, isErr) {
-  const m = document.getElementById('cam-msg');
-  m.textContent = text;
-  m.className = 'cam-msg' + (isErr ? ' err' : '');
-}
-
-function stopCameraStream() {
-  if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
-  const v = document.getElementById('cam-video');
-  v.srcObject = null;
-}
-
-async function startCamera() {
-  stopCameraStream();
-  const video   = document.getElementById('cam-video');
-  const shutter = document.getElementById('cam-shutter');
-  shutter.disabled = true;
-  document.getElementById('cam-fallback').style.display = 'none';
-  setCamMsg('Starting camera…');
-  try {
-    camStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: camFacing, width: { ideal: 1280 }, height: { ideal: 1280 } },
-      audio: false
-    });
-    // The overlay may have been closed while the permission prompt was open
-    if (!document.getElementById('cam-overlay').classList.contains('open')) { stopCameraStream(); return; }
-    video.srcObject = camStream;
-    video.classList.toggle('mirror', camFacing === 'user'); // selfie preview feels natural mirrored
-    await video.play();
-    shutter.disabled = false;
-    setCamMsg('Center your face in the circle, then tap the button.');
-    try {
-      const devs = await navigator.mediaDevices.enumerateDevices();
-      document.getElementById('cam-switch').style.display =
-        devs.filter(d => d.kind === 'videoinput').length > 1 ? '' : 'none';
-    } catch(e) {}
-  } catch(err) {
-    let msg = 'Could not start the camera.';
-    if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError'))
-      msg = 'Camera access was blocked. Allow camera permission for this site in your browser settings, then try again.';
-    else if (err && (err.name === 'NotFoundError' || err.name === 'OverconstrainedError'))
-      msg = 'No camera was found on this device.';
-    else if (err && err.name === 'NotReadableError')
-      msg = 'The camera is being used by another app.';
-    setCamMsg(msg, true);
-    document.getElementById('cam-fallback').style.display = 'inline-block';
-  }
-}
-
-function switchCamera() {
-  camFacing = camFacing === 'user' ? 'environment' : 'user';
-  startCamera();
-}
-
-function closeCamera() {
-  stopCameraStream();
-  document.getElementById('cam-overlay').classList.remove('open');
-}
-
-function useNativeCamera() {
-  closeCamera();
-  document.getElementById('photo-camera-file').click();
-}
-
-function capturePhoto() {
-  const video = document.getElementById('cam-video');
-  if (!video.videoWidth) return;
-  // Capture the same centered square the circle preview shows
-  const side = Math.min(video.videoWidth, video.videoHeight);
-  const sx = (video.videoWidth - side) / 2, sy = (video.videoHeight - side) / 2;
-  const out = Math.min(side, 1000);
-  const c = document.createElement('canvas');
-  c.width = out; c.height = out;
-  const ctx = c.getContext('2d');
-  if (camFacing === 'user') { ctx.translate(out, 0); ctx.scale(-1, 1); } // match the mirrored preview
-  ctx.drawImage(video, sx, sy, side, side, 0, 0, out, out);
-  const dataUrl = c.toDataURL('image/jpeg', 0.92);
-  closeCamera();
-  openPhotoCrop(dataUrl); // same crop/zoom + save flow as uploads
-}
-
-document.addEventListener('visibilitychange', () => { if (document.hidden) closeCamera(); });
-
 // ─── PHOTO ───
 function handlePhotoUpload(input) {
   if (!input.files[0]) return;
@@ -1674,6 +1652,7 @@ function switchTab(id, btn) {
   btn.classList.add('active');
   document.getElementById('tab-'+id).classList.add('active');
   if (id==='trf') renderTRF();
+  if (id==='announcements') annMarkSeen();
 }
 
 const COUNTRIES = ["Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cabo Verde","Cambodia","Cameroon","Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo","Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"];
