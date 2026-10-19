@@ -304,16 +304,16 @@ window.onload = async () => {
 const PERM_DEFS = [
   ['monitor','🟢 Live Monitor'], ['candidates','👥 Candidates'], ['scores','📊 Scores'],
   ['trf','📄 TRF Viewer'], ['grading','✏️ Grade Writing'], ['testsets','📚 Test Sets'],
-  ['answerkey','🔑 Answer Keys'], ['questionmaker','🧠 Question Makers']
+  ['answerkey','🔑 Answer Keys'], ['questionmaker','🧠 Question Makers'], ['announcements','📢 Announcements']
 ];
 const DEFAULT_SUB_PERMS = ['monitor','candidates','scores','trf','grading'];
 const PANEL_PERM = {
   'p-monitor':'monitor', 'p-candidates':'candidates', 'p-scores':'scores', 'p-trf':'trf',
-  'p-grading':'grading', 'p-testsets':'testsets', 'p-answerkey':'answerkey'
+  'p-grading':'grading', 'p-testsets':'testsets', 'p-answerkey':'answerkey', 'p-announcements':'announcements'
 };
 const OWNER_ONLY_PANELS = ['p-settings','p-admins'];
 const SUB_ONLY_PANELS = ['p-account'];
-const PANEL_ORDER = ['p-monitor','p-candidates','p-scores','p-trf','p-grading','p-testsets','p-answerkey','p-settings','p-admins','p-account'];
+const PANEL_ORDER = ['p-monitor','p-candidates','p-scores','p-trf','p-grading','p-testsets','p-answerkey','p-announcements','p-settings','p-admins','p-account'];
 
 let ME = { role:'Owner', name:'', perms:[] };
 
@@ -446,6 +446,121 @@ async function akSave() {
 }
 
 
+
+// ═══════════════════════════════════════
+// ANNOUNCEMENTS
+// ═══════════════════════════════════════
+let _anns = [];
+
+async function loadAnnouncements() {
+  const wrap = document.getElementById('ann-wrap');
+  wrap.innerHTML = '<div class="tbl-empty">⏳ Loading…</div>';
+  try {
+    const d = await callSheets({ action: 'getAnnouncementsAdmin' });
+    if (!d.success) throw new Error(d.message || 'Failed');
+    _anns = d.announcements || [];
+    renderAnnouncementsAdmin();
+  } catch (e) {
+    wrap.innerHTML = `<div class="tbl-empty">❌ ${escH(e.message)}<br><br>If this says "Unknown action", run announcements-migration.sql in Supabase first.</div>`;
+  }
+}
+
+function renderAnnouncementsAdmin() {
+  const wrap = document.getElementById('ann-wrap');
+  document.getElementById('ann-count').textContent = _anns.length ? `(${_anns.length})` : '';
+  if (!_anns.length) { wrap.innerHTML = '<div class="tbl-empty">No announcements yet. Click “+ New Announcement” to post the first one.</div>'; return; }
+  const audLabel = { ALL: 'Everyone', IELTS: 'IELTS', TOEIC: 'TOEIC', TOEFL: 'TOEFL', ESL: 'ESL' };
+  let html = '<div><table class="sheets-table"><thead><tr><th>Announcement</th><th>Audience</th><th>Status</th><th>Posted by</th><th>Date</th><th>Actions</th></tr></thead><tbody>';
+  _anns.forEach(a => {
+    const flags = [
+      a.pinned ? '<span class="badge brand">📌 Pinned</span>' : '',
+      !a.active ? '<span class="badge warn">🙈 Hidden</span>' : '',
+      a.expired ? '<span class="badge bad">⌛ Expired</span>' : (a.expiresAt ? `<span class="badge info">Until ${escH(a.expiresAt)}</span>` : ''),
+      (a.active && !a.expired) ? '<span class="badge ok">✅ Live</span>' : ''
+    ].filter(Boolean).join(' ');
+    const preview = String(a.body || '').replace(/\s+/g, ' ');
+    html += `<tr>
+      <td><b>${escH(a.title)}</b><br><span class="muted">${escH(preview.length > 110 ? preview.slice(0, 110) + '…' : preview)}</span></td>
+      <td>${escH(audLabel[a.audience] || a.audience)}</td>
+      <td>${flags}</td>
+      <td>${escH(a.author)}</td>
+      <td>${formatDate(a.date)}</td>
+      <td>${a.canEdit ? `
+        <button class="btn btn-ghost" data-id="${escH(a.id)}" data-click="editAnn(this.dataset.id)">✏️ Edit</button>
+        <button class="btn btn-ghost" data-id="${escH(a.id)}" data-active="${a.active ? '0' : '1'}" data-click="toggleAnn(this.dataset.id,this.dataset.active)">${a.active ? '🙈 Hide' : '👁 Show'}</button>
+        <button class="btn btn-danger" data-id="${escH(a.id)}" data-click="deleteAnn(this.dataset.id)">🗑️ Delete</button>` : '<span class="muted">Posted by someone else</span>'}</td>
+    </tr>`;
+  });
+  wrap.innerHTML = html + '</tbody></table></div>';
+}
+
+function annCount() {
+  const n = document.getElementById('ann-body').value.length;
+  document.getElementById('ann-count-body').textContent = `(${n}/4000)`;
+}
+
+function annOpenForm(a) {
+  document.getElementById('ann-id').value = a ? a.id : '';
+  document.getElementById('ann-title').value = a ? a.title : '';
+  document.getElementById('ann-body').value = a ? a.body : '';
+  document.getElementById('ann-audience').value = a ? a.audience : 'ALL';
+  document.getElementById('ann-expires').value = a ? (a.expiresAt || '') : '';
+  document.getElementById('ann-pinned').checked = !!(a && a.pinned);
+  document.getElementById('ann-form-title').textContent = a ? 'Edit Announcement' : 'New Announcement';
+  document.getElementById('ann-save-btn').textContent = a ? '💾 Save changes' : '📢 Post';
+  document.getElementById('ann-msg').textContent = '';
+  annCount();
+  const card = document.getElementById('ann-form-card');
+  card.style.display = 'block';
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  document.getElementById('ann-title').focus();
+}
+function newAnn() { annOpenForm(null); }
+function editAnn(id) {
+  const a = _anns.find(x => String(x.id) === String(id));
+  if (a) annOpenForm(a);
+}
+
+async function saveAnn() {
+  const msg = document.getElementById('ann-msg'), btn = document.getElementById('ann-save-btn');
+  const body = {
+    action: 'saveAnnouncement',
+    id: document.getElementById('ann-id').value || undefined,
+    title: document.getElementById('ann-title').value.trim(),
+    body: document.getElementById('ann-body').value.trim(),
+    audience: document.getElementById('ann-audience').value,
+    expiresAt: document.getElementById('ann-expires').value,
+    pinned: document.getElementById('ann-pinned').checked
+  };
+  if (!body.title) { msg.textContent = '⚠️ Please enter a title.'; return; }
+  if (!body.body) { msg.textContent = '⚠️ Please write the announcement.'; return; }
+  btn.disabled = true; msg.textContent = '⏳ Saving…';
+  try {
+    const d = await callSheets(body);
+    if (d.success) { hide('ann-form-card'); toast('📢 ' + (d.message || 'Saved.')); await loadAnnouncements(); }
+    else msg.textContent = '❌ ' + (d.message || 'Could not save.');
+  } catch (e) { msg.textContent = '❌ ' + e.message; }
+  finally { btn.disabled = false; }
+}
+
+async function toggleAnn(id, active) {
+  try {
+    const d = await callSheets({ action: 'setAnnouncementActive', id, active: active === '1' });
+    toast(d.success ? '📢 ' + d.message : '❌ ' + (d.message || 'Could not change.'));
+    if (d.success) loadAnnouncements();
+  } catch (e) { toast('❌ ' + e.message); }
+}
+
+async function deleteAnn(id) {
+  const a = _anns.find(x => String(x.id) === String(id));
+  if (!confirm(`Delete this announcement permanently?\n\n“${a ? a.title : ''}”\n\nTip: use Hide instead if you may want it back.`)) return;
+  try {
+    const d = await callSheets({ action: 'deleteAnnouncement', id });
+    toast(d.success ? '🗑️ ' + d.message : '❌ ' + (d.message || 'Could not delete.'));
+    if (d.success) loadAnnouncements();
+  } catch (e) { toast('❌ ' + e.message); }
+}
+
 // PANEL NAVIGATION
 // ═══════════════════════════════════════
 function showPanel(id) {
@@ -456,6 +571,7 @@ function showPanel(id) {
   {const sb=document.getElementById('sb-'+id); if(sb) sb.setAttribute('aria-current','page'); if(window.closeSidebar) closeSidebar(); const t=document.querySelector('#'+id+' .page-title'); if(t) document.getElementById('topbar-title').textContent=t.textContent;}
   if (id === 'p-answerkey') akLoadSets();
   if (id === 'p-admins') loadAdmins();
+  if (id === 'p-announcements') loadAnnouncements();
   // Auto-load monitor
   if (id === 'p-monitor' && !document.querySelector('#monitor-wrap table')) loadMonitor();
   // Auto-load candidates
@@ -1282,7 +1398,7 @@ function buildTOEICTRFHtml(row, candidateRows, photoBase64) {
 <div class="page">
   <div class="top">
     <div class="brand">Band<span>Up</span><small>Simulation Test Platform</small></div>
-    <div class="title"><div class="t1">TOEIC Listening &amp; Reading</div><div class="t2">SIMULATION SCORE CERTIFICATE</div></div>
+    <div class="title"><div class="t1">TOEIC-style Listening &amp; Reading</div><div class="t2">SIMULATION SCORE CERTIFICATE</div></div>
   </div>
   <div class="card">
     <div class="left">
