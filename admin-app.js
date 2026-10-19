@@ -1282,7 +1282,7 @@ function buildTOEICTRFHtml(row, candidateRows, photoBase64) {
 <div class="page">
   <div class="top">
     <div class="brand">Band<span>Up</span><small>Simulation Test Platform</small></div>
-    <div class="title"><div class="t1">TOEIC-style Listening &amp; Reading</div><div class="t2">SIMULATION SCORE CERTIFICATE</div></div>
+    <div class="title"><div class="t1">TOEIC Listening &amp; Reading</div><div class="t2">SIMULATION SCORE CERTIFICATE</div></div>
   </div>
   <div class="card">
     <div class="left">
